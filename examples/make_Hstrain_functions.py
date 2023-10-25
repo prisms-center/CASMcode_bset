@@ -40,4 +40,6 @@ print("Symmetry adapted polynomials functions:")
 for i, f in enumerate(basis_set):
     print(f"~~~ order: {f.order()}, function_index: {i} ~~~")
     f._basic_print()
+    print('Latex formula:')
+    f._latex_print(variables)
     print()
