@@ -7,5 +7,5 @@ setup(
     name="casm-bset",
     version=__version__,
     packages=["casm", "casm.bset"],
-    install_requires=["torch"],
+    install_requires=[],
 )
