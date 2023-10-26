@@ -573,13 +573,13 @@ class PolynomialFunction:
                 coeff_tex = ""
             else:
                 coeff_tex = irrational_to_tex_string(a*factored_data[i], limit=limit, max_pow=max_pow, abs_tol=1e-5)
-            polynomial_tex = ""
+            polynomial_tex = "1"
             for j, exp in enumerate(exponents[i]):
                 if exp == 0: continue
                 if exp == 1:
-                    polynomial_tex += f"{variables[j].name}"
+                    polynomial_tex += f" * ({variables[j].name})"
                 else:
-                    polynomial_tex += f"({variables[j].name})^{exp}"
+                    polynomial_tex += f" * ({variables[j].name})^{exp}"
             latex_formula += f"{coeff_tex} * [{polynomial_tex}] + "
         # strip trailing +
         latex_formula = latex_formula.rstrip("+ ")
