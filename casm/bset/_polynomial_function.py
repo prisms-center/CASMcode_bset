@@ -13,6 +13,7 @@ from typing import Optional, TypeVar
 import numpy as np
 import opt_einsum
 import sparse
+import sympy as sp
 from libcasm.counter import IntCounter
 
 from ._misc import (
@@ -215,6 +216,7 @@ class Variable:
         neighborhood_site_index: Optional[int] = None,
     ):
         self.name = name
+        self.var = sp.parse_expr(name) # cannot have curly brackets, e.g. e_{1} should be e_1
         self.cluster_site_index = cluster_site_index
         self.neighborhood_site_index = neighborhood_site_index
 
@@ -557,32 +559,21 @@ class PolynomialFunction:
         # print(coeff_tex)
 
     def _latex_print(self, variables):
-        """Latex printing for development
-        It might be good to take variables as strings."""
-        limit = len(self.variables) ** 2
-        max_pow = 2
+        """Latex printing with sympy"""
 
-        a, factored_data = factor_by_mode(self.coeff.data)
+        coefficients = self.coeff.data
         exponents = self.monomial_exponents
 
-        # build terms
-        latex_formula = ""
-        for i, val in enumerate(factored_data): # len(factored_data) is the number of terms
-            coeff = a*factored_data[i]
-            if np.isclose(coeff, 1):
-                coeff_tex = ""
-            else:
-                coeff_tex = irrational_to_tex_string(a*factored_data[i], limit=limit, max_pow=max_pow, abs_tol=1e-5)
-            polynomial_tex = ""
+        # build formula
+        formula = 0
+        for i, coeff in enumerate(coefficients): # len(coefficients) is the number of terms
+            term = 1
             for j, exp in enumerate(exponents[i]):
-                if exp == 0: continue
-                if exp == 1:
-                    polynomial_tex += f"{variables[j].name}"
-                else:
-                    polynomial_tex += f"({variables[j].name})^{exp}"
-            latex_formula += f"{coeff_tex} * [{polynomial_tex}] + "
-        # strip trailing +
-        latex_formula = latex_formula.rstrip("+ ")
+                term *= variables[j].var**exp
+            # additional simplification needed on coeff to get small radicals
+            formula += sp.nsimplify(coeff, tolerance = 1e-5) * term
+        reduced_formula = sp.simplify(formula, tolerance=1e-5)
+        latex_formula = sp.printing.latex(reduced_formula)
         print(latex_formula)
 
 

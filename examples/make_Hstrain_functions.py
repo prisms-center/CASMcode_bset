@@ -16,12 +16,12 @@ matrix_rep = make_global_dof_matrix_rep(
     dof_key="Hstrain",
 )
 variables = [
-    Variable(name="{E_{xx}}"),
-    Variable(name="{E_{yy}}"),
-    Variable(name="{E_{zz}}"),
-    Variable(name="{\\sqrt{2}E_{yz}}"),
-    Variable(name="{\\sqrt{2}E_{xz}}"),
-    Variable(name="{\\sqrt{2}E_{xy}}"),
+    Variable(name="E_xx"),
+    Variable(name="E_yy"),
+    Variable(name="E_zz"),
+    Variable(name="sqrt(2)*E_yz"),
+    Variable(name="sqrt(2)*E_xz"),
+    Variable(name="sqrt(2)*E_xy"),
 ]
 basis_set = make_symmetry_adapted_polynomials(
     matrix_rep=matrix_rep,
