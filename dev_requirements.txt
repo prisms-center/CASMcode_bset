@@ -1,3 +1,5 @@
 black
 build
+opt-einsum
 ruff
+sparse
