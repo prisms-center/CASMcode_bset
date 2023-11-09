@@ -581,8 +581,8 @@ class PolynomialFunction:
                 else:
                     polynomial_tex += f" * ({variables[j].name})^{exp}"
             latex_formula += f"{coeff_tex} * [{polynomial_tex}] + "
-        # strip trailing +
-        latex_formula = latex_formula.rstrip("+ ")
+        # strip trailing +, *
+        latex_formula = latex_formula.strip("*+ ")
         print(latex_formula)
 
 
