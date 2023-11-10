@@ -537,7 +537,6 @@ class PolynomialFunction:
         """
         n_size = len(self.variables)
         coords = self.coeff.coords
-        # print("coords.shape:", coords.shape)
         n_coords = coords.shape[1]
         return [
             tensor_coord_to_monomial_exponents(coords[:, i], n_size)
@@ -665,7 +664,6 @@ class PolynomialFunction:
         for s in coeff_tex:
             print(f"{s}, ", end="")
         print("]")
-        # print(coeff_tex)
 
     def to_dict(self):
         """Represent as a Python dict"""
@@ -962,8 +960,6 @@ def make_symmetry_adapted_polynomials(
                 functions.append(f_sum)
 
             if verbose:
-                # f_sum._basic_print()
-                # print()
                 print(".", end="")
                 f_count += 1
                 sys.stdout.flush()
@@ -972,9 +968,6 @@ def make_symmetry_adapted_polynomials(
                         print(f" {len(functions)} / {len(orthonormalized_functions)}")
                     else:
                         print(f" {len(functions)}")
-
-            # if verbose:
-            #     print()
 
         if verbose:
             print()

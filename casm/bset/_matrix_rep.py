@@ -44,6 +44,29 @@ def make_cluster_dof_info(
     cluster: Cluster,
     local_dof_matrix_rep: list[list[np.ndarray]],
 ):
+    """Get cluster DoF information
+
+    Parameters
+    ----------
+    cluster: Cluster
+        The cluster of sites
+    local_dof_matrix_rep: list[list[np.ndarray]]
+        The local DoF matrix reps, `M`, for each operation in the head symmetry group,
+        for each sublattice,
+        ``M = local_dof_matrix_rep[head_group_index][sublattice_index]``.
+
+    Returns
+    -------
+    (site_index_to_basis_index, total_dim):
+        site_index_to_basis_index: dict[int, int]
+            Specifies the beginning row or column, `basis_index`, in the cluster
+            matrix rep for each site in the cluster,
+            ``basis_index = site_index_to_basis_index[site_index]``.
+        total_dim: int
+            The total dimension of the resulting cluster DoF vector / and cluster
+            matrix reps.
+
+    """
     # Make a dict of site_index (index into the cluster) ->
     #   beginning row in cluster DoF space basis matrix for DoF from that site
     site_index_to_basis_index = {}
@@ -461,8 +484,13 @@ class PeriodicClusterMatrixRepBuilder:
         variables, then `var_subsets=[[0,1,2,3,4,5]]`. If the variables are the 3
         displacements on each site in a cluster of 2 sites, then
         `variable_subsets=[[0, 1, 2], [3, 4, 5]]`.
-    site_index_to_basis_index: dict[int,int],
-    total_dim: int,
+    site_index_to_basis_index: dict[int, int]
+        Specifies the beginning row or column, `basis_index`, in the cluster
+        matrix rep for each site in the cluster,
+        ``basis_index = site_index_to_basis_index[site_index]``.
+    total_dim: int
+        The total dimension of the resulting cluster DoF vector / and cluster
+        matrix reps.
 
     """
 
@@ -478,9 +506,6 @@ class PeriodicClusterMatrixRepBuilder:
         self.cluster = cluster
 
         ## Build cluster matrix rep ##
-        # print("Cluster:")
-        # print(xtal.pretty_json(cluster.to_dict(prim.xtal_prim())))
-
         factor_group_site_rep = make_integral_site_coordinate_symgroup_rep(
             group_elements=prim.factor_group().elements(),
             xtal_prim=prim.xtal_prim(),
@@ -625,94 +650,3 @@ class PeriodicOrbitMatrixRepBuilder:
         self.equivalence_map_matrix_rep = _1
         self.equivalence_map_inv_matrix_rep = _2
         self.equivalence_map_clusters = _3
-
-
-# def make_local_dof_matrix_rep(
-#     prim: casmconfig.Prim,
-#     key: str,
-#     cluster: Cluster,
-# ):
-#     """Generate the group matrix representation for a cluster of local DoF
-#
-#     Parameters
-#     ----------
-#     prim: :class:`~libcasm.configuration.Prim`
-#         The Prim
-#     key: str
-#         The name of the local DoF type. May be "occ" or a continuous local DoF. Must
-#         exist in `prim`.
-#     cluster: Cluster
-#         The cluster of sites with DoF to be transformed by the matrix representations.
-#
-#     Returns
-#     -------
-#     matrix_rep: list[np.ndarray[np.float[total_dim, total_dim]]
-#         Matrix representation for the factor group acting on global DoF in
-#         the prim basis. The dimension of the matrix representations, `total_dim`, is
-#         the sum of the prim basis dimension for the specified DoF over each site in
-#         the cluster. The DoF vectors transformed by the matrix representations
-#         correspond to prim basis DoF values of the specified type on each site in the
-#         cluster, in the order sites in `cluster`.
-#     """
-#
-#     # Get site rep of the factor group:
-#     integral_site_coordinate_rep = make_integral_site_coordinate_symgroup_rep(
-#         group_elements=prim.factor_group().elements(),
-#         xtal_prim=prim.xtal_prim(),
-#     )
-#     # Get the cluster group:
-#     # - Remember, cluster group ops may include lattice translations
-#     cluster_group = make_cluster_group(
-#         cluster=cluster,
-#         group=prim.factor_group(),
-#         lattice=prim.xtal_prim().lattice(),
-#         integral_site_coordinate_symgroup_rep=integral_site_coordinate_rep,
-#     )
-#
-#     # Get the local DoF matrix reps, by factor_group_index, then sublattice_index
-#     local_dof_matrix_rep = prim.local_dof_matrix_rep(key)
-#     assert len(local_dof_matrix_rep) == len(prim.factor_group().elements())
-#
-#     if len(local_dof_matrix_rep) == 0:
-#         raise Exception(
-#             "Error in make_local_dof_matrix_rep: DoF symgroup rep has size==0."
-#         )
-#
-#     # Make a dict of site_index (index into the cluster) ->
-#     #   beginning row in cluster DoF space basis matrix for DoF from that site
-#     site_index_to_basis_index = {}
-#     total_dim = 0
-#     for site_index, integral_site_coordinate in enumerate(cluster.sites()):
-#         b = integral_site_coordinate.sublattice()
-#         site_dof_dim = local_dof_matrix_rep[0][b].shape[1]
-#         site_index_to_basis_index[site_index] = total_dim
-#         total_dim += site_dof_dim
-#
-#     # Make the cluster permutation rep:
-#     # from_site_index = cluster_permutation_rep[cluster_group_index][to_site_index]
-#     cluster_permutation_rep = make_cluster_permutation_rep(
-#         prim=prim,
-#         cluster=cluster,
-#         cluster_group=cluster_group,
-#     )
-#
-#     # Make matrix rep, by filling in blocks with site matrix reps
-#     matrix_rep = []
-#     for cluster_group_index, factor_group_index in enumerate(
-#         cluster_group.head_group_index()
-#     ):
-#         trep = np.zeros((total_dim, total_dim))
-#         perm_rep = cluster_permutation_rep[cluster_group_index]
-#         for to_site_index in range(cluster.size()):
-#             from_site_index = perm_rep[to_site_index]
-#             from_site_b = cluster.site(from_site_index).sublattice()
-#             U = local_dof_matrix_rep[factor_group_index][from_site_b]
-#
-#             row = site_index_to_basis_index[to_site_index]
-#             col = site_index_to_basis_index[from_site_index]
-#             dim = U.shape[0]
-#             trep[row : row + dim, col : col + dim] = U
-#
-#         matrix_rep.append(trep)
-#
-#     return matrix_rep
