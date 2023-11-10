@@ -245,33 +245,57 @@ def make_cluster_variables(
             `var_subsets=[[0, 1, 2], [3, 4, 5]]`.
     """
 
-    def find_dof_basis_set(local_dof, b):
-        for _dof_basis_set in local_dof[b]:
-            if _dof_basis_set.dofname() == key:
-                return _dof_basis_set
-        return None
+    if key == "occ":
+        occ_dof = prim.xtal_prim().occ_dof()
 
-    local_dof = prim.xtal_prim().local_dof()
-    variables = []
-    variable_subsets = []
-    variable_index = 0
-    for cluster_site_index, integral_site_coordinate in enumerate(cluster.sites()):
-        b = integral_site_coordinate.sublattice()
-        dof_basis_set = find_dof_basis_set(local_dof, b)
-        if dof_basis_set is None:
-            continue
-        site_variable_subset = []
-        for component_index in range(dof_basis_set.basis().shape[1]):
-            variables.append(
-                Variable(
-                    name=f"x_{{{component_index},{cluster_site_index}}}",
-                    cluster_site_index=cluster_site_index,
+        variables = []
+        variable_subsets = []
+        variable_index = 0
+        for cluster_site_index, integral_site_coordinate in enumerate(cluster.sites()):
+            b = integral_site_coordinate.sublattice()
+            dof_basis_set = occ_dof[b]
+            site_variable_subset = []
+            for site_basis_function_index in range(len(dof_basis_set)):
+                variables.append(
+                    Variable(
+                        name=f"\phi_{{{site_basis_function_index},{cluster_site_index}}}",
+                        cluster_site_index=cluster_site_index,
+                    )
                 )
-            )
-            site_variable_subset.append(variable_index)
-            variable_index += 1
-        variable_subsets.append(site_variable_subset)
-    return (variables, variable_subsets)
+                site_variable_subset.append(variable_index)
+                variable_index += 1
+            variable_subsets.append(site_variable_subset)
+        return (variables, variable_subsets)
+
+    else:
+
+        def find_dof_basis_set(local_dof, b):
+            for _dof_basis_set in local_dof[b]:
+                if _dof_basis_set.dofname() == key:
+                    return _dof_basis_set
+            return None
+
+        local_dof = prim.xtal_prim().local_dof()
+        variables = []
+        variable_subsets = []
+        variable_index = 0
+        for cluster_site_index, integral_site_coordinate in enumerate(cluster.sites()):
+            b = integral_site_coordinate.sublattice()
+            dof_basis_set = find_dof_basis_set(local_dof, b)
+            if dof_basis_set is None:
+                continue
+            site_variable_subset = []
+            for component_index in range(dof_basis_set.basis().shape[1]):
+                variables.append(
+                    Variable(
+                        name=f"x_{{{component_index},{cluster_site_index}}}",
+                        cluster_site_index=cluster_site_index,
+                    )
+                )
+                site_variable_subset.append(variable_index)
+                variable_index += 1
+            variable_subsets.append(site_variable_subset)
+        return (variables, variable_subsets)
 
 
 def make_equivalence_map_matrix_rep(

@@ -828,6 +828,7 @@ def make_symmetry_adapted_polynomials(
     max_poly_order: int,
     min_poly_order: int = 1,
     orthonormalize_in_place: bool = True,
+    skip_variables: list[int] = [],
     eps: float = 1e-14,
     verbose: bool = False,
 ) -> list[PolynomialFunction]:
@@ -839,10 +840,11 @@ def make_symmetry_adapted_polynomials(
         Matrix representation for the factor group acting on global DoF in
         the prim basis.
     variables: list[Variable]
-        Describes the variable elements of the vector that
-        `matrix_rep` acts on.
+        Describes the variable elements of the vector that `matrix_rep` acts on.
     variable_subsets: list[list[int]]
-        The indices of Variable in `variables` which mix under application of symmetry.
+        The indices of Variable in `variables` which mix under application of symmetry,
+        or permute as a group. This could be strain variables, displacement variables
+        on a site, or occupant site basis functions on a site.
     max_poly_order: int
         Maximum order (sum of exponents) in monomials of the generated
         polynomials.
@@ -853,11 +855,14 @@ def make_symmetry_adapted_polynomials(
         If True, orthonormalize symmetry adapted polynomials as they are generated,
         otherwise generate all symmetry adapted polynomials of a particular order and
         then orthonormalize.
+    skip_variables: list[int] = []
+        Indices of variables that should not be included in initially proposed
+        monomials. This can be used to specify the indices of the first site basis
+        function variable on each site, which are typically a constant 1.
     eps: float = 1e-14
         Tolerance used for identifying zeros in the matrix representations.
     verbose: bool = False
         Print progress statements
-
     Returns
     -------
     basis_set: list[PolynomialFunction]
@@ -890,6 +895,12 @@ def make_symmetry_adapted_polynomials(
     all_functions = []
 
     in_place = orthonormalize_in_place
+
+    def must_skip(x):
+        for _x in x:
+            if _x in skip_variables:
+                return True
+        return False
 
     for poly_order in range(min_poly_order, max_poly_order + 1):
         if verbose:
@@ -924,6 +935,13 @@ def make_symmetry_adapted_polynomials(
             # For cluster functions, want at least one dof from each site:
             if is_cluster_function and is_subcluster_function(x, variables, n_sites):
                 continue
+
+            # Skip monomials that include certain variables
+            if skip_variables is not None:
+                if must_skip(x):
+                    continue
+
+            print("Adding mononmial:", x)
 
             # Create polynomial function coefficients tensor
             coords = x.reshape((-1, 1))  # 2d array with single column containing x
@@ -979,7 +997,8 @@ def make_symmetry_adapted_polynomials(
 
         if not in_place:
             orthonormalized_functions = gram_schmidt(functions)
-
+        else:
+            orthonormalized_functions.sort()
         all_functions += orthonormalized_functions
 
         if verbose:
