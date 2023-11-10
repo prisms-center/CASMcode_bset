@@ -1,4 +1,12 @@
 from ._matrix_rep import (
+    PeriodicClusterMatrixRepBuilder,
+    PeriodicOrbitMatrixRepBuilder,
+    make_cluster_dof_info,
+    make_cluster_matrix_rep,
+    make_cluster_permutation_rep,
+    make_cluster_variables,
+    make_equivalence_map_matrix_rep,
+    make_equivalence_map_site_rep,
     make_global_dof_matrix_rep,
 )
 from ._misc import (
