@@ -400,6 +400,9 @@ class PolynomialFunction:
         """
         coords = np.array([])
         data = np.array([])
+        # Note: this gives a DeprecationWarning in sparse 0.14.0,
+        # but it is erroneous and should not in the next release
+        # (see https://github.com/pydata/sparse/pull/581)
         return PolynomialFunction(
             coeff=sparse.COO(coords, data, shape=shape, prune=True),
             variables=variables,

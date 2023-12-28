@@ -22,7 +22,8 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-  "numpy",
+    "libcasm-configuration==2.0a2",
+    "numpy",
 ]
 
 [project.urls]
