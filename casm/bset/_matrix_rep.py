@@ -1,4 +1,7 @@
+from typing import Optional
+
 import libcasm.configuration as casmconfig
+import libcasm.sym_info as casmsyminfo
 import libcasm.xtal as xtal
 import numpy as np
 from libcasm.clusterography import (
@@ -191,7 +194,7 @@ def make_equivalence_map_site_rep(
     equivalence_map_ops: list[list[xtal.SymOp]],
 ) -> list[list[xtal.IntegralSiteCoordinateRep]]:
     """Make the :class:`~libcasm.xtal.IntegralSiteCoordinateRep` representation of an
-    equivalance map
+    equivalence map
 
     Parameters
     ----------
@@ -204,7 +207,7 @@ def make_equivalence_map_site_rep(
     -------
     equivalence_map_site_rep: list[list[xtal.IntegralSiteCoordinateRep]]
         The :class:`~libcasm.xtal.IntegralSiteCoordinateRep` representation of an
-        equivalance map
+        equivalence map
     """
     equivalence_map_site_rep = []
     for eq_map_ops in equivalence_map_ops:
@@ -218,6 +221,7 @@ def make_cluster_variables(
     prim: casmconfig.Prim,
     key: str,
     cluster: Cluster,
+    varname: Optional[str] = None,
 ):
     """Construct the variable list for a cluster
 
@@ -230,6 +234,11 @@ def make_cluster_variables(
         exist in `prim`.
     cluster: Cluster
         The cluster of sites with DoF to be transformed by the matrix representations.
+    varname: Optional[str] = None
+        String that will be formatted using ``str.format()``. For ``key=="occ"``,
+        the default is "\phi_{{{site_basis_function_index},{cluster_site_index}}}".
+        For other `key`, the default is "x_{{{component_index},{cluster_site_index}}}".
+
 
     Returns
     -------
@@ -247,6 +256,8 @@ def make_cluster_variables(
 
     if key == "occ":
         occ_dof = prim.xtal_prim().occ_dof()
+        if varname is None:
+            varname = "\phi_{{{site_basis_function_index},{cluster_site_index}}}"
 
         variables = []
         variable_subsets = []
@@ -258,8 +269,13 @@ def make_cluster_variables(
             for site_basis_function_index in range(len(dof_basis_set)):
                 variables.append(
                     Variable(
-                        name=f"\phi_{{{site_basis_function_index},{cluster_site_index}}}",
+                        name=varname.format(
+                            site_basis_function_index=site_basis_function_index,
+                            cluster_site_index=cluster_site_index,
+                        ),
+                        key=key,
                         cluster_site_index=cluster_site_index,
+                        site_basis_function_index=site_basis_function_index,
                     )
                 )
                 site_variable_subset.append(variable_index)
@@ -268,6 +284,8 @@ def make_cluster_variables(
         return (variables, variable_subsets)
 
     else:
+        if varname is None:
+            varname = "x_{{{component_index},{cluster_site_index}}}"
 
         def find_dof_basis_set(local_dof, b):
             for _dof_basis_set in local_dof[b]:
@@ -288,8 +306,13 @@ def make_cluster_variables(
             for component_index in range(dof_basis_set.basis().shape[1]):
                 variables.append(
                     Variable(
-                        name=f"x_{{{component_index},{cluster_site_index}}}",
+                        name=varname.format(
+                            component_index=component_index,
+                            cluster_site_index=cluster_site_index,
+                        ),
+                        key=key,
                         cluster_site_index=cluster_site_index,
+                        component_index=component_index,
                     )
                 )
                 site_variable_subset.append(variable_index)
@@ -345,11 +368,11 @@ def make_equivalence_map_matrix_rep(
 
         equivalence_map_matrix_rep: \
         list[list[np.ndarray[np.float64[total_dim,total_dim]]]]
-            Matrix representations for equivalance map operations.
+            Matrix representations for equivalence map operations.
 
         equivalence_map_inv_matrix_rep: \
         list[list[np.ndarray[np.float64[total_dim,total_dim]]]]
-            Matrix representations for the inverse operation of equivalance map
+            Matrix representations for the inverse operation of equivalence map
             operations.
 
         equivalence_map_clusters: list[list[Cluster]]
@@ -472,20 +495,22 @@ def make_cluster_matrix_rep(
     return cluster_matrix_rep
 
 
-class PeriodicClusterMatrixRepBuilder:
+class ClusterMatrixRepBuilder:
     """Builds cluster matrix reps for generating symmetry adapted polynomial functions
-    on a cluster
+    on a local cluster
 
     Attributes
     ----------
     prim: casmconfig.Prim
         The prim.
+    generating_group: casmsyminfo.SymGroup
+        The symmetry group
     key: str
         The degree of freedom (DoF) to build the matrix representations for.
     cluster: Cluster
         The cluster on which to build the matrix representation
     cluster_group: SymGroup
-        The subgroup of the prim factor group that leaves `cluster` invariant,
+        The subgroup of the phenomenal group that leaves `cluster` invariant,
         including proper translations.
     cluster_perm_rep: list[int[int]]
         The `cluster_perm_rep` species how `cluster` sites permute under application
@@ -521,25 +546,29 @@ class PeriodicClusterMatrixRepBuilder:
     def __init__(
         self,
         prim: casmconfig.Prim,
+        generating_group: casmsyminfo.SymGroup,
         key: str,
         cluster: Cluster,
     ):
         ## Constructor parameters ##
         self.prim = prim
+        self.generating_group = generating_group
         self.key = key
         self.cluster = cluster
 
         ## Build cluster matrix rep ##
-        factor_group_site_rep = make_integral_site_coordinate_symgroup_rep(
-            group_elements=prim.factor_group().elements(),
+        generating_group_site_rep = make_integral_site_coordinate_symgroup_rep(
+            group_elements=generating_group.elements(),
             xtal_prim=prim.xtal_prim(),
         )
-        local_dof_matrix_rep = prim.local_dof_matrix_rep(key)
+        local_dof_matrix_rep = prim.local_dof_matrix_rep(
+            key
+        )  # TODO: coupled dof matrix
         cluster_group = make_cluster_group(
             cluster=cluster,
-            group=prim.factor_group(),
+            group=generating_group,
             lattice=prim.xtal_prim().lattice(),
-            integral_site_coordinate_symgroup_rep=factor_group_site_rep,
+            integral_site_coordinate_symgroup_rep=generating_group_site_rep,
         )
         cluster_perm_rep = make_cluster_permutation_rep(
             prim=prim,
@@ -579,7 +608,7 @@ class PeriodicOrbitMatrixRepBuilder:
 
     Attributes
     ----------
-    prototype: PeriodicClusterMatrixRepBuilder
+    prototype: ClusterMatrixRepBuilder
         The cluster matrix representations and associated information for the
         canonical equivalent cluster.
     equivalence_map_ops: list[list[xtal.SymOp]
@@ -621,8 +650,9 @@ class PeriodicOrbitMatrixRepBuilder:
         self.key = key
 
         ## Prim data
-        factor_group_site_rep = make_integral_site_coordinate_symgroup_rep(
-            group_elements=prim.factor_group().elements(),
+        generating_group = prim.factor_group()
+        generating_group_site_rep = make_integral_site_coordinate_symgroup_rep(
+            group_elements=generating_group.elements(),
             xtal_prim=prim.xtal_prim(),
         )
         local_dof_matrix_rep = prim.local_dof_matrix_rep(key)
@@ -630,17 +660,17 @@ class PeriodicOrbitMatrixRepBuilder:
         ## Orbit data
         orbit = make_periodic_orbit(
             cluster,
-            factor_group_site_rep,
+            generating_group_site_rep,
         )
         equivalence_map_indices = make_periodic_equivalence_map_indices(
             orbit=orbit,
-            integral_site_coordinate_symgroup_rep=factor_group_site_rep,
+            integral_site_coordinate_symgroup_rep=generating_group_site_rep,
         )
         equivalence_map_ops = make_periodic_equivalence_map(
             orbit=orbit,
-            symgroup=prim.factor_group(),
+            symgroup=generating_group,
             lattice=prim.xtal_prim().lattice(),
-            integral_site_coordinate_symgroup_rep=factor_group_site_rep,
+            integral_site_coordinate_symgroup_rep=generating_group_site_rep,
         )
         equivalence_map_site_rep = make_equivalence_map_site_rep(
             xtal_prim=prim.xtal_prim(),
@@ -648,8 +678,9 @@ class PeriodicOrbitMatrixRepBuilder:
         )
 
         ## Prototype cluster matrix reps
-        prototype = PeriodicClusterMatrixRepBuilder(
+        prototype = ClusterMatrixRepBuilder(
             prim=prim,
+            generating_group=generating_group,
             key=key,
             cluster=orbit[0],
         )
@@ -658,7 +689,7 @@ class PeriodicOrbitMatrixRepBuilder:
         _1, _2, _3 = make_equivalence_map_matrix_rep(
             local_dof_matrix_rep=local_dof_matrix_rep,
             orbit=orbit,
-            symgroup=prim.factor_group(),
+            symgroup=generating_group,
             equivalence_map_indices=equivalence_map_indices,
             equivalence_map_ops=equivalence_map_ops,
             equivalence_map_site_rep=equivalence_map_site_rep,

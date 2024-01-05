@@ -1,5 +1,8 @@
+from ._cluster_functions import (
+    make_periodic_cluster_functions,
+)
 from ._matrix_rep import (
-    PeriodicClusterMatrixRepBuilder,
+    ClusterMatrixRepBuilder,
     PeriodicOrbitMatrixRepBuilder,
     make_cluster_dof_info,
     make_cluster_matrix_rep,

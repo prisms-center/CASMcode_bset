@@ -1,6 +1,6 @@
-import pytest
-import numpy as np
 import libcasm.xtal as xtal
+import numpy as np
+import pytest
 
 # Pytest will rewrite assertions in test modules, but not elsewhere.
 # This tells pytest to also rewrite assertions in utils/helpers.py.

@@ -5,17 +5,22 @@ def expected_Hstrain_functions_fcc_1():
         Prototype of 1 Equivalent Clusters in Orbit 0
             Coordinates:
         Prototype basis functions:
-            \Phi_{0} = 1
-            \Phi_{1} = \sqrt{1/3}(E_1+E_2+E_3)
-            \Phi_{2} = \sqrt{1/3}(E_1^{2} +E_2^{2} +E_3^{2} )
-            \Phi_{3} = \sqrt{2/3}(E_1E_2+E_1E_3+E_2E_3)
-            \Phi_{4} = \sqrt{1/3}(E_4^{2} +E_5^{2} +E_6^{2} )
-            \Phi_{5} = \sqrt{1/3}(E_1^{3} +E_2^{3} +E_3^{3} )
-            \Phi_{6} = \sqrt{1/2}(E_1^{2} E_2+E_1^{2} E_3+E_1E_2^{2} +E_1E_3^{2} +E_2^{2} E_3+E_2E_3^{2} )
-            \Phi_{7} = \sqrt{6}E_1E_2E_3
-            \Phi_{8} = (E_1E_4^{2} +E_2E_5^{2} +E_3E_6^{2} )
-            \Phi_{9} = \sqrt{1/2}(E_1E_5^{2} +E_1E_6^{2} +E_2E_4^{2} +E_2E_6^{2} +E_3E_4^{2} +E_3E_5^{2} )
-            \Phi_{10} = \sqrt{6}E_4E_5E_6
+            x \Phi_{0} = 1
+
+            x \Phi_{1} = \sqrt{1/3}(E_1+E_2+E_3)
+
+            x \Phi_{2} = \sqrt{1/3}(E_1^{2} +E_2^{2} +E_3^{2} )
+            x \Phi_{3} = \sqrt{2/3}(E_1E_2+E_1E_3+E_2E_3)
+            x \Phi_{4} = \sqrt{1/3}(E_4^{2} +E_5^{2} +E_6^{2} )
+
+            x \Phi_{5} = \sqrt{1/3}(E_1^{3} +E_2^{3} +E_3^{3} )
+            x \Phi_{6} = \sqrt{1/2}(E_1^{2} E_2+E_1^{2} E_3+E_1E_2^{2} +E_1E_3^{2} +
+                         E_2^{2} E_3+E_2E_3^{2} )
+            x \Phi_{7} = \sqrt{6}E_1E_2E_3
+            x \Phi_{8} = (E_1E_4^{2} +E_2E_5^{2} +E_3E_6^{2} )
+            x \Phi_{9} = \sqrt{1/2}(E_1E_5^{2} +E_1E_6^{2} +E_2E_4^{2} +E_2E_6^{2} +
+                         E_3E_4^{2} +E_3E_5^{2} )
+            x \Phi_{10} = \sqrt{6}E_4E_5E_6
 
     """
     return [
@@ -91,7 +96,7 @@ def expected_Hstrain_functions_hcp_1():
         Prototype of 1 Equivalent Clusters in Orbit 0
             Coordinates:
         Prototype basis functions:
-            - \Phi_{0} = 1
+            x \Phi_{0} = 1
 
             x \Phi_{1} = \sqrt{1/2}(E_1+E_2)
             x \Phi_{2} = E_3
@@ -102,14 +107,19 @@ def expected_Hstrain_functions_hcp_1():
             x \Phi_{6} = E_3^{2}
             x \Phi_{7} = \sqrt{1/2}(E_4^{2} +E_5^{2} )
 
-            x \Phi_{8} = \sqrt{11/32}(E_1^{3} +3/11E_1^{2} E_2+9/11E_1E_2^{2} +6/11E_1E_6^{2} +9/11E_2^{3} +18/11E_2E_6^{2} )
-            x \Phi_{9} = 1.25227(E_1^{2} E_2+14/23E_1E_2^{2} +2/23E_1E_6^{2} +3/23E_2^{3} -16/23E_2E_6^{2} )
-            x \Phi_{10} = \sqrt{18/23}(E_1E_2^{2} -3/2E_1E_6^{2} -1/3E_2^{3} +1/2E_2E_6^{2} )
-            x \Phi_{11} = \sqrt{9/8}(E_1^{2} E_3+2/3E_1E_2E_3+E_2^{2} E_3+2/3E_3E_6^{2} )
+            x \Phi_{8} = \sqrt{11/32}(E_1^{3} +3/11E_1^{2} E_2+9/11E_1E_2^{2} +
+                         6/11E_1E_6^{2} +9/11E_2^{3} +18/11E_2E_6^{2} )
+            x \Phi_{9} = 1.25227(E_1^{2} E_2+14/23E_1E_2^{2} +2/23E_1E_6^{2} +
+                         3/23E_2^{3} -16/23E_2E_6^{2} )
+            x \Phi_{10} = \sqrt{18/23}(E_1E_2^{2} -3/2E_1E_6^{2} -1/3E_2^{3} +
+                          1/2E_2E_6^{2} )
+            x \Phi_{11} = \sqrt{9/8}(E_1^{2} E_3+2/3E_1E_2E_3+E_2^{2} E_3+
+                          2/3E_3E_6^{2} )
             x \Phi_{12} = 2(E_1E_2E_3-1/2E_3E_6^{2} )
             x \Phi_{13} = \sqrt{3/2}(E_1E_3^{2} +E_2E_3^{2} )
             x \Phi_{14} = E_3^{3}
-            x \Phi_{15} = \sqrt{9/8}(E_1E_4^{2} +1/3E_1E_5^{2} +1/3E_2E_4^{2} +E_2E_5^{2} -\sqrt{8/9}E_4E_5E_6)
+            x \Phi_{15} = \sqrt{9/8}(E_1E_4^{2} +1/3E_1E_5^{2} +1/3E_2E_4^{2} +
+                          E_2E_5^{2} -\sqrt{8/9}E_4E_5E_6)
             x \Phi_{16} = (E_1E_5^{2} +E_2E_4^{2} +\sqrt{2}E_4E_5E_6)
             x \Phi_{17} = \sqrt{3/2}(E_3E_4^{2} +E_3E_5^{2} )
 

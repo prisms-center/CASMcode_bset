@@ -24,6 +24,7 @@ classifiers = [
 dependencies = [
     "libcasm-configuration==2.0a2",
     "numpy",
+    "sparse==0.14"
 ]
 
 [project.urls]

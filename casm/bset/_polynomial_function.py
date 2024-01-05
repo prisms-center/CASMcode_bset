@@ -206,7 +206,8 @@ class FunctionRep:
             if perm_rep is not None:
                 for var in result.variables:
                     var.neighborhood_site_index = perm_rep[var.neighborhood_site_index]
-
+            result.make_canonical()
+            result.prune()
             return result
         else:
             raise Exception(
@@ -219,10 +220,8 @@ class FunctionRep:
 class Variable:
     r"""Represents a variable in a PolynomialFunction
 
-    This class should be updated as necessary to allow properly printing formulas, it's
-    currently a rough guess. CASM v1 implementation seems like it prints site indices
-    differently for occupation vs local continuous DoF, which would require another
-    attribute.
+    This class is used to keep the information necessary for collecting the degree
+    of freedom (DoF) values necessary for evaluating polynomial functions.
 
     Attributes
     ----------
@@ -234,12 +233,24 @@ class Variable:
         "{\phi_{a,1}}", "{\phi_{a,2}}", etc. and "{\phi_{b,1}}", "{\phi_{b,2}}", etc.
         for occupation site basis functions on symmetrically distinct sites :math:`a`
         and :math:`b`.
+
+    key: str
+        Name of the degree of freedom (DoF) this variable represents.
+
     cluster_site_index: Optional[int] = None
         For site variables, the cluster site index of the site associated with the
         variable. This is used for:
 
         - checking if a polynomial function includes all sites in a cluster
         - printing latex formulas for functions on a cluster
+
+    component_index: Optional[int] = None
+        For vector-valued continuous variables, the component of the vector this
+        variable corresponds to.
+
+    site_basis_function_index: Optional[int] = None
+        For occupation variables, the site basis function index this variable
+        corresponds to.
 
     neighborhood_site_index: Optional[int] = None
         For site variables, the neighbor list index of the site associated with the
@@ -250,25 +261,42 @@ class Variable:
     def __init__(
         self,
         name: str,
+        key: str,
         cluster_site_index: Optional[int] = None,
+        component_index: Optional[int] = None,
+        site_basis_function_index: Optional[int] = None,
         neighborhood_site_index: Optional[int] = None,
-    ):
+    ) -> object:
         self.name = name
+        self.key = key
         self.cluster_site_index = cluster_site_index
+        self.component_index = component_index
+        self.site_basis_function_index = site_basis_function_index
         self.neighborhood_site_index = neighborhood_site_index
 
     def to_dict(self):
-        return {
+        data = {
             "name": self.name,
-            "cluster_site_index": self.cluster_site_index,
-            "neighborhood_site_index": self.neighborhood_site_index,
+            "key": self.key,
         }
+        if self.cluster_site_index is not None:
+            data["cluster_site_index"] = self.cluster_site_index
+        if self.component_index is not None:
+            data["component_index_index"] = self.component_index
+        if self.site_basis_function_index is not None:
+            data["site_basis_function_index"] = self.site_basis_function_index
+        if self.neighborhood_site_index is not None:
+            data["neighborhood_site_index"] = self.neighborhood_site_index
+        return data
 
     @staticmethod
     def from_dict(data):
         return Variable(
             name=data["name"],
+            key=data["key"],
             cluster_site_index=data.get("cluster_site_index"),
+            component_index=data.get("component_index"),
+            site_basis_function_index=data.get("site_basis_function_index"),
             neighborhood_site_index=data.get("neighborhood_site_index"),
         )
 
@@ -326,8 +354,20 @@ class PolynomialFunction:
 
             f(x) = A_ijk x_i x_j x_k
 
+        Operations (`*`, `+=`, `-=`, etc.) can be expected to also make
+        `coeff` canonical and prune the coefficients that are
+        approximately zero.
+
     variables: list[Variable]
         The variables `x` of the polynomial
+
+    variable_subsets: list[list[int]]
+        Lists of variables (as indices into the `variables` list) which mix under
+        application of symmetry. For example, if all variables are the 6 strain
+        variables, then `var_subsets=[[0,1,2,3,4,5]]`. If the variables are the 3
+        displacements on each site in a cluster of 2 sites, then
+        `variable_subsets=[[0, 1, 2], [3, 4, 5]]`. This information is used in
+        the calculation of :func:`monomial_inner_product()`.
 
     monomial_exponents: list[np.ndarray[np.int]]
         The corresponding vectors of exponents for the monomials
@@ -339,8 +379,11 @@ class PolynomialFunction:
             monomial_exponents[i] = tensor_coord_to_monomial_exponents(
                 coeff.coords[:,i], n_size)
 
-        The `monomial_exponents` must be updated whenever coeff.coords is
-        modified.
+        The `monomial_exponents` is determined from `coeff` and must be updated
+        whenever coeff.coords is modified.
+
+    tol: float
+        A tolerance used for pruning coefficients which are approximately zero.
 
     """
 
@@ -400,9 +443,18 @@ class PolynomialFunction:
         """
         coords = np.array([])
         data = np.array([])
-        # Note: this gives a DeprecationWarning in sparse 0.14.0,
-        # but it is erroneous and should not in the next release
+
+        # Note: Constructing a zero-value sparse.COO gives a DeprecationWarning
+        # in sparse 0.14.0, but it is erroneous and should not in the next release
         # (see https://github.com/pydata/sparse/pull/581)
+        import warnings
+
+        warnings.filterwarnings(
+            "ignore",
+            message="coords should be an ndarray. "
+            "This will raise a ValueError in the future.",
+        )
+
         return PolynomialFunction(
             coeff=sparse.COO(coords, data, shape=shape, prune=True),
             variables=variables,
@@ -434,11 +486,15 @@ class PolynomialFunction:
 
     def __isub__(self, rhs: PolynomialFunctionType):
         self.coeff -= rhs.coeff
+        self.make_canonical()
+        self.prune()
         self.monomial_exponents = self.tensor_coords_to_monomial_exponents()
         return self
 
     def __iadd__(self, rhs: PolynomialFunctionType):
         self.coeff += rhs.coeff
+        self.make_canonical()
+        self.prune()
         self.monomial_exponents = self.tensor_coords_to_monomial_exponents()
         return self
 
@@ -814,9 +870,9 @@ def gram_schmidt(
             continue
         next = f.copy(deep=True)
         next.make_canonical()
+        next.prune()
         for g in orthonormalized_functions:
             next -= next.scalar_product(g) * g
-        next.prune()
         if len(next.coeff.data) != 0:
             next.normalize()
             orthonormalized_functions.append(next)
@@ -944,7 +1000,7 @@ def make_symmetry_adapted_polynomials(
                 if must_skip(x):
                     continue
 
-            print("Adding mononmial:", x)
+            # print("Adding mononmial:", x)
 
             # Create polynomial function coefficients tensor
             coords = x.reshape((-1, 1))  # 2d array with single column containing x
@@ -963,18 +1019,14 @@ def make_symmetry_adapted_polynomials(
             )
             for i, S in enumerate(function_rep):
                 f_sum += S * f_init
-            f_sum.make_canonical()
-            f_sum.prune()
 
             # If function is not enforced to be 0 by symmetry,
             # then add it to the growing list of symmetry adapted functions
             if len(f_sum.coeff.data) != 0:
                 if in_place:
                     next = f_sum.copy(deep=True)
-                    next.make_canonical()
                     for g in orthonormalized_functions:
                         next -= next.scalar_product(g) * g
-                    next.prune()
                     if len(next.coeff.data) != 0:
                         next.normalize()
                         orthonormalized_functions.append(next)

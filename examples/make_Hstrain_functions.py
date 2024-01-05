@@ -28,12 +28,12 @@ print("Generate Hstrain polynomials:")
 print()
 
 variables = [
-    Variable(name="{E_{xx}}"),
-    Variable(name="{E_{yy}}"),
-    Variable(name="{E_{zz}}"),
-    Variable(name="{\\sqrt{2}E_{yz}}"),
-    Variable(name="{\\sqrt{2}E_{xz}}"),
-    Variable(name="{\\sqrt{2}E_{xy}}"),
+    Variable(name="{E_{xx}}", key="Hstrain"),
+    Variable(name="{E_{yy}}", key="Hstrain"),
+    Variable(name="{E_{zz}}", key="Hstrain"),
+    Variable(name="{\\sqrt{2}E_{yz}}", key="Hstrain"),
+    Variable(name="{\\sqrt{2}E_{xz}}", key="Hstrain"),
+    Variable(name="{\\sqrt{2}E_{xy}}", key="Hstrain"),
 ]
 variable_subsets = [[0, 1, 2, 3, 4, 5]]
 basis_set = make_symmetry_adapted_polynomials(
