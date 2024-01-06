@@ -7,14 +7,17 @@ from libcasm.clusterography import (
 )
 
 from casm.bset import (
+    ClusterMatrixRepBuilder,
     FunctionRep,
-    PeriodicClusterMatrixRepBuilder,
     PeriodicOrbitMatrixRepBuilder,
     PolynomialFunction,
     make_symmetry_adapted_polynomials,
 )
 
-disp_dof = xtal.DoFSetBasis("disp")
+disp_dof = xtal.DoFSetBasis(
+    dofname="disp",
+    # axis_names=["d_{x}", "d_{y}", "d_{z}"], basis=np.eye(3)
+)
 xtal_prim = xtal_prims.FCC(
     a=1.0,
     local_dof=[disp_dof],
@@ -42,18 +45,20 @@ print()
 
 builder = PeriodicOrbitMatrixRepBuilder(
     prim=prim,
-    key="disp",
+    generating_group=prim.factor_group(),
+    local_dof=["disp"],
+    global_dof=[],
     cluster=cluster,
 )
 
 if True:
     print("Prototype cluster:")
-    print(xtal.pretty_json(builder.prototype.cluster.to_dict(xtal_prim)))
+    print(xtal.pretty_json(builder.local_prototype[0].cluster.to_dict(xtal_prim)))
 
-if False:
+if True:
     import copy
 
-    matrix_rep = copy.deepcopy(builder.prototype.cluster_matrix_rep)
+    matrix_rep = copy.deepcopy(builder.local_prototype[0].cluster_matrix_rep)
 
     # Remove entries which are approximately zero
     eps = 1e-14
@@ -61,13 +66,13 @@ if False:
         matrix_rep[i][np.abs(matrix_rep[i]) < eps] = 0.0
 
     print("Prototype cluster group:")
-    for i_op, op in enumerate(builder.prototype.cluster_group.elements()):
-        i_fg_op = builder.prototype.cluster_group.head_group_index()[i_op]
+    for i_op, op in enumerate(builder.local_prototype[0].cluster_group.elements()):
+        i_fg_op = builder.local_prototype[0].cluster_group.head_group_index()[i_op]
         print(f"~~~ cg: {i_op}, fg: {i_fg_op} ~~~")
         print(xtal.pretty_json(op.to_dict()))
         info = xtal.SymInfo(op, xtal_prim.lattice())
         print(xtal.pretty_json(info.to_dict()))
-        print(xtal.pretty_json(builder.prototype.cluster.to_dict(xtal_prim)))
+        print(xtal.pretty_json(builder.local_prototype[0].cluster.to_dict(xtal_prim)))
         print()
 
     print("Prototype cluster group symmetry representation matrices:")
@@ -79,18 +84,18 @@ if False:
 max_poly_order = 4
 
 prototype_basis_set = make_symmetry_adapted_polynomials(
-    matrix_rep=builder.prototype.cluster_matrix_rep,
-    variables=builder.prototype.variables,
-    variable_subsets=builder.prototype.variable_subsets,
+    matrix_rep=builder.local_prototype[0].cluster_matrix_rep,
+    variables=builder.local_prototype[0].variables,
+    variable_subsets=builder.local_prototype[0].variable_subsets,
     min_poly_order=1,
     max_poly_order=max_poly_order,
     orthonormalize_in_place=True,
     verbose=True,
 )
 
-print("Variables: x_{{component_index},{cluster_site_index}}")
-for i, var in enumerate(builder.prototype.variables):
-    print(f"x_{i}: {var.name}")
+print("Variables:")
+for i, var in enumerate(builder.local_prototype[0].variables):
+    print(f"{i}: {var.name}")
 print()
 
 print("Prototype symmetry adapted polynomial functions:")
@@ -98,7 +103,7 @@ for i, f in enumerate(prototype_basis_set):
     print(f"~~~ order: {f.order()}, function_index: {i} ~~~")
     f._basic_print()
 
-    if False:
+    if True:
         data = f.to_dict()
         print(xtal.pretty_json(data))
         f_check = PolynomialFunction.from_dict(data)
@@ -106,7 +111,7 @@ for i, f in enumerate(prototype_basis_set):
 
     print()
 
-if False:
+if True:
     print("Equivalence map matrix reps:")
     for i_equiv, eq_map_matrix_rep in enumerate(builder.equivalence_map_matrix_rep):
         for matrix_rep in eq_map_matrix_rep:
@@ -126,7 +131,7 @@ if False:
         print(builder.equivalence_map_inv_matrix_rep[i_equiv][0])
         print()
 
-if False:
+if True:
     print("Symmetry adapted polynomial function orbits:")
     for i, f_prototype in enumerate(prototype_basis_set):
         print(f"~~~ order: {f_prototype.order()}, function_index: {i} ~~~")
@@ -144,10 +149,11 @@ if False:
             print()
         print()
 
-if False:
+if True:
     print("~~~ Check polynomial functions @ Equivalent cluster 1 ~~~")
-    equiv_builder = PeriodicClusterMatrixRepBuilder(
+    equiv_builder = ClusterMatrixRepBuilder(
         prim=prim,
+        generating_group=prim.factor_group(),
         key="disp",
         cluster=builder.equivalence_map_clusters[1][0],
     )

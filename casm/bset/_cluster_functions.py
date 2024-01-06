@@ -1,12 +1,14 @@
-from typing import Optional
+from typing import Callable, Optional
 
 import libcasm.clusterography as casmclust
 import libcasm.configuration as casmconfig
 import libcasm.xtal as xtal
 
-from casm.bset import (
-    FunctionRep,
+from ._matrix_rep import (
     PeriodicOrbitMatrixRepBuilder,
+)
+from ._polynomial_function import (
+    FunctionRep,
     PolynomialFunction,
     make_symmetry_adapted_polynomials,
 )
@@ -14,12 +16,14 @@ from casm.bset import (
 
 def make_periodic_cluster_functions(
     xtal_prim: xtal.Prim,
-    key: str,
     max_poly_order: int,
+    local_dof: list[str] = [],
+    global_dof: list[str] = [],
     orbit_prototypes: Optional[list[casmclust.Cluster]] = None,
     max_length: Optional[list[float]] = None,
     min_poly_order: int = 1,
     make_equivalents: bool = True,
+    make_variable_name_f: Optional[Callable] = None,
     verbose: bool = False,
 ) -> tuple[list[list[casmclust.Cluster]], list[list[list[PolynomialFunction]]]]:
     """Construct cluster functions
@@ -28,10 +32,14 @@ def make_periodic_cluster_functions(
     ----------
     xtal_prim: xtal.Prim
         The Prim
-    key: str
-        The type of local degree of freedom (DoF) to build functions for
     max_poly_order: int
         The maximum order of polynomials to generate.
+    local_dof: list[str] = []
+        The types of local degree of freedom (DoF) to include in the generated
+        functions.
+    global_dof: list[str] = []
+        The types of global degree of freedom (DoF) to include in the generated
+        functions.
     orbit_prototypes: Optional[list[casmclust.Cluster]]
         A list of :class:`~casmclust.Cluster` containing the prototypes of orbits to
         generate functions for. If provided, `max_length` is ignored.
@@ -50,6 +58,10 @@ def make_periodic_cluster_functions(
         If True, make all equivalent clusters and functions. Otherwise, only construct
         and return the prototype clusters and functions on the prototype cluster
         (i.e. ``i_equiv=0`` only).
+    make_variable_name_f: Optional[Callable] = None
+        Allows specifying a custom function to construct variable names. The default
+        function used is :func:`make_variable_name`. Custom functions should have the
+        same signature as :func:`make_variable_name`.
     verbose: bool = False
         Print progress statements
 
@@ -101,14 +113,17 @@ def make_periodic_cluster_functions(
 
         builder = PeriodicOrbitMatrixRepBuilder(
             prim=prim,
-            key=key,
+            generating_group=prim.factor_group(),
+            local_dof=local_dof,
+            global_dof=global_dof,
             cluster=orbit_prototype,
+            make_variable_name_f=make_variable_name_f,
         )
 
         prototype_basis_set = make_symmetry_adapted_polynomials(
-            matrix_rep=builder.prototype.cluster_matrix_rep,
-            variables=builder.prototype.variables,
-            variable_subsets=builder.prototype.variable_subsets,
+            matrix_rep=builder.prototype_matrix_rep,
+            variables=builder.prototype_variables,
+            variable_subsets=builder.prototype_variable_subsets,
             min_poly_order=min_poly_order,
             max_poly_order=max_poly_order,
             orthonormalize_in_place=True,

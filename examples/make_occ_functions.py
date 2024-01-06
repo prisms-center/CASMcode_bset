@@ -63,18 +63,20 @@ print()
 
 builder = PeriodicOrbitMatrixRepBuilder(
     prim=prim,
-    key="occ",
+    generating_group=prim.factor_group(),
+    local_dof=["occ"],
+    global_dof=[],
     cluster=cluster,
 )
 
 if True:
     print("Prototype cluster:")
-    print(xtal.pretty_json(builder.prototype.cluster.to_dict(xtal_prim)))
+    print(xtal.pretty_json(builder.local_prototype[0].cluster.to_dict(xtal_prim)))
 
 if True:
     import copy
 
-    matrix_rep = copy.deepcopy(builder.prototype.cluster_matrix_rep)
+    matrix_rep = copy.deepcopy(builder.local_prototype[0].cluster_matrix_rep)
 
     # Remove entries which are approximately zero
     eps = 1e-14
@@ -82,13 +84,13 @@ if True:
         matrix_rep[i][np.abs(matrix_rep[i]) < eps] = 0.0
 
     print("Prototype cluster group:")
-    for i_op, op in enumerate(builder.prototype.cluster_group.elements()):
-        i_fg_op = builder.prototype.cluster_group.head_group_index()[i_op]
+    for i_op, op in enumerate(builder.local_prototype[0].cluster_group.elements()):
+        i_fg_op = builder.local_prototype[0].cluster_group.head_group_index()[i_op]
         print(f"~~~ cg: {i_op}, fg: {i_fg_op} ~~~")
         print(xtal.pretty_json(op.to_dict()))
         info = xtal.SymInfo(op, xtal_prim.lattice())
         print(xtal.pretty_json(info.to_dict()))
-        print(xtal.pretty_json(builder.prototype.cluster.to_dict(xtal_prim)))
+        print(xtal.pretty_json(builder.local_prototype[0].cluster.to_dict(xtal_prim)))
         print()
 
     print("Prototype cluster group symmetry representation matrices:")
@@ -97,20 +99,20 @@ if True:
         print(M)
         print()
 
-print("Variables: x_{{component_index},{cluster_site_index}}")
-for i, var in enumerate(builder.prototype.variables):
-    print(f"x_{i}: {var.name}")
+print("Variables:")
+for i, var in enumerate(builder.local_prototype[0].variables):
+    print(f"{i}: {var.name}")
 print()
 
 print("Variable subsets:")
-print(xtal.pretty_json(builder.prototype.variable_subsets))
+print(xtal.pretty_json(builder.local_prototype[0].variable_subsets))
 
 poly_order = cluster.size()
-skip_variables = [x[0] for x in builder.prototype.variable_subsets]
+skip_variables = [x[0] for x in builder.local_prototype[0].variable_subsets]
 prototype_basis_set = make_symmetry_adapted_polynomials(
-    matrix_rep=builder.prototype.cluster_matrix_rep,
-    variables=builder.prototype.variables,
-    variable_subsets=builder.prototype.variable_subsets,
+    matrix_rep=builder.local_prototype[0].cluster_matrix_rep,
+    variables=builder.local_prototype[0].variables,
+    variable_subsets=builder.local_prototype[0].variable_subsets,
     min_poly_order=poly_order,
     max_poly_order=poly_order,
     orthonormalize_in_place=True,
@@ -118,9 +120,9 @@ prototype_basis_set = make_symmetry_adapted_polynomials(
     verbose=True,
 )
 
-print("Variables: x_{{component_index},{cluster_site_index}}")
-for i, var in enumerate(builder.prototype.variables):
-    print(f"x_{i}: {var.name}")
+print("Variables:")
+for i, var in enumerate(builder.local_prototype[0].variables):
+    print(f"{i}: {var.name}")
 print()
 
 print("Prototype symmetry adapted polynomial functions:")
@@ -128,7 +130,7 @@ for i, f in enumerate(prototype_basis_set):
     print(f"~~~ order: {f.order()}, function_index: {i} ~~~")
     f._basic_print()
 
-    if False:
+    if True:
         data = f.to_dict()
         print(xtal.pretty_json(data))
         f_check = PolynomialFunction.from_dict(data)
