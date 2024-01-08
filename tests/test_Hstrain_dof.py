@@ -13,6 +13,7 @@ from utils.helpers import (
 from casm.bset import (
     Variable,
     make_global_dof_matrix_rep,
+    make_periodic_cluster_functions,
     make_symmetry_adapted_polynomials,
 )
 
@@ -26,6 +27,7 @@ def test_Hstrain_fcc_1():
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
+    # test directly using make_symmetry_adapted_polynomials
     prim = casmconfig.Prim(xtal_prim)
     matrix_rep = make_global_dof_matrix_rep(
         prim=prim,
@@ -46,10 +48,100 @@ def test_Hstrain_fcc_1():
         max_poly_order=3,
     )
     assert len(basis_set) == 10
-
     # print_expected_functions(basis_set)
     expected = expected_Hstrain_functions_fcc_1()
     assert_expected_functions(basis_set, expected)
+
+    # test make_periodic_cluster_functions with only global DoF
+    clusters, functions = make_periodic_cluster_functions(
+        xtal_prim=xtal_prim,
+        max_length=[0.0],
+        global_max_poly_order=3,
+    )
+    assert len(clusters) == 1
+    assert len(clusters[0]) == 1  # null cluster
+
+    assert len(functions) == 1
+    assert len(functions[0]) == 1  # null cluster
+    assert len(functions[0][0]) == 10
+    assert_expected_functions(functions[0][0], expected)
+
+
+def test_Hstrain_fcc_2():
+    """Test generating only strain polynomials when the prim also has occ DoF"""
+    key = "Hstrain"
+    xtal_prim = xtal_prims.FCC(
+        r=0.5,
+        occ_dof=["A", "B"],
+        global_dof=[xtal.DoFSetBasis(key)],
+    )
+    # print(xtal.pretty_json(xtal_prim.to_dict()))
+
+    # test make_periodic_cluster_functions with only global DoF
+    clusters, functions = make_periodic_cluster_functions(
+        xtal_prim=xtal_prim,
+        dofs=["Hstrain"],
+        max_length=[0.0, 0.0, 1.01, 1.01],
+        global_max_poly_order=3,
+        verbose=True,
+    )
+    assert len(clusters) == 4
+    assert len(clusters[0]) == 1
+    assert len(clusters[1]) == 1
+    assert len(clusters[2]) == 6
+    assert len(clusters[3]) == 8
+
+    assert len(functions) == 4
+    assert len(functions[0]) == 1  # null cluster
+    assert len(functions[0][0]) == 10
+    assert len(functions[1]) == 1  # point cluster
+    assert len(functions[1][0]) == 0
+    assert len(functions[2]) == 6  # pair cluster
+    assert len(functions[2][0]) == 0
+    assert len(functions[3]) == 8  # triplet cluster
+    assert len(functions[3][0]) == 0
+
+    expected = expected_Hstrain_functions_fcc_1()
+    assert_expected_functions(functions[0][0], expected)
+
+
+def test_Hstrain_fcc_3():
+    """Test generating only strain polynomials when the prim also has disp DoF"""
+    key = "Hstrain"
+    xtal_prim = xtal_prims.FCC(
+        r=0.5,
+        occ_dof=["A"],
+        local_dof=[xtal.DoFSetBasis("disp")],
+        global_dof=[xtal.DoFSetBasis(key)],
+    )
+    # print(xtal.pretty_json(xtal_prim.to_dict()))
+
+    # test make_periodic_cluster_functions with only global DoF
+    clusters, functions = make_periodic_cluster_functions(
+        xtal_prim=xtal_prim,
+        dofs=["Hstrain"],
+        max_length=[0.0, 0.0, 1.01, 1.01],
+        global_max_poly_order=3,
+        verbose=True,
+    )
+    assert len(clusters) == 4
+    assert len(clusters[0]) == 1
+    assert len(clusters[1]) == 1
+    assert len(clusters[2]) == 6
+    assert len(clusters[3]) == 8
+
+    assert len(functions) == 4
+    assert len(functions[0]) == 1  # null cluster
+    assert len(functions[0][0]) == 10
+    assert len(functions[1]) == 1  # point cluster
+    assert len(functions[1][0]) == 0
+    assert len(functions[2]) == 6  # pair cluster
+    assert len(functions[2][0]) == 0
+    assert len(functions[3]) == 8  # triplet cluster
+    assert len(functions[3][0]) == 0
+
+    expected = expected_Hstrain_functions_fcc_1()
+    assert_expected_functions(functions[0][0], expected)
 
 
 def test_Hstrain_hcp_1():
@@ -61,6 +153,7 @@ def test_Hstrain_hcp_1():
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
+    # test directly using make_symmetry_adapted_polynomials
     prim = casmconfig.Prim(xtal_prim)
     matrix_rep = make_global_dof_matrix_rep(
         prim=prim,
@@ -86,12 +179,27 @@ def test_Hstrain_hcp_1():
     expected = expected_Hstrain_functions_hcp_1()
     assert_expected_functions(basis_set, expected)
 
+    # test make_periodic_cluster_functions with only global DoF
+    clusters, functions = make_periodic_cluster_functions(
+        xtal_prim=xtal_prim,
+        max_length=[0.0],
+        global_max_poly_order=3,
+    )
+    assert len(clusters) == 1
+    assert len(clusters[0]) == 1  # null cluster
+
+    assert len(functions) == 1
+    assert len(functions[0]) == 1  # null cluster
+    assert len(functions[0][0]) == 17
+    assert_expected_functions(functions[0][0], expected)
+
 
 def test_Hstrain_lowsym_1(lowsym_Hstrain_prim):
     key = "Hstrain"
     xtal_prim = lowsym_Hstrain_prim
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
+    # test directly using make_symmetry_adapted_polynomials
     prim = casmconfig.Prim(xtal_prim)
     factor_group_elements = prim.factor_group().elements()
     assert len(factor_group_elements) == 1
@@ -118,3 +226,17 @@ def test_Hstrain_lowsym_1(lowsym_Hstrain_prim):
     # print_expected_functions(basis_set)
     expected = expected_Hstrain_functions_lowsym_1()
     assert_expected_functions(basis_set, expected)
+
+    # test make_periodic_cluster_functions with only global DoF
+    clusters, functions = make_periodic_cluster_functions(
+        xtal_prim=xtal_prim,
+        max_length=[0.0],
+        global_max_poly_order=3,
+    )
+    assert len(clusters) == 1
+    assert len(clusters[0]) == 1  # null cluster
+
+    assert len(functions) == 1
+    assert len(functions[0]) == 1  # null cluster
+    assert len(functions[0][0]) == 83
+    assert_expected_functions(functions[0][0], expected)

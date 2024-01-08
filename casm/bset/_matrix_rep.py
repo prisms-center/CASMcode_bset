@@ -422,6 +422,44 @@ def make_cluster_variables(
         return (variables, variable_subsets)
 
 
+def make_equivalence_map_clusters(
+    orbit: list[Cluster],
+    equivalence_map_site_rep: list[list[xtal.IntegralSiteCoordinateRep]],
+):
+    """Generate the clusters that result from applying equivalence map operations to the
+    prototype cluster, without permutation
+
+    Parameters
+    ----------
+    orbit: list[Cluster]
+        The orbit of clusters
+    equivalence_map_site_rep: list[list[xtal.IntegralSiteCoordinateRep]]
+        Site representations (xtal.IntegralSiteCoordinateRep) for each equivalence map
+        operation.
+
+    Returns
+    -------
+    equivalence_map_clusters: list[list[Cluster]]
+        The clusters generated from applying equivalence map operations to the
+        prototype cluster (``orbit[0]``), without any permutation. The generated
+        clusters, ``equivalence_map_clusters[i][j]``, are equivalent to orbit
+        element ``orbit[i]`` up to a permutation.
+
+
+    """
+    if len(orbit) == 0:
+        raise Exception("Error in make_equivalence_map_matrix_rep: len(orbit)==0")
+    prototype_cluster = orbit[0]
+    equivalence_map_clusters = []
+    for i_equiv, cluster in enumerate(orbit):
+        clusters = []
+        for site_rep in equivalence_map_site_rep[i_equiv]:
+            # Make equivalence map cluster (no permutations)
+            clusters.append(site_rep * prototype_cluster)
+        equivalence_map_clusters.append(clusters)
+    return equivalence_map_clusters
+
+
 def make_equivalence_map_matrix_rep(
     local_dof_matrix_rep: list[list[np.ndarray]],
     orbit: list[Cluster],
@@ -713,6 +751,8 @@ class PeriodicOrbitMatrixRepBuilder:
         The prim.
     generating_group: casmsyminfo.SymGroup
         The symmetry group
+    orbit: list[casmclust.Cluster]
+        The generated orbit
     local_dof: list[str]
         The types of local degree of freedom (DoF) to include in the matrix
         representation.
@@ -740,6 +780,8 @@ class PeriodicOrbitMatrixRepBuilder:
         sites, but the order of sites may be permuted.
     global_variables: list[list[Variable]]
         For each global DoF in `global_dof`, the variables used in functions.
+    n_global_variables: int
+        The total number of global variables.
     global_variable_subsets: list[list[list[int]]]
         For each global DoF in `global_dof`, the variable subsets.
     global_matrix_rep: list[list[np.ndarray]]
@@ -755,6 +797,8 @@ class PeriodicOrbitMatrixRepBuilder:
     local_prototype: list[ClusterMatrixRepBuilder]
         For each local DoF in `local_dof`, the cluster matrix representations and
         associated information for the canonical equivalent cluster.
+    n_local_variables: int
+        The total number of local variables.
     local_equivalence_map_matrix_rep: list[list[list[np.ndarray]]
         For each local DoF in `local_dof`, the cluster matrix rep of corresponding
         `equivalence_map_ops`. These are the matrix representations that
@@ -898,7 +942,6 @@ class PeriodicOrbitMatrixRepBuilder:
         local_prototype = []
         local_equivalence_map_matrix_rep = []
         local_equivalence_map_inv_matrix_rep = []
-        equivalence_map_clusters = None
         for key in local_dof:
             _local_dof_matrix_rep = prim.local_dof_matrix_rep(key)
             _local_prototype = ClusterMatrixRepBuilder(
@@ -924,8 +967,10 @@ class PeriodicOrbitMatrixRepBuilder:
             local_prototype.append(_local_prototype)
             local_equivalence_map_matrix_rep.append(_1)
             local_equivalence_map_inv_matrix_rep.append(_2)
-            if equivalence_map_clusters is None:
-                equivalence_map_clusters = _3
+        equivalence_map_clusters = make_equivalence_map_clusters(
+            orbit=orbit,
+            equivalence_map_site_rep=equivalence_map_site_rep,
+        )
 
         ## Combine individual DoF matrix reps into coupled matrix reps
 
@@ -940,16 +985,20 @@ class PeriodicOrbitMatrixRepBuilder:
             ]
             _all_matrices = _global_matrices + _local_dof_matrices
             prototype_matrix_rep.append(scipy.linalg.block_diag(*_all_matrices))
+        n_global_variables = 0
+        n_local_variables = 0
         prototype_variables = []
         prototype_variable_subsets = []
         for i, variables in enumerate(global_variables):
             offset = len(prototype_variables)
+            n_global_variables += len(variables)
             prototype_variables += variables
             variable_subsets = global_variable_subsets[i]
             for subset in variable_subsets:
                 prototype_variable_subsets.append([j + offset for j in subset])
         for x in local_prototype:
             offset = len(prototype_variables)
+            n_local_variables += len(x.variables)
             prototype_variables += x.variables
             for subset in x.variable_subsets:
                 prototype_variable_subsets.append([j + offset for j in subset])
@@ -984,20 +1033,25 @@ class PeriodicOrbitMatrixRepBuilder:
             equivalence_map_inv_matrix_rep.append(_inv_matrix_reps)
 
         ## Generated data ##
+        self.orbit = orbit
 
-        # sym info
+        # equivalence map info
         self.equivalence_map_ops = equivalence_map_ops
         self.equivalence_map_indices = equivalence_map_indices
         self.equivalence_map_site_rep = equivalence_map_site_rep
         self.equivalence_map_clusters = equivalence_map_clusters
 
-        # global DoF info (lists, by global DoF in same order as global_dof)
+        self.n_global_variables = n_global_variables
+
+        # global DoF info (lists, by global DoF in same order as global_dof):
         self.global_variables = global_variables
         self.global_variable_subsets = global_variable_subsets
         self.global_matrix_rep = global_matrix_rep
         self.global_inv_matrix_rep = global_inv_matrix_rep
 
-        # local DoF info (lists, by local DoF in same order as local_dof)
+        self.n_local_variables = n_local_variables
+
+        # local DoF info (lists, by local DoF in same order as local_dof):
         self.local_prototype = local_prototype
         self.local_equivalence_map_matrix_rep = local_equivalence_map_matrix_rep
         self.local_equivalence_map_inv_matrix_rep = local_equivalence_map_inv_matrix_rep

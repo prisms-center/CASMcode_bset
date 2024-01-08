@@ -1,4 +1,4 @@
-from typing import Callable, Optional
+from typing import Callable, Iterable, Optional
 
 import libcasm.clusterography as casmclust
 import libcasm.configuration as casmconfig
@@ -16,12 +16,11 @@ from ._polynomial_function import (
 
 def make_periodic_cluster_functions(
     xtal_prim: xtal.Prim,
-    max_poly_order: int,
-    local_dof: list[str] = [],
-    global_dof: list[str] = [],
-    orbit_prototypes: Optional[list[casmclust.Cluster]] = None,
+    global_max_poly_order: int,
+    dofs: Optional[Iterable[str]] = None,
+    orbit_prototypes: Optional[Iterable[casmclust.Cluster]] = None,
     max_length: Optional[list[float]] = None,
-    min_poly_order: int = 1,
+    orbit_branch_max_poly_order: Optional[list[int]] = None,
     make_equivalents: bool = True,
     make_variable_name_f: Optional[Callable] = None,
     verbose: bool = False,
@@ -32,17 +31,14 @@ def make_periodic_cluster_functions(
     ----------
     xtal_prim: xtal.Prim
         The Prim
-    max_poly_order: int
-        The maximum order of polynomials to generate.
-    local_dof: list[str] = []
-        The types of local degree of freedom (DoF) to include in the generated
-        functions.
-    global_dof: list[str] = []
-        The types of global degree of freedom (DoF) to include in the generated
-        functions.
-    orbit_prototypes: Optional[list[casmclust.Cluster]]
-        A list of :class:`~casmclust.Cluster` containing the prototypes of orbits to
-        generate functions for. If provided, `max_length` is ignored.
+    global_max_poly_order: int
+        The maximum order of polynomials to generate, for any orbit.
+    dofs: Optional[Iterable[str]] = None
+        An iterable of string of dof type names that should be used to construct basis
+        functions. The default value is all DoF types included in the prim.
+    orbit_prototypes: Optional[Iterable[casmclust.Cluster]]
+        An iterable of :class:`~casmclust.Cluster` containing the prototypes of orbits
+        to generate functions for. If provided, `max_length` is ignored.
     max_length: list[float]
         If `orbit_prototypes` is not provided, `max_length` must be given to specify
         which clusters to generate functions for, using a site-to-site distance cutoff.
@@ -52,8 +48,11 @@ def make_periodic_cluster_functions(
         - For null and point clusters, there are no site-to-site distances so
           ``max_length[0]`` and ``max_length[1]`` are always ignored.
 
-    min_poly_order: int = 1
-        The minimum order of polynomials to generate.
+    orbit_branch_max_poly_order: Optional[list[int]]
+        The maximum order of polynomials to generate, by orbit branch (number of sites
+        in the cluster). If not None, for clusters with `n_sites` sites the maximum
+        polynomial order is set to the minimum of
+        ``orbit_branch_max_poly_order[n_sites]`` and ``global_max_poly_order``.
     make_equivalents: bool = True
         If True, make all equivalent clusters and functions. Otherwise, only construct
         and return the prototype clusters and functions on the prototype cluster
@@ -90,6 +89,50 @@ def make_periodic_cluster_functions(
         )
         orbit_prototypes = [orbit[0] for orbit in cluster_specs.make_orbits()]
 
+    max_cluster_size = 0
+    for orbit_prototype in orbit_prototypes:
+        if len(orbit_prototype) > max_cluster_size:
+            max_cluster_size = len(orbit_prototype)
+
+    # determine max_poly_order[n_sites]
+    i = 0
+    max_poly_order = []
+    while len(max_poly_order) < max_cluster_size + 1:
+        if orbit_branch_max_poly_order is None or len(orbit_branch_max_poly_order) <= i:
+            max_poly_order.append(global_max_poly_order)
+        else:
+            max_poly_order.append(
+                min(orbit_branch_max_poly_order[i], global_max_poly_order)
+            )
+        i += 1
+
+    all_global_dof = set()
+    for _global_dof in xtal_prim.global_dof():
+        all_global_dof.add(_global_dof.dofname())
+    all_local_dof = set()
+    for _sublattice_dof in xtal_prim.local_dof():
+        for _local_dof in _sublattice_dof:
+            all_local_dof.add(_local_dof.dofname())
+
+    if dofs is None:
+        global_dof = list(all_global_dof)
+        local_dof = list(all_local_dof)
+    else:
+        global_dof = []
+        local_dof = []
+        for _dofname in dofs:
+            if _dofname in all_global_dof:
+                global_dof.append(_dofname)
+            elif _dofname in all_local_dof:
+                local_dof.append(_dofname)
+            else:
+                raise Exception(
+                    "Error in make_periodic_cluster_functions: "
+                    f"Unknown dof '{_dofname}'"
+                )
+    print("global_dof:", global_dof)
+    print("local_dof:", local_dof)
+
     # loop over cluster orbit prototypes,
     # building sym rep matrices and polynomial functions
     clusters = []
@@ -104,13 +147,6 @@ def make_periodic_cluster_functions(
             print(xtal.pretty_json(orbit_prototype.to_dict(prim.xtal_prim())))
             print()
 
-        if orbit_prototype.size() == 0:
-            orbit_clusters.append(orbit_prototype)
-            orbit_basis_sets.append([])
-            clusters.append(orbit_clusters)
-            functions.append(orbit_basis_sets)
-            continue
-
         builder = PeriodicOrbitMatrixRepBuilder(
             prim=prim,
             generating_group=prim.factor_group(),
@@ -120,24 +156,48 @@ def make_periodic_cluster_functions(
             make_variable_name_f=make_variable_name_f,
         )
 
-        prototype_basis_set = make_symmetry_adapted_polynomials(
-            matrix_rep=builder.prototype_matrix_rep,
-            variables=builder.prototype_variables,
-            variable_subsets=builder.prototype_variable_subsets,
-            min_poly_order=min_poly_order,
-            max_poly_order=max_poly_order,
-            orthonormalize_in_place=True,
-            verbose=verbose,
-        )
+        if len(builder.prototype_variables) == 0:
+            # if no variables, no functions
+            if verbose:
+                print("No variables")
+            prototype_basis_set = []
+
+        elif builder.n_local_variables == 0 and orbit_prototype.size() != 0:
+            # if no local variables, only generate functions on the null cluster
+            if verbose:
+                print("No local variables")
+            prototype_basis_set = []
+
+        else:
+            prototype_basis_set = make_symmetry_adapted_polynomials(
+                matrix_rep=builder.prototype_matrix_rep,
+                variables=builder.prototype_variables,
+                variable_subsets=builder.prototype_variable_subsets,
+                min_poly_order=1,
+                max_poly_order=max_poly_order[orbit_prototype.size()],
+                orthonormalize_in_place=False,
+                verbose=verbose,
+            )
+
         if verbose:
             print("Prototype cluster basis set:")
+            if len(prototype_basis_set) == 0:
+                print("Empty")
             for i_func, func in enumerate(prototype_basis_set):
                 print(f"~~~ order: {func.order()}, function_index: {i_func} ~~~")
                 func._basic_print()
                 print()
             print()
 
-        if make_equivalents:
+        if builder.equivalence_map_clusters is None or not make_equivalents:
+            if verbose:
+                print("Skip generating equivalents...")
+                print()
+            # if generating prototype cluster basis set only
+            orbit_clusters.append(builder.orbit[0])
+            orbit_basis_sets.append(prototype_basis_set)
+        else:
+            # generate basis sets on all equivalent clusters
             if verbose:
                 print("Generating equivalents...")
                 print()
@@ -167,6 +227,8 @@ def make_periodic_cluster_functions(
                 orbit_basis_sets.append(equiv_basis_set)
                 if verbose:
                     print("Equivalent cluster basis set:")
+                    if len(equiv_basis_set) == 0:
+                        print("Empty")
                     for i_func, func in enumerate(equiv_basis_set):
                         print(
                             f"~~~ order: {func.order()}, function_index: {i_func} ~~~"
@@ -174,10 +236,6 @@ def make_periodic_cluster_functions(
                         func._basic_print()
                         print()
                     print()
-
-        else:
-            orbit_clusters.append(builder.equivalence_map_clusters[0][0])
-            orbit_basis_sets.append(prototype_basis_set)
 
         clusters.append(orbit_clusters)
         functions.append(orbit_basis_sets)

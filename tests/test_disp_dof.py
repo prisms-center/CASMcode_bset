@@ -24,10 +24,8 @@ def test_disp_fcc_1():
 
     clusters, functions = make_periodic_cluster_functions(
         xtal_prim=xtal_prim,
-        local_dof=["disp"],
         max_length=[0.0, 0.0, 1.01, 1.01],
-        max_poly_order=4,
-        verbose=True,
+        global_max_poly_order=4,
     )
 
     assert len(clusters) == 4
@@ -65,10 +63,8 @@ def test_disp_hcp_1():
 
     clusters, functions = make_periodic_cluster_functions(
         xtal_prim=xtal_prim,
-        local_dof=["disp"],
         max_length=[0.0, 0.0, 1.01, 1.01],
-        max_poly_order=4,
-        verbose=True,
+        global_max_poly_order=4,
     )
 
     assert len(clusters) == 7
@@ -118,9 +114,8 @@ def test_disp_lowsym_1(lowsym_disp_prim):
 
     clusters, functions = make_periodic_cluster_functions(
         xtal_prim=xtal_prim,
-        local_dof=["disp"],
         max_length=[0.0, 0.0, 1.01, 1.01],
-        max_poly_order=4,
+        global_max_poly_order=4,
     )
 
     assert len(clusters) == 24
