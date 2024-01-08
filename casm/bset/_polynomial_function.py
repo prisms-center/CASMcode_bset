@@ -880,6 +880,36 @@ def gram_schmidt(
     return orthonormalized_functions
 
 
+class ExponentSumConstraint:
+    """
+    Attributes
+    ----------
+    variables: list[int]
+        Indices of the variables included in the constraint
+    sum: list[int]
+        The sum of the exponents of the specified variables
+        must be in the `sum` list for the constraint to
+        be satisfied.
+    """
+
+    def __init__(self, variables, sum):
+        self.variables = variables
+        self.sum = sum
+
+    def satisfied(self, monomial_exponents):
+        curr_sum = 0
+        for i_var in self.variables:
+            curr_sum += monomial_exponents[i_var]
+        return curr_sum in self.sum
+
+
+def all_constraints_satisfied(constraints, monomial_exponents):
+    for constraint in constraints:
+        if not constraint.satisfied(monomial_exponents):
+            return False
+    return True
+
+
 def make_symmetry_adapted_polynomials(
     matrix_rep: list[np.ndarray],
     variables: list[Variable],
@@ -887,7 +917,7 @@ def make_symmetry_adapted_polynomials(
     max_poly_order: int,
     min_poly_order: int = 1,
     orthonormalize_in_place: bool = True,
-    skip_variables: list[int] = [],
+    constraints: list[ExponentSumConstraint] = [],
     eps: float = 1e-14,
     verbose: bool = False,
 ) -> list[PolynomialFunction]:
@@ -914,10 +944,8 @@ def make_symmetry_adapted_polynomials(
         If True, orthonormalize symmetry adapted polynomials as they are generated,
         otherwise generate all symmetry adapted polynomials of a particular order and
         then orthonormalize.
-    skip_variables: list[int] = []
-        Indices of variables that should not be included in initially proposed
-        monomials. This can be used to specify the indices of the first site basis
-        function variable on each site, which are typically a constant 1.
+    constraints: list[ExponentSumConstraint]
+        If any constraint is not satisfied, the candidate monomial is skipped.
     eps: float = 1e-14
         Tolerance used for identifying zeros in the matrix representations.
     verbose: bool = False
@@ -955,12 +983,6 @@ def make_symmetry_adapted_polynomials(
 
     in_place = orthonormalize_in_place
 
-    def must_skip(x):
-        for _x in x:
-            if _x in skip_variables:
-                return True
-        return False
-
     for poly_order in range(min_poly_order, max_poly_order + 1):
         if verbose:
             print(f"Working on symmetry adapted polynomials of order {poly_order}")
@@ -995,12 +1017,12 @@ def make_symmetry_adapted_polynomials(
             if is_cluster_function and is_subcluster_function(x, variables, n_sites):
                 continue
 
-            # Skip monomials that include certain variables
-            if skip_variables is not None:
-                if must_skip(x):
-                    continue
+            # Skip monomials that do not satisfy exponent constraints
+            monomial_exponents = tensor_coord_to_monomial_exponents(x, n_variables)
+            if not all_constraints_satisfied(constraints, monomial_exponents):
+                continue
 
-            # print("Adding mononmial:", x)
+            # print("Adding monomial:", x)
 
             # Create polynomial function coefficients tensor
             coords = x.reshape((-1, 1))  # 2d array with single column containing x

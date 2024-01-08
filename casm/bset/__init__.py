@@ -17,6 +17,7 @@ from ._misc import (
     irrational_to_tex_string,
 )
 from ._polynomial_function import (
+    ExponentSumConstraint,
     FunctionRep,
     PolynomialFunction,
     Variable,

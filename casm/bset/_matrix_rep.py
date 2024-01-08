@@ -18,6 +18,7 @@ from libcasm.sym_info import (
 )
 
 from ._polynomial_function import (
+    ExponentSumConstraint,
     Variable,
 )
 
@@ -225,6 +226,7 @@ def make_variable_name(
     cluster_site_index: Optional[int] = None,
     component_index: Optional[int] = None,
     site_basis_function_index: Optional[int] = None,
+    local_discrete_dof: list[str] = [],
 ):
     def make_variable_symbol(xtal_prim, key, sublattice_index):
         if sublattice_index is not None:
@@ -244,7 +246,7 @@ def make_variable_name(
     symbol = make_variable_symbol(xtal_prim, key, sublattice_index)
 
     if cluster_site_index is not None:
-        if key == "occ":
+        if key == local_discrete_dof:
             return f"\phi_{{{site_basis_function_index}}}(s_{cluster_site_index})"
         else:
             return f"{symbol}(s_{cluster_site_index})"
@@ -320,6 +322,7 @@ def make_cluster_variables(
     key: str,
     cluster: Cluster,
     make_variable_name_f: Optional[Callable] = None,
+    local_discrete_dof: list[str] = [],
 ):
     """Construct the variable list for a cluster
 
@@ -328,8 +331,7 @@ def make_cluster_variables(
     prim: :class:`~libcasm.configuration.Prim`
         The Prim
     key: str
-        The name of the local DoF type. May be "occ" or a continuous local DoF. Must
-        exist in `prim`.
+        The name of the local DoF type. Must exist in `prim`.
     cluster: Cluster
         The cluster of sites with DoF to be transformed by the matrix representations.
     make_variable_name_f: Optional[Callable] = None
@@ -353,15 +355,16 @@ def make_cluster_variables(
     if make_variable_name_f is None:
         make_variable_name_f = make_variable_name
 
-    if key == "occ":
-        occ_dof = prim.xtal_prim().occ_dof()
+    if key in local_discrete_dof:
+        discrete_dof = prim.xtal_prim().occ_dof()
+        # TODO: discrete_dof = prim.xtal_prim().discrete_dof(key)
 
         variables = []
         variable_subsets = []
         variable_index = 0
         for cluster_site_index, integral_site_coordinate in enumerate(cluster.sites()):
             b = integral_site_coordinate.sublattice()
-            dof_basis_set = occ_dof[b]
+            dof_basis_set = discrete_dof[b]
             site_variable_subset = []
             for site_basis_function_index in range(len(dof_basis_set)):
                 variables.append(
@@ -372,6 +375,7 @@ def make_cluster_variables(
                             site_basis_function_index=site_basis_function_index,
                             cluster_site_index=cluster_site_index,
                             sublattice_index=b,
+                            local_discrete_dof=local_discrete_dof,
                         ),
                         key=key,
                         cluster_site_index=cluster_site_index,
@@ -410,6 +414,7 @@ def make_cluster_variables(
                             component_index=component_index,
                             cluster_site_index=cluster_site_index,
                             sublattice_index=b,
+                            local_discrete_dof=local_discrete_dof,
                         ),
                         key=key,
                         cluster_site_index=cluster_site_index,
@@ -689,6 +694,7 @@ class ClusterMatrixRepBuilder:
         key: str,
         cluster: Cluster,
         make_variable_name_f: Optional[Callable] = None,
+        local_discrete_dof: list[str] = [],
     ):
         ## Constructor parameters ##
         self.prim = prim
@@ -718,6 +724,7 @@ class ClusterMatrixRepBuilder:
             key=key,
             cluster=cluster,
             make_variable_name_f=make_variable_name_f,
+            local_discrete_dof=local_discrete_dof,
         )
         site_index_to_basis_index, total_dim = make_cluster_dof_info(
             cluster, local_dof_matrix_rep
@@ -753,11 +760,17 @@ class PeriodicOrbitMatrixRepBuilder:
         The symmetry group
     orbit: list[casmclust.Cluster]
         The generated orbit
-    local_dof: list[str]
-        The types of local degree of freedom (DoF) to include in the matrix
-        representation.
     global_dof: list[str]
         The types of global degree of freedom (DoF) to include in the matrix
+        representation. All global DoF are treated as continuous.
+    local_dof: list[str]
+        The types of local continuous and discrete degrees of freedom (DoF) to include
+        in the matrix representation.
+    local_continuous_dof: list[str]
+        The types of local discrete degree of freedom (DoF) to include in the matrix
+        representation.
+    local_discrete_dof: list[str]
+        The types of local discrete degree of freedom (DoF) to include in the matrix
         representation.
     equivalence_map_ops: list[list[xtal.SymOp]
         The list of SymOp `equivalence_map_ops[i]` all map ``prototype.cluster``
@@ -800,15 +813,16 @@ class PeriodicOrbitMatrixRepBuilder:
     n_local_variables: int
         The total number of local variables.
     local_equivalence_map_matrix_rep: list[list[list[np.ndarray]]
-        For each local DoF in `local_dof`, the cluster matrix rep of corresponding
-        `equivalence_map_ops`. These are the matrix representations that
+        For each DoF in `local_dof` and `discrete_dof`, the cluster matrix rep of
+        corresponding `equivalence_map_ops`. These are the matrix representations that
         should be used to transform local DoF values onto equivalent clusters. Index
         using ``local_equivalence_map_matrix_rep[i_local_dof][i_equiv][i_op]``.
     local_equivalence_map_inv_matrix_rep: list[list[list[np.ndarray]]
-        For each local DoF in `local_dof`, the cluster matrix rep of the inverse of
-        corresponding `equivalence_map_ops`. These are the matrix representations that
-        should be used to generate functions on the equivalent clusters from functions
-        on the prototype cluster for a single local DoF type. Index using
+        For each local DoF in `local_dof` and `discrete_dof`, the cluster matrix rep of
+        the inverse of corresponding `equivalence_map_ops`. These are the matrix
+        representations that should be used to generate functions on the equivalent
+        clusters from functions on the prototype cluster for a single local DoF type.
+        Index using
         ``local_equivalence_map_inv_matrix_rep[i_local_dof][i_equiv][i_op]``.
     prototype_matrix_rep: list[np.ndarray]
         The coupled matrix rep of corresponding generating group ops. These are the
@@ -841,6 +855,8 @@ class PeriodicOrbitMatrixRepBuilder:
         These are the matrix representations that should be used to generate coupled
         functions on the equivalent clusters from coupled functions on the prototype
         cluster. Index using ``equivalence_map_inv_matrix_rep[i_equiv][i_op]``.
+    constraints: list[ExponentSumConstraint]
+        If any constraint is not satisfied, the candidate monomial is skipped.
     """
 
     # noinspection PyTupleAssignmentBalance
@@ -848,8 +864,9 @@ class PeriodicOrbitMatrixRepBuilder:
         self,
         prim: casmconfig.Prim,
         generating_group: casmsyminfo.SymGroup,
-        local_dof: list[str],
         global_dof: list[str],
+        local_continuous_dof: list[str],
+        local_discrete_dof: list[str],
         cluster: Cluster,
         make_variable_name_f: Optional[Callable] = None,
     ):
@@ -862,12 +879,17 @@ class PeriodicOrbitMatrixRepBuilder:
         generating_group: casmsyminfo.SymGroup
             The symmetry group for generating cluster functions. The prim factor group
             (usually) or a subgroup.
-        local_dof: list[str]
-            The types of local degree of freedom (DoF) to include in the matrix
-            representation.
         global_dof: list[str]
             The types of global degree of freedom (DoF) to include in the matrix
             representation.
+        local_continuous_dof: list[str]
+            The types of local continuous degree of freedom (DoF) to include in the
+            matrix representation.
+        local_discrete_dof: list[str]
+            The types of local discrete degree of freedom (DoF) to include in the
+            matrix representation. The first site basis function for local discrete DoF
+            is assumed to be 1.0. The sum of exponents for local discrete DoF on a
+            site is constrained to be 0 or 1.
         cluster: Cluster
             A cluster in the orbit of clusters on which to generate matrix
             representations.
@@ -879,8 +901,12 @@ class PeriodicOrbitMatrixRepBuilder:
         ### Constructor parameters ###
         self.prim = prim
         self.generating_group = generating_group
-        self.local_dof = local_dof
         self.global_dof = global_dof
+        self.local_continuous_dof = local_continuous_dof
+        self.local_discrete_dof = local_discrete_dof
+
+        local_dof = local_continuous_dof + local_discrete_dof
+        self.local_dof = local_dof
 
         ## Orbit data
         generating_group_site_rep = make_integral_site_coordinate_symgroup_rep(
@@ -911,6 +937,9 @@ class PeriodicOrbitMatrixRepBuilder:
             xtal_prim=prim.xtal_prim(),
             equivalence_map_ops=equivalence_map_ops,
         )
+
+        ## DoF info
+        constraints = []
 
         ## Global DoF info TODO: factor out to avoid duplication for each orbit?
         global_variables = []
@@ -950,6 +979,7 @@ class PeriodicOrbitMatrixRepBuilder:
                 key=key,
                 cluster=orbit[0],
                 make_variable_name_f=make_variable_name_f,
+                local_discrete_dof=local_discrete_dof,
             )
 
             ## Build equivalence map matrix reps
@@ -996,12 +1026,23 @@ class PeriodicOrbitMatrixRepBuilder:
             variable_subsets = global_variable_subsets[i]
             for subset in variable_subsets:
                 prototype_variable_subsets.append([j + offset for j in subset])
-        for x in local_prototype:
+        for i_local, x in enumerate(local_prototype):
+            key = local_dof[i_local]
             offset = len(prototype_variables)
             n_local_variables += len(x.variables)
             prototype_variables += x.variables
             for subset in x.variable_subsets:
-                prototype_variable_subsets.append([j + offset for j in subset])
+                corrected_subset = []
+                for j in subset:
+                    corrected_subset.append(j + offset)
+                prototype_variable_subsets.append(corrected_subset)
+                if key in local_discrete_dof:
+                    constraints.append(
+                        ExponentSumConstraint(variables=[corrected_subset[0]], sum=[0])
+                    )
+                    constraints.append(
+                        ExponentSumConstraint(variables=corrected_subset, sum=[0, 1])
+                    )
 
         # build equivalence map matrix reps
         equivalence_map_matrix_rep = []  # transforms DoF
@@ -1062,3 +1103,4 @@ class PeriodicOrbitMatrixRepBuilder:
         self.prototype_variable_subsets = prototype_variable_subsets
         self.equivalence_map_matrix_rep = equivalence_map_matrix_rep
         self.equivalence_map_inv_matrix_rep = equivalence_map_inv_matrix_rep
+        self.constraints = constraints

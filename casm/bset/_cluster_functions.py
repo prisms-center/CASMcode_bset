@@ -109,29 +109,39 @@ def make_periodic_cluster_functions(
     all_global_dof = set()
     for _global_dof in xtal_prim.global_dof():
         all_global_dof.add(_global_dof.dofname())
-    all_local_dof = set()
+    all_local_continuous_dof = set()
     for _sublattice_dof in xtal_prim.local_dof():
         for _local_dof in _sublattice_dof:
-            all_local_dof.add(_local_dof.dofname())
+            all_local_continuous_dof.add(_local_dof.dofname())
+    # TODO: support other local discrete dof
+    all_local_discrete_dof = set()
+    for _occ_dof in xtal_prim.occ_dof():
+        if len(_occ_dof) > 1:
+            all_local_discrete_dof.add("occ")
 
     if dofs is None:
         global_dof = list(all_global_dof)
-        local_dof = list(all_local_dof)
+        local_continuous_dof = list(all_local_continuous_dof)
+        local_discrete_dof = list(all_local_discrete_dof)
     else:
         global_dof = []
-        local_dof = []
+        local_continuous_dof = []
+        local_discrete_dof = []
         for _dofname in dofs:
             if _dofname in all_global_dof:
                 global_dof.append(_dofname)
-            elif _dofname in all_local_dof:
-                local_dof.append(_dofname)
+            elif _dofname in all_local_continuous_dof:
+                local_continuous_dof.append(_dofname)
+            elif _dofname in all_local_discrete_dof:
+                local_discrete_dof.append(_dofname)
             else:
                 raise Exception(
                     "Error in make_periodic_cluster_functions: "
                     f"Unknown dof '{_dofname}'"
                 )
     print("global_dof:", global_dof)
-    print("local_dof:", local_dof)
+    print("local_continuous_dof:", local_continuous_dof)
+    print("local_discrete_dof:", local_discrete_dof)
 
     # loop over cluster orbit prototypes,
     # building sym rep matrices and polynomial functions
@@ -150,8 +160,9 @@ def make_periodic_cluster_functions(
         builder = PeriodicOrbitMatrixRepBuilder(
             prim=prim,
             generating_group=prim.factor_group(),
-            local_dof=local_dof,
             global_dof=global_dof,
+            local_continuous_dof=local_continuous_dof,
+            local_discrete_dof=local_discrete_dof,
             cluster=orbit_prototype,
             make_variable_name_f=make_variable_name_f,
         )
@@ -169,12 +180,26 @@ def make_periodic_cluster_functions(
             prototype_basis_set = []
 
         else:
+            if verbose:
+                print("Variables:")
+                for i_var, var in enumerate(builder.prototype_variables):
+                    print(f"{i_var}: {var.name}")
+                print()
+                print("Variable subsets:")
+                for i_subset, subset in enumerate(builder.prototype_variable_subsets):
+                    print(f"{i_subset}:", end="")
+                    for i_var in subset:
+                        print(f"{builder.prototype_variables[i_var].name}, ", end="")
+                    print()
+                print()
+
             prototype_basis_set = make_symmetry_adapted_polynomials(
                 matrix_rep=builder.prototype_matrix_rep,
                 variables=builder.prototype_variables,
                 variable_subsets=builder.prototype_variable_subsets,
                 min_poly_order=1,
                 max_poly_order=max_poly_order[orbit_prototype.size()],
+                constraints=builder.constraints,
                 orthonormalize_in_place=False,
                 verbose=verbose,
             )

@@ -7,6 +7,7 @@ from libcasm.clusterography import (
 )
 
 from casm.bset import (
+    ExponentSumConstraint,
     PeriodicOrbitMatrixRepBuilder,
     PolynomialFunction,
     make_symmetry_adapted_polynomials,
@@ -64,7 +65,8 @@ print()
 builder = PeriodicOrbitMatrixRepBuilder(
     prim=prim,
     generating_group=prim.factor_group(),
-    local_dof=["occ"],
+    local_continuous_dof=[],
+    local_discrete_dof=["occ"],
     global_dof=[],
     cluster=cluster,
 )
@@ -108,7 +110,11 @@ print("Variable subsets:")
 print(xtal.pretty_json(builder.local_prototype[0].variable_subsets))
 
 poly_order = cluster.size()
-skip_variables = [x[0] for x in builder.local_prototype[0].variable_subsets]
+# skip_variables = [x[0] for x in builder.local_prototype[0].variable_subsets]
+constraints = []
+for subset in builder.local_prototype[0].variable_subsets:
+    constraints.append(ExponentSumConstraint(variables=[subset[0]], sum=[0]))
+    constraints.append(ExponentSumConstraint(variables=subset, sum=[0, 1]))
 prototype_basis_set = make_symmetry_adapted_polynomials(
     matrix_rep=builder.local_prototype[0].cluster_matrix_rep,
     variables=builder.local_prototype[0].variables,
@@ -116,7 +122,7 @@ prototype_basis_set = make_symmetry_adapted_polynomials(
     min_poly_order=poly_order,
     max_poly_order=poly_order,
     orthonormalize_in_place=True,
-    skip_variables=skip_variables,
+    constraints=constraints,
     verbose=True,
 )
 

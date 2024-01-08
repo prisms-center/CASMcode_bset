@@ -14,41 +14,17 @@ def lowsym_Hstrain_prim():
         lattice=xtal.Lattice(
             np.array(
                 [
-                    [
-                        1.0,
-                        0.3,
-                        0.4,
-                    ],  # a
-                    [
-                        0.0,
-                        1.2,
-                        0.5,
-                    ],  # b
-                    [
-                        0.0,
-                        0.0,
-                        1.4,
-                    ],  # c
+                    [1.0, 0.3, 0.4],  # a
+                    [0.0, 1.2, 0.5],  # b
+                    [0.0, 0.0, 1.4],  # c
                 ]
             ).transpose()
         ),
         coordinate_frac=np.array(
             [
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.4,
-                    0.5,
-                    0.6,
-                ],
-                [
-                    0.24,
-                    0.25,
-                    0.23,
-                ],
+                [0.0, 0.0, 0.0],
+                [0.4, 0.5, 0.6],
+                [0.24, 0.25, 0.23],
             ]
         ).transpose(),
         occ_dof=[["A"], ["A"], ["A"]],
@@ -62,41 +38,17 @@ def lowsym_disp_prim():
         lattice=xtal.Lattice(
             np.array(
                 [
-                    [
-                        1.0,
-                        0.3,
-                        0.4,
-                    ],  # a
-                    [
-                        0.0,
-                        1.2,
-                        0.5,
-                    ],  # b
-                    [
-                        0.0,
-                        0.0,
-                        1.4,
-                    ],  # c
+                    [1.0, 0.3, 0.4],  # a
+                    [0.0, 1.2, 0.5],  # b
+                    [0.0, 0.0, 1.4],  # c
                 ]
             ).transpose()
         ),
         coordinate_frac=np.array(
             [
-                [
-                    0.0,
-                    0.0,
-                    0.0,
-                ],
-                [
-                    0.4,
-                    0.5,
-                    0.6,
-                ],
-                [
-                    0.24,
-                    0.25,
-                    0.23,
-                ],
+                [0.0, 0.0, 0.0],
+                [0.4, 0.5, 0.6],
+                [0.24, 0.25, 0.23],
             ]
         ).transpose(),
         occ_dof=[["A"], ["A"], ["A"]],
@@ -105,6 +57,29 @@ def lowsym_disp_prim():
             [xtal.DoFSetBasis("disp")],
             [xtal.DoFSetBasis("disp")],
         ],
+    )
+
+
+@pytest.fixture
+def lowsym_occ_prim():
+    return xtal.Prim(
+        lattice=xtal.Lattice(
+            np.array(
+                [
+                    [1.0, 0.3, 0.4],  # a
+                    [0.0, 1.2, 0.5],  # b
+                    [0.0, 0.0, 1.4],  # c
+                ]
+            ).transpose()
+        ),
+        coordinate_frac=np.array(
+            [
+                [0.0, 0.0, 0.0],
+                [0.4, 0.5, 0.6],
+                [0.24, 0.25, 0.23],
+            ]
+        ).transpose(),
+        occ_dof=[["A", "B"], ["A", "B"], ["A", "B"]],
     )
 
 
