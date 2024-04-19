@@ -1,3 +1,5 @@
+import json
+
 import libcasm.xtal as xtal
 import libcasm.xtal.prims as xtal_prims
 from utils.expected_disp_functions import (
@@ -7,6 +9,7 @@ from utils.expected_disp_functions import (
 )
 from utils.helpers import (
     assert_expected_cluster_functions,
+    assert_expected_cluster_functions_detailed,
 )
 
 from casm.bset import (
@@ -14,7 +17,7 @@ from casm.bset import (
 )
 
 
-def test_disp_fcc_1():
+def test_disp_fcc_1(session_shared_datadir):
     xtal_prim = xtal_prims.FCC(
         r=0.5,
         occ_dof=["A"],
@@ -22,10 +25,11 @@ def test_disp_fcc_1():
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions = make_periodic_cluster_functions(
+    clusters, functions, prim_neighbor_list = make_periodic_cluster_functions(
         xtal_prim=xtal_prim,
         max_length=[0.0, 0.0, 1.01, 1.01],
         global_max_poly_order=4,
+        verbose=False,
     )
 
     assert len(clusters) == 4
@@ -44,16 +48,23 @@ def test_disp_fcc_1():
     assert len(functions[3]) == 8
     assert len(functions[3][0]) == 37
 
-    # print_expected_cluster_functions(functions)
-    expected_functions = expected_disp_functions_fcc_1()
+    # print_expected_cluster_functions_detailed(
+    #     functions,
+    #     file=pathlib.Path(os.path.realpath(__file__)).parent
+    #     / "data"
+    #     / "expected_disp_functions_fcc_1.json",
+    # )
+    with open(session_shared_datadir / "expected_disp_functions_fcc_1.json") as f:
+        assert_expected_cluster_functions_detailed(functions, json.load(f))
 
+    # print_expected_cluster_functions(functions)
     assert_expected_cluster_functions(
         functions,
-        expected_functions,
+        expected_disp_functions_fcc_1(),
     )
 
 
-def test_disp_hcp_1():
+def test_disp_hcp_1(session_shared_datadir):
     xtal_prim = xtal_prims.HCP(
         r=0.5,
         occ_dof=["A"],
@@ -61,10 +72,8 @@ def test_disp_hcp_1():
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions = make_periodic_cluster_functions(
-        xtal_prim=xtal_prim,
-        max_length=[0.0, 0.0, 1.01, 1.01],
-        global_max_poly_order=4,
+    clusters, functions, prim_neighbor_list = make_periodic_cluster_functions(
+        xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
     )
 
     assert len(clusters) == 7
@@ -99,6 +108,15 @@ def test_disp_hcp_1():
     assert len(functions[6]) == 12
     assert len(functions[6][0]) == 99
 
+    # print_expected_cluster_functions_detailed(
+    #     functions,
+    #     file=pathlib.Path(os.path.realpath(__file__)).parent
+    #     / "data"
+    #     / "expected_disp_functions_hcp_1.json",
+    # )
+    with open(session_shared_datadir / "expected_disp_functions_hcp_1.json") as f:
+        assert_expected_cluster_functions_detailed(functions, json.load(f))
+
     # print_expected_cluster_functions(functions)
     expected_functions = expected_disp_functions_hcp_1()
 
@@ -108,14 +126,12 @@ def test_disp_hcp_1():
     )
 
 
-def test_disp_lowsym_1(lowsym_disp_prim):
+def test_disp_lowsym_1(lowsym_disp_prim, session_shared_datadir):
     xtal_prim = lowsym_disp_prim
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions = make_periodic_cluster_functions(
-        xtal_prim=xtal_prim,
-        max_length=[0.0, 0.0, 1.01, 1.01],
-        global_max_poly_order=4,
+    clusters, functions, prim_neighbor_list = make_periodic_cluster_functions(
+        xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
     )
 
     assert len(clusters) == 24
@@ -145,6 +161,15 @@ def test_disp_lowsym_1(lowsym_disp_prim):
     assert len(functions[21][0]) == 189
     assert len(functions[22][0]) == 189
     assert len(functions[23][0]) == 189
+
+    # print_expected_cluster_functions_detailed(
+    #     functions,
+    #     file=pathlib.Path(os.path.realpath(__file__)).parent
+    #     / "data"
+    #     / "expected_disp_functions_lowsym_1.json",
+    # )
+    with open(session_shared_datadir / "expected_disp_functions_lowsym_1.json") as f:
+        assert_expected_cluster_functions_detailed(functions, json.load(f))
 
     # print_expected_cluster_functions(functions)
     expected_functions = expected_disp_functions_lowsym_1()

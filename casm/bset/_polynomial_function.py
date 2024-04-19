@@ -165,7 +165,7 @@ class FunctionRep:
     def __mul__(self, rhs):
         if isinstance(rhs, PolynomialFunction):
             dim = len(rhs.coeff.shape)
-            result = copy.copy(rhs)
+            result = rhs.copy()
 
             # A: result.coeff,
             # M: self.matrix_rep / self.sparse_matrix_rep
@@ -198,7 +198,7 @@ class FunctionRep:
                     [i, j],
                     indices_after,
                 )
-                indices_before = copy.copy(indices_after)
+                indices_before = copy.deepcopy(indices_after)
                 j += 1
             result.monomial_exponents = result.tensor_coords_to_monomial_exponents()
 
@@ -282,7 +282,7 @@ class Variable:
         if self.cluster_site_index is not None:
             data["cluster_site_index"] = self.cluster_site_index
         if self.component_index is not None:
-            data["component_index_index"] = self.component_index
+            data["component_index"] = self.component_index
         if self.site_basis_function_index is not None:
             data["site_basis_function_index"] = self.site_basis_function_index
         if self.neighborhood_site_index is not None:
@@ -478,11 +478,8 @@ class PolynomialFunction:
         self.monomial_exponents = self.tensor_coords_to_monomial_exponents()
         return self
 
-    def copy(self, deep: bool = False):
-        if deep:
-            return copy.deepcopy(self)
-        else:
-            return copy.copy(self)
+    def copy(self):
+        return copy.deepcopy(self)
 
     def __isub__(self, rhs: PolynomialFunctionType):
         self.coeff -= rhs.coeff
@@ -507,7 +504,7 @@ class PolynomialFunction:
         return self
 
     def __mul__(self, c: float):
-        result = self.copy(deep=True)
+        result = self.copy()
         result *= c
         return result
 
@@ -868,7 +865,7 @@ def gram_schmidt(
     for f in functions:
         if len(f.coeff.data) == 0:
             continue
-        next = f.copy(deep=True)
+        next = f.copy()
         next.make_canonical()
         next.prune()
         for g in orthonormalized_functions:
@@ -1046,7 +1043,7 @@ def make_symmetry_adapted_polynomials(
             # then add it to the growing list of symmetry adapted functions
             if len(f_sum.coeff.data) != 0:
                 if in_place:
-                    next = f_sum.copy(deep=True)
+                    next = f_sum.copy()
                     for g in orthonormalized_functions:
                         next -= next.scalar_product(g) * g
                     if len(next.coeff.data) != 0:

@@ -1,3 +1,5 @@
+import json
+
 import libcasm.xtal as xtal
 import libcasm.xtal.prims as xtal_prims
 from utils.expected_Hstrain_disp_functions import (
@@ -7,6 +9,7 @@ from utils.expected_Hstrain_disp_functions import (
 )
 from utils.helpers import (
     assert_expected_cluster_functions,
+    assert_expected_cluster_functions_detailed,
 )
 
 from casm.bset import (
@@ -14,7 +17,7 @@ from casm.bset import (
 )
 
 
-def test_Hstrain_disp_fcc_1():
+def test_Hstrain_disp_fcc_1(session_shared_datadir):
     xtal_prim = xtal_prims.FCC(
         r=0.5,
         occ_dof=["A"],
@@ -23,10 +26,8 @@ def test_Hstrain_disp_fcc_1():
     )
     print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions = make_periodic_cluster_functions(
-        xtal_prim=xtal_prim,
-        max_length=[0.0, 0.0, 1.01, 1.01],
-        global_max_poly_order=4,
+    clusters, functions, prim_neighbor_list = make_periodic_cluster_functions(
+        xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
     )
 
     assert len(clusters) == 4
@@ -45,6 +46,17 @@ def test_Hstrain_disp_fcc_1():
     assert len(functions[3]) == 8
     assert len(functions[3][0]) == 67
 
+    # print_expected_cluster_functions_detailed(
+    #     functions,
+    #     file=pathlib.Path(os.path.realpath(__file__)).parent
+    #     / "data"
+    #     / "expected_Hstrain_disp_functions_fcc_1.json",
+    # )
+    with open(
+        session_shared_datadir / "expected_Hstrain_disp_functions_fcc_1.json"
+    ) as f:
+        assert_expected_cluster_functions_detailed(functions, json.load(f))
+
     # print_expected_cluster_functions(functions)
     # assert False
     expected_functions = expected_Hstrain_disp_functions_fcc_1()
@@ -55,7 +67,7 @@ def test_Hstrain_disp_fcc_1():
     )
 
 
-def test_Hstrain_disp_hcp_1():
+def test_Hstrain_disp_hcp_1(session_shared_datadir):
     xtal_prim = xtal_prims.HCP(
         r=0.5,
         occ_dof=["A"],
@@ -64,11 +76,20 @@ def test_Hstrain_disp_hcp_1():
     )
     print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions = make_periodic_cluster_functions(
-        xtal_prim=xtal_prim,
-        max_length=[0.0, 0.0, 1.01, 1.01],
-        global_max_poly_order=4,
+    clusters, functions, prim_neighbor_list = make_periodic_cluster_functions(
+        xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
     )
+
+    # print_expected_cluster_functions_detailed(
+    #     functions,
+    #     file=pathlib.Path(os.path.realpath(__file__)).parent
+    #     / "data"
+    #     / "expected_Hstrain_disp_functions_hcp_1.json",
+    # )
+    with open(
+        session_shared_datadir / "expected_Hstrain_disp_functions_hcp_1.json"
+    ) as f:
+        assert_expected_cluster_functions_detailed(functions, json.load(f))
 
     # print_expected_cluster_functions(functions)
     # assert False
@@ -80,15 +101,24 @@ def test_Hstrain_disp_hcp_1():
     )
 
 
-def test_Hstrain_disp_lowsym_1(lowsym_Hstrain_disp_prim):
+def test_Hstrain_disp_lowsym_1(lowsym_Hstrain_disp_prim, session_shared_datadir):
     xtal_prim = lowsym_Hstrain_disp_prim
     print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions = make_periodic_cluster_functions(
-        xtal_prim=xtal_prim,
-        max_length=[0.0, 0.0, 1.01],
-        global_max_poly_order=3,
+    clusters, functions, prim_neighbor_list = make_periodic_cluster_functions(
+        xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01], global_max_poly_order=3
     )
+
+    # print_expected_cluster_functions_detailed(
+    #     functions,
+    #     file=pathlib.Path(os.path.realpath(__file__)).parent
+    #     / "data"
+    #     / "expected_Hstrain_disp_functions_lowsym_1.json",
+    # )
+    with open(
+        session_shared_datadir / "expected_Hstrain_disp_functions_lowsym_1.json"
+    ) as f:
+        assert_expected_cluster_functions_detailed(functions, json.load(f))
 
     # print_expected_cluster_functions(functions)
     # assert False

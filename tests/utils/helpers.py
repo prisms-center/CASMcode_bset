@@ -1,9 +1,12 @@
+import pathlib
+from typing import Optional
+
 import libcasm.xtal as xtal
 import numpy as np
 
 
 def print_factor_group(prim):
-    factor_group_elements = prim.factor_group().elements()
+    factor_group_elements = prim.factor_group.elements
     i = 1
     for op in factor_group_elements:
         syminfo = xtal.SymInfo(op, prim.lattice())
@@ -58,7 +61,7 @@ def print_expected_cluster_functions(functions):
     Parameters
     ----------
     functions: list[list[list[PolynomialFunction]]]
-        Output from :func:`casm.best.make_cluster_functions`.
+        Output from :func:`casm.best.make_periodic_cluster_functions`.
 
     """
     _expected_by_orbit = []
@@ -90,3 +93,66 @@ def assert_expected_cluster_functions(
             prototype_cluster_functions,
             expected_by_orbit[i_orbit],
         )
+
+
+def print_expected_cluster_functions_detailed(
+    functions, file: Optional[pathlib.Path] = None
+):
+    """Print functions on the prototype clusters
+
+    Parameters
+    ----------
+    functions: list[list[list[PolynomialFunction]]]
+        Output from :func:`casm.best.make_periodic_cluster_functions`.
+
+    """
+
+    data = {"functions": []}
+
+    for i_branch, branch in enumerate(functions):
+        branch_data = []
+        for i_equiv, equiv in enumerate(branch):
+            orbit_data = []
+            for i_func, func in enumerate(equiv):
+                d = func.to_dict()
+                d["i_branch"] = i_branch
+                d["i_equiv"] = i_equiv
+                d["i_func"] = i_func
+                orbit_data.append(d)
+            branch_data.append(orbit_data)
+        data["functions"].append(branch_data)
+
+    if file is not None:
+        with open(file, "w") as f:
+            f.write(xtal.pretty_json(data))
+    else:
+        print(xtal.pretty_json(data))
+
+
+def assert_expected_cluster_functions_detailed(
+    functions,
+    expected,
+):
+    exact_keys = [
+        "coeff_coords",
+        "coeff_shape",
+        "monomial_exponents",
+        "tex_coeff",
+        "tex_prefactor",
+        "variable_subsets",
+        "variables",
+    ]
+    approx_keys = ["coeff_data"]
+
+    assert "functions" in expected
+    assert len(expected["functions"]) == len(functions)
+    for i_branch, branch_expected in enumerate(expected["functions"]):
+        assert len(functions[i_branch]) == len(branch_expected)
+        for i_equiv, equiv_expected in enumerate(branch_expected):
+            assert len(functions[i_branch][i_equiv]) == len(equiv_expected)
+            for i_func, func_expected in enumerate(equiv_expected):
+                func = functions[i_branch][i_equiv][i_func].to_dict()
+                for key in exact_keys:
+                    assert func_expected[key] == func[key]
+                for key in approx_keys:
+                    assert np.allclose(func_expected[key], func[key])

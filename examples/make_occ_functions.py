@@ -64,7 +64,7 @@ print()
 
 builder = PeriodicOrbitMatrixRepBuilder(
     prim=prim,
-    generating_group=prim.factor_group(),
+    generating_group=prim.factor_group,
     local_continuous_dof=[],
     local_discrete_dof=["occ"],
     global_dof=[],
@@ -86,8 +86,8 @@ if True:
         matrix_rep[i][np.abs(matrix_rep[i]) < eps] = 0.0
 
     print("Prototype cluster group:")
-    for i_op, op in enumerate(builder.local_prototype[0].cluster_group.elements()):
-        i_fg_op = builder.local_prototype[0].cluster_group.head_group_index()[i_op]
+    for i_op, op in enumerate(builder.local_prototype[0].cluster_group.elements):
+        i_fg_op = builder.local_prototype[0].cluster_group.head_group_index[i_op]
         print(f"~~~ cg: {i_op}, fg: {i_fg_op} ~~~")
         print(xtal.pretty_json(op.to_dict()))
         info = xtal.SymInfo(op, xtal_prim.lattice())

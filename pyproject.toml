@@ -22,7 +22,7 @@ classifiers = [
     "Topic :: Scientific/Engineering",
 ]
 dependencies = [
-    "libcasm-configuration==2.0a2",
+    "libcasm-configuration>=2.0a3",
     "numpy",
     "scipy",
     "sparse==0.14"
@@ -58,7 +58,7 @@ skip =  "pp*"
 before-all = "git submodule update --init --recursive"
 
 # Testing
-test-requires = "pytest"
+test-requires = "pytest pytest-datadir"
 test-command = "pytest -rsap {project}/tests"
 
 [tool.cibuildwheel.macos]

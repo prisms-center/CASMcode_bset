@@ -40,8 +40,6 @@ print(xtal.pretty_json(xtal_prim.to_dict()))
 
 clusters, functions = make_periodic_cluster_functions(
     xtal_prim=xtal_prim,
-    # local_dof=["disp"],
-    # global_dof=["Hstrain"],
     dofs=None,
     max_length=[0.0, 0.0, 1.01, 1.01],
     global_max_poly_order=4,

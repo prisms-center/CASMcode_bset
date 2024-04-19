@@ -3,6 +3,10 @@ from typing import Callable, Iterable, Optional
 import libcasm.clusterography as casmclust
 import libcasm.configuration as casmconfig
 import libcasm.xtal as xtal
+from libcasm.clexulator import (
+    PrimNeighborList,
+    make_default_prim_neighbor_list,
+)
 
 from ._matrix_rep import (
     PeriodicOrbitMatrixRepBuilder,
@@ -14,105 +18,45 @@ from ._polynomial_function import (
 )
 
 
-def make_periodic_cluster_functions(
+def _get_dof_types(
     xtal_prim: xtal.Prim,
-    global_max_poly_order: int,
-    dofs: Optional[Iterable[str]] = None,
-    orbit_prototypes: Optional[Iterable[casmclust.Cluster]] = None,
-    max_length: Optional[list[float]] = None,
-    orbit_branch_max_poly_order: Optional[list[int]] = None,
-    make_equivalents: bool = True,
-    make_variable_name_f: Optional[Callable] = None,
-    verbose: bool = False,
-) -> tuple[list[list[casmclust.Cluster]], list[list[list[PolynomialFunction]]]]:
-    """Construct cluster functions
+    dofs: Optional[list[str]] = None,
+) -> tuple[list[str], list[str], list[str]]:
+    """Given a list of dofs, make lists of which are global, local continuous, and local
+    discrete.
 
     Parameters
     ----------
     xtal_prim: xtal.Prim
         The Prim
-    global_max_poly_order: int
-        The maximum order of polynomials to generate, for any orbit.
     dofs: Optional[Iterable[str]] = None
         An iterable of string of dof type names that should be used to construct basis
         functions. The default value is all DoF types included in the prim.
-    orbit_prototypes: Optional[Iterable[casmclust.Cluster]]
-        An iterable of :class:`~casmclust.Cluster` containing the prototypes of orbits
-        to generate functions for. If provided, `max_length` is ignored.
-    max_length: list[float]
-        If `orbit_prototypes` is not provided, `max_length` must be given to specify
-        which clusters to generate functions for, using a site-to-site distance cutoff.
-        Clusters with `n_site` sites are included if the maximum site-to-site distance
-        is less than ``max_length[n_site]``. Notes:
-
-        - For null and point clusters, there are no site-to-site distances so
-          ``max_length[0]`` and ``max_length[1]`` are always ignored.
-
-    orbit_branch_max_poly_order: Optional[list[int]]
-        The maximum order of polynomials to generate, by orbit branch (number of sites
-        in the cluster). If not None, for clusters with `n_sites` sites the maximum
-        polynomial order is set to the minimum of
-        ``orbit_branch_max_poly_order[n_sites]`` and ``global_max_poly_order``.
-    make_equivalents: bool = True
-        If True, make all equivalent clusters and functions. Otherwise, only construct
-        and return the prototype clusters and functions on the prototype cluster
-        (i.e. ``i_equiv=0`` only).
-    make_variable_name_f: Optional[Callable] = None
-        Allows specifying a custom function to construct variable names. The default
-        function used is :func:`make_variable_name`. Custom functions should have the
-        same signature as :func:`make_variable_name`.
-    verbose: bool = False
-        Print progress statements
 
     Returns
     -------
-    (clusters, functions):
+    (global_dof, local_continuous_dof, local_discrete_dof):
 
-        clusters: list[list[casmclust.Cluster]]
-            Orbits of clusters, where ``orbits[i_orbit][i_equiv]``, is the
-            `i_equiv`-th symmetrically equivalent cluster in the
-            `i_orbit`-th orbit.
+        global_dof: list[str]
+            The types of global degree of freedom (DoF). All global DoF are treated
+            as continuous.
 
-        functions: list[list[list[PolynomialFunction]]]
-            Polynomial functions, where ``functions[i_orbit][i_equiv][i_func]``,
-            is the `i_func`-th function on the cluster given by
-            `clusters[i_orbit][i_equiv]`.
+        local_continuous_dof: list[str]
+            The types of local discrete degree of freedom (DoF).
+
+        local_discrete_dof: list[str]
+            The types of local discrete degree of freedom (DoF).
+
     """
-    prim = casmconfig.Prim(xtal_prim)
-
-    if orbit_prototypes is None:
-        # generate cluster orbits
-        cluster_specs = casmclust.ClusterSpecs(
-            xtal_prim=prim.xtal_prim(),
-            generating_group=prim.factor_group(),
-            max_length=max_length,
-        )
-        orbit_prototypes = [orbit[0] for orbit in cluster_specs.make_orbits()]
-
-    max_cluster_size = 0
-    for orbit_prototype in orbit_prototypes:
-        if len(orbit_prototype) > max_cluster_size:
-            max_cluster_size = len(orbit_prototype)
-
-    # determine max_poly_order[n_sites]
-    i = 0
-    max_poly_order = []
-    while len(max_poly_order) < max_cluster_size + 1:
-        if orbit_branch_max_poly_order is None or len(orbit_branch_max_poly_order) <= i:
-            max_poly_order.append(global_max_poly_order)
-        else:
-            max_poly_order.append(
-                min(orbit_branch_max_poly_order[i], global_max_poly_order)
-            )
-        i += 1
-
     all_global_dof = set()
     for _global_dof in xtal_prim.global_dof():
         all_global_dof.add(_global_dof.dofname())
+
     all_local_continuous_dof = set()
     for _sublattice_dof in xtal_prim.local_dof():
         for _local_dof in _sublattice_dof:
             all_local_continuous_dof.add(_local_dof.dofname())
+
     # TODO: support other local discrete dof
     all_local_discrete_dof = set()
     for _occ_dof in xtal_prim.occ_dof():
@@ -135,13 +79,204 @@ def make_periodic_cluster_functions(
             elif _dofname in all_local_discrete_dof:
                 local_discrete_dof.append(_dofname)
             else:
-                raise Exception(
-                    "Error in make_periodic_cluster_functions: "
-                    f"Unknown dof '{_dofname}'"
-                )
-    print("global_dof:", global_dof)
-    print("local_continuous_dof:", local_continuous_dof)
-    print("local_discrete_dof:", local_discrete_dof)
+                raise Exception(f"Error in _get_dof_types: Unknown dof '{_dofname}'")
+    return (global_dof, local_continuous_dof, local_discrete_dof)
+
+
+def _default_nlist_sublat_indices(
+    xtal_prim: xtal.Prim,
+) -> list[int]:
+    """Default sublattice indices for PrimNeighborList
+
+    Typically, sublattices are included in the neighbor list if they have allowed DoF,
+    either >1 occupant DoF allowed, or 1 continuous DoF.
+
+    Parameters
+    ----------
+    xtal_prim: xtal.Prim
+        The Prim.
+
+    Returns
+    -------
+    sublat_indices: list[int]
+        The indices of the sublattices that should be included in the neighbor list.
+
+    """
+    sublat_indices = set()
+    occ_dof = xtal_prim.occ_dof()
+    for b, sublattice_occ_dof in enumerate(occ_dof):
+        if len(sublattice_occ_dof) >= 2:
+            sublat_indices.add(b)
+    local_dof = xtal_prim.local_dof()
+    for b, sublattice_local_dof in enumerate(local_dof):
+        if len(sublattice_local_dof) > 0:
+            sublat_indices.add(b)
+    return list(sublat_indices)
+
+
+def assign_neighborhood_site_index(
+    cluster: casmclust.Cluster,
+    function: PolynomialFunction,
+    prim_neighbor_list: PrimNeighborList,
+):
+    """Assign neighborhood_site_index for function variables
+
+    Parameters
+    ----------
+    cluster: libcasm.clusterography.Cluster
+        The cluster associated with the function
+    function: casm.bset.PolynomialFunction
+        A PolynomialFunction with variables that have cluster_site_index set
+        referring to which site in `cluster` they are associated with.
+    prim_neighbor_list: libcasm.clexulator.PrimNeighborList
+        The neighbor list
+
+    """
+    for var in function.variables:
+        if var.cluster_site_index is not None:
+            integral_site_coordinate = cluster[var.cluster_site_index]
+            var.neighborhood_site_index = prim_neighbor_list.neighbor_index(
+                integral_site_coordinate
+            )
+
+
+def make_periodic_cluster_functions(
+    xtal_prim: xtal.Prim,
+    dofs: Optional[Iterable[str]] = None,
+    orbit_prototypes: Optional[Iterable[casmclust.Cluster]] = None,
+    max_length: Optional[list[float]] = None,
+    global_max_poly_order: Optional[int] = None,
+    orbit_branch_max_poly_order: dict[int, int] = {},
+    make_equivalents: bool = True,
+    make_variable_name_f: Optional[Callable] = None,
+    prim_neighbor_list: Optional[PrimNeighborList] = None,
+    verbose: bool = False,
+) -> tuple[list[list[casmclust.Cluster]], list[list[list[PolynomialFunction]]]]:
+    """Construct cluster functions with periodic symmetry
+
+    Notes
+    -----
+    - Cluster functions are constructed for cluster orbits which may be given explicitly
+      using the `orbit_prototypes` parameter, or generated automatically using the
+      `max_length` parameter to specify the maximum site-to-site distance for
+      clusters of a given number of sites.
+    - For functions of only discrete DoF, the polynomial functions include a single
+      site basis function from each discrete DoF type on each site in a cluster.
+    - For functions that include continuous DoF, by default, polynomials of order up to
+      the cluster size are created. Higher order polynomials are requested either
+      according to cluster size using the `orbit_branch_max_poly_order` parameter or
+      globally using `global_max_poly_order`. The most specific level specified is used.
+    - Functions are generated for all equivalent clusters in the orbit by default. If
+      only functions on the prototype cluster are needed, the `make_equivalents`
+      parameter can be set to `False`.
+    -
+
+    Parameters
+    ----------
+    xtal_prim: xtal.Prim
+        The Prim
+    dofs: Optional[Iterable[str]] = None
+        An iterable of string of dof type names that should be used to construct basis
+        functions. The default value is all DoF types included in the prim.
+    orbit_prototypes: Optional[Iterable[casmclust.Cluster]]
+        An iterable of :class:`~casmclust.Cluster` containing the prototypes of orbits
+        to generate functions for. If provided, `max_length` is ignored.
+    max_length: list[float]
+        If `orbit_prototypes` is not provided, `max_length` must be given to specify
+        which clusters to generate functions for, using a site-to-site distance cutoff.
+        Clusters with `n_site` sites are included if the maximum site-to-site distance
+        is less than ``max_length[n_site]``. Notes:
+
+        - For null and point clusters, there are no site-to-site distances so
+          ``max_length[0]`` and ``max_length[1]`` are always ignored.
+
+    global_max_poly_order: Optional[int] = None
+        The maximum order of polynomials of continuous DoF to generate, for any orbit
+        not specified more specifically by `orbit_branch_max_poly_order`.
+    orbit_branch_max_poly_order: dict[int, int] = {}
+        Specifies for continuous DoF the maximum polynomial order to generate by
+        cluster size, according to
+        ``orbit_branch_max_poly_order[cluster_size] = max_poly_order``. By default, for
+        a given cluster orbit, polynomials of order up to the cluster size are created.
+        Higher order polynomials are requested either according to cluster size
+        using `orbit_branch_max_poly_order` or globally using `global_max_poly_order`.
+        The most specific level specified is used.
+    make_equivalents: bool = True
+        If True, make all equivalent clusters and functions. Otherwise, only construct
+        and return the prototype clusters and functions on the prototype cluster
+        (i.e. ``i_equiv=0`` only).
+    make_variable_name_f: Optional[Callable] = None
+        Allows specifying a custom function to construct variable names. The default
+        function used is :func:`make_variable_name`. Custom functions should have the
+        same signature as :func:`make_variable_name`.
+    prim_neighbor_list: Optional[PrimNeighborList] = None
+        The :class:`PrimNeighborList` is used to uniquely index sites with local
+        variables included in the cluster functions, relative to a reference unit cell.
+        If not provided, a PrimNeighborList is constructed using default parameters
+        that include all sites with degrees of freedom (DoF) and the default shape
+        used by CASM projects. In most cases, this default should be used.
+    verbose: bool = False
+        Print progress statements
+
+    Returns
+    -------
+    (clusters, functions, prim_neighbor_list):
+
+        clusters: list[list[casmclust.Cluster]]
+            Orbits of clusters, where ``orbits[i_orbit][i_equiv]``, is the
+            `i_equiv`-th symmetrically equivalent cluster in the
+            `i_orbit`-th orbit.
+
+            The order of sites in the returned clusters is not arbitrary, it
+            is consistent with the `cluster_site_index` of the :class:`Variable` used
+            in the :class:`PolynomialFunction` returned in `functions`.
+
+        functions: list[list[list[PolynomialFunction]]]
+            Polynomial functions, where ``functions[i_orbit][i_equiv][i_func]``,
+            is the `i_func`-th function on the cluster given by
+            `clusters[i_orbit][i_equiv]`.
+
+        prim_neighbor_list: PrimNeighborList
+            The neighbor list corresponding to the `neighbor_list_index` of the
+            :class:`Variable` used in the :class:`PolynomialFunction` returned in
+            `functions`.
+
+    """
+    prim = casmconfig.Prim(xtal_prim)
+
+    if orbit_prototypes is None:
+        # generate cluster orbits
+        cluster_specs = casmclust.ClusterSpecs(
+            xtal_prim=prim.xtal_prim,
+            generating_group=prim.factor_group,
+            max_length=max_length,
+        )
+        orbit_prototypes = [orbit[0] for orbit in cluster_specs.make_orbits()]
+
+    if prim_neighbor_list is None:
+        prim_neighbor_list = make_default_prim_neighbor_list(xtal_prim=prim.xtal_prim)
+
+    global_dof, local_continuous_dof, local_discrete_dof = _get_dof_types(
+        xtal_prim, dofs
+    )
+
+    only_discrete = len(global_dof) + len(local_continuous_dof) == 0
+
+    def min_poly_order(orbit_prototype):
+        if only_discrete:
+            return len(orbit_prototype)
+        return 1
+
+    def max_poly_order(orbit_prototype):
+        if only_discrete:
+            return len(orbit_prototype)
+        branch = len(orbit_prototype)
+        if branch in orbit_branch_max_poly_order:
+            return orbit_branch_max_poly_order[branch]
+        elif global_max_poly_order is not None:
+            return int(global_max_poly_order)
+        else:
+            return branch
 
     # loop over cluster orbit prototypes,
     # building sym rep matrices and polynomial functions
@@ -154,12 +289,12 @@ def make_periodic_cluster_functions(
         if verbose:
             print(f"~~~ i_orbit: {i_orbit} ~~~")
             print("Prototype cluster:")
-            print(xtal.pretty_json(orbit_prototype.to_dict(prim.xtal_prim())))
+            print(xtal.pretty_json(orbit_prototype.to_dict(prim.xtal_prim)))
             print()
 
         builder = PeriodicOrbitMatrixRepBuilder(
             prim=prim,
-            generating_group=prim.factor_group(),
+            generating_group=prim.factor_group,
             global_dof=global_dof,
             local_continuous_dof=local_continuous_dof,
             local_discrete_dof=local_discrete_dof,
@@ -197,8 +332,8 @@ def make_periodic_cluster_functions(
                 matrix_rep=builder.prototype_matrix_rep,
                 variables=builder.prototype_variables,
                 variable_subsets=builder.prototype_variable_subsets,
-                min_poly_order=1,
-                max_poly_order=max_poly_order[orbit_prototype.size()],
+                min_poly_order=min_poly_order(orbit_prototype),
+                max_poly_order=max_poly_order(orbit_prototype),
                 constraints=builder.constraints,
                 orthonormalize_in_place=False,
                 verbose=verbose,
@@ -220,6 +355,13 @@ def make_periodic_cluster_functions(
                 print()
             # if generating prototype cluster basis set only
             orbit_clusters.append(builder.orbit[0])
+
+            # TODO: set variable neighbor_list_index
+            # basis_set = copy.deepcopy(prototype_basis_set)
+            # for func in basis_set:
+            #     for var in func.variables:
+            #         var.neighborhood_site_index = prim_neighbor_list.
+
             orbit_basis_sets.append(prototype_basis_set)
         else:
             # generate basis sets on all equivalent clusters
@@ -236,7 +378,7 @@ def make_periodic_cluster_functions(
                 if verbose:
                     print(f"~~~ i_orbit: {i_orbit}, i_equiv: {i_equiv} ~~~")
                     print("Equivalent cluster:")
-                    print(xtal.pretty_json(equiv_cluster.to_dict(prim.xtal_prim())))
+                    print(xtal.pretty_json(equiv_cluster.to_dict(prim.xtal_prim)))
                     print()
 
                 # add basis set for equivalent cluster to orbit of basis sets
@@ -248,6 +390,14 @@ def make_periodic_cluster_functions(
                         neighborhood_site_index_perm_rep=None,
                     )
                     f_equiv = S * f_prototype
+                    assign_neighborhood_site_index(
+                        cluster=equiv_cluster,
+                        function=f_equiv,
+                        prim_neighbor_list=prim_neighbor_list,
+                    )
+                    assert f_equiv.variables is not f_prototype.variables
+                    for i in range(len(f_prototype.variables)):
+                        assert f_equiv.variables[i] is not f_prototype.variables[i]
                     equiv_basis_set.append(f_equiv)
                 orbit_basis_sets.append(equiv_basis_set)
                 if verbose:
@@ -265,4 +415,4 @@ def make_periodic_cluster_functions(
         clusters.append(orbit_clusters)
         functions.append(orbit_basis_sets)
 
-    return clusters, functions
+    return clusters, functions, prim_neighbor_list

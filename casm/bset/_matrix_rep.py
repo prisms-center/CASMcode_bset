@@ -112,24 +112,24 @@ def make_cluster_permutation_rep(
 
         # Get the cluster group and permutation rep:
         factor_group_site_rep = make_integral_site_coordinate_symgroup_rep(
-            group_elements=prim.factor_group().elements(),
-            xtal_prim=prim.xtal_prim(),
+            group_elements=prim.factor_group.elements,
+            xtal_prim=prim.xtal_prim,
         )
         cluster_group = make_cluster_group(
             cluster=cluster,
-            group=prim.factor_group(),
-            lattice=prim.xtal_prim().lattice(),
+            group=prim.factor_group,
+            lattice=prim.xtal_prim.lattice(),
             integral_site_coordinate_symgroup_rep=factor_group_site_rep,
         )
         # cluster_group_site_rep: list[IntegralSiteCoordinateRep]
         cluster_group_site_rep = make_integral_site_coordinate_symgroup_rep(
-            group_elements=cluster_group.elements(),
+            group_elements=cluster_group.elements,
             xtal_prim=xtal_prim,
         )
         cluster_permutation_rep = make_cluster_permutation_rep(
             cluster=cluster,
             cluster_group=cluster_group,
-            xtal_prim=prim.xtal_prim(),
+            xtal_prim=prim.xtal_prim,
         )
 
 
@@ -158,15 +158,15 @@ def make_cluster_permutation_rep(
         The `cluster_permutation_rep` species how cluster sites map under application of
         cluster group operations, by index into the list of cluster sites, according to
         `from_site_index = cluster_permutation_rep[cluster_group_index][to_site_index]`,
-        where `cluster_group_index` is an index into ``cluster_group.elements()`, and
+        where `cluster_group_index` is an index into ``cluster_group.elements`, and
         `from_site_index` and `to_site_index` are indices into ``cluster.sites()`
         before and after application of the cluster group operation, respectively.
 
     """
     sites = cluster.sites()
     site_symgroup_rep = make_integral_site_coordinate_symgroup_rep(
-        group_elements=cluster_group.elements(),
-        xtal_prim=prim.xtal_prim(),
+        group_elements=cluster_group.elements,
+        xtal_prim=prim.xtal_prim,
     )
 
     def find_site_index(site):
@@ -247,7 +247,7 @@ def make_variable_name(
 
     if cluster_site_index is not None:
         if key == local_discrete_dof:
-            return f"\phi_{{{site_basis_function_index}}}(s_{cluster_site_index})"
+            return f"\\phi_{{{site_basis_function_index}}}(s_{cluster_site_index})"
         else:
             return f"{symbol}(s_{cluster_site_index})"
     else:
@@ -293,7 +293,7 @@ def make_global_variables(
                 return _dof_basis_set
         return None
 
-    global_dof = prim.xtal_prim().global_dof()
+    global_dof = prim.xtal_prim.global_dof()
     dof_basis_set = find_dof_basis_set(global_dof)
     if dof_basis_set is None:
         variables = []
@@ -305,7 +305,7 @@ def make_global_variables(
         variables.append(
             Variable(
                 name=make_variable_name_f(
-                    xtal_prim=prim.xtal_prim(),
+                    xtal_prim=prim.xtal_prim,
                     key=key,
                     component_index=component_index,
                 ),
@@ -356,8 +356,8 @@ def make_cluster_variables(
         make_variable_name_f = make_variable_name
 
     if key in local_discrete_dof:
-        discrete_dof = prim.xtal_prim().occ_dof()
-        # TODO: discrete_dof = prim.xtal_prim().discrete_dof(key)
+        discrete_dof = prim.xtal_prim.occ_dof()
+        # TODO: discrete_dof = prim.xtal_prim.discrete_dof(key)
 
         variables = []
         variable_subsets = []
@@ -370,7 +370,7 @@ def make_cluster_variables(
                 variables.append(
                     Variable(
                         name=make_variable_name_f(
-                            xtal_prim=prim.xtal_prim(),
+                            xtal_prim=prim.xtal_prim,
                             key=key,
                             site_basis_function_index=site_basis_function_index,
                             cluster_site_index=cluster_site_index,
@@ -395,7 +395,7 @@ def make_cluster_variables(
                     return _dof_basis_set
             return None
 
-        local_dof = prim.xtal_prim().local_dof()
+        local_dof = prim.xtal_prim.local_dof()
         variables = []
         variable_subsets = []
         variable_index = 0
@@ -409,7 +409,7 @@ def make_cluster_variables(
                 variables.append(
                     Variable(
                         name=make_variable_name_f(
-                            xtal_prim=prim.xtal_prim(),
+                            xtal_prim=prim.xtal_prim,
                             key=key,
                             component_index=component_index,
                             cluster_site_index=cluster_site_index,
@@ -535,10 +535,10 @@ def make_equivalence_map_matrix_rep(
     equivalence_map_matrix_rep = []
     equivalence_map_inv_matrix_rep = []
     equivalence_map_clusters = []
-    head_group = symgroup.head_group()
+    head_group = symgroup.head_group
     if head_group is None:
         head_group = symgroup
-    head_group_index_list = symgroup.head_group_index()
+    head_group_index_list = symgroup.head_group_index
     for i_equiv, cluster in enumerate(orbit):
         matrix_rep = []
         inv_matrix_rep = []
@@ -620,7 +620,7 @@ def make_cluster_matrix_rep(
     # Make matrix rep, by filling in blocks with site matrix reps
     cluster_matrix_rep = []
     for cluster_group_index, factor_group_index in enumerate(
-        cluster_group.head_group_index()
+        cluster_group.head_group_index
     ):
         trep = np.zeros((total_dim, total_dim))
         perm_rep = cluster_perm_rep[cluster_group_index]
@@ -660,7 +660,7 @@ class ClusterMatrixRepBuilder:
         The `cluster_perm_rep` species how `cluster` sites permute under application
         of cluster group operations, by index into the list of cluster sites, according
         to ``from_site_index = cluster_perm_rep[cluster_group_index][to_site_index]``,
-        where `cluster_group_index` is an index into ``cluster_group.elements()``, and
+        where `cluster_group_index` is an index into ``cluster_group.elements``, and
         `from_site_index` and `to_site_index` are indices into ``cluster.sites()``
         before and after application of the cluster group operation, respectively.
     cluster_matrix_rep: list[np.ndarray[np.float64[total_dim, total_dim]]]
@@ -704,14 +704,14 @@ class ClusterMatrixRepBuilder:
 
         ## Build cluster matrix rep ##
         generating_group_site_rep = make_integral_site_coordinate_symgroup_rep(
-            group_elements=generating_group.elements(),
-            xtal_prim=prim.xtal_prim(),
+            group_elements=generating_group.elements,
+            xtal_prim=prim.xtal_prim,
         )
         local_dof_matrix_rep = prim.local_dof_matrix_rep(key)
         cluster_group = make_cluster_group(
             cluster=cluster,
             group=generating_group,
-            lattice=prim.xtal_prim().lattice(),
+            lattice=prim.xtal_prim.lattice(),
             integral_site_coordinate_symgroup_rep=generating_group_site_rep,
         )
         cluster_perm_rep = make_cluster_permutation_rep(
@@ -910,8 +910,8 @@ class PeriodicOrbitMatrixRepBuilder:
 
         ## Orbit data
         generating_group_site_rep = make_integral_site_coordinate_symgroup_rep(
-            group_elements=generating_group.elements(),
-            xtal_prim=prim.xtal_prim(),
+            group_elements=generating_group.elements,
+            xtal_prim=prim.xtal_prim,
         )
         orbit = make_periodic_orbit(
             cluster,
@@ -920,7 +920,7 @@ class PeriodicOrbitMatrixRepBuilder:
         cluster_group = make_cluster_group(
             cluster=orbit[0],
             group=generating_group,
-            lattice=prim.xtal_prim().lattice(),
+            lattice=prim.xtal_prim.lattice(),
             integral_site_coordinate_symgroup_rep=generating_group_site_rep,
         )
         equivalence_map_indices = make_periodic_equivalence_map_indices(
@@ -930,11 +930,11 @@ class PeriodicOrbitMatrixRepBuilder:
         equivalence_map_ops = make_periodic_equivalence_map(
             orbit=orbit,
             symgroup=generating_group,
-            lattice=prim.xtal_prim().lattice(),
+            lattice=prim.xtal_prim.lattice(),
             integral_site_coordinate_symgroup_rep=generating_group_site_rep,
         )
         equivalence_map_site_rep = make_equivalence_map_site_rep(
-            xtal_prim=prim.xtal_prim(),
+            xtal_prim=prim.xtal_prim,
             equivalence_map_ops=equivalence_map_ops,
         )
 
@@ -946,7 +946,7 @@ class PeriodicOrbitMatrixRepBuilder:
         global_variable_subsets = []
         global_matrix_rep = []
         global_inv_matrix_rep = []
-        head_group = generating_group.head_group()
+        head_group = generating_group.head_group
         if head_group is None:
             head_group = generating_group
         for key in global_dof:
@@ -960,7 +960,7 @@ class PeriodicOrbitMatrixRepBuilder:
 
             head_group_matrix_rep = prim.global_dof_matrix_rep(key)
             head_group_inv_matrix_rep = []
-            for head_group_index, op in enumerate(head_group.elements()):
+            for head_group_index, op in enumerate(head_group.elements):
                 head_group_inv_matrix_rep.append(
                     head_group_matrix_rep[head_group.inv(head_group_index)]
                 )
@@ -1007,7 +1007,7 @@ class PeriodicOrbitMatrixRepBuilder:
         # build coupled prototype matrix rep, variables, variable_subsets
         prototype_matrix_rep = []
         for cluster_group_index, head_group_index in enumerate(
-            cluster_group.head_group_index()
+            cluster_group.head_group_index
         ):
             _global_matrices = [x[head_group_index] for x in global_matrix_rep]
             _local_dof_matrices = [
@@ -1047,7 +1047,7 @@ class PeriodicOrbitMatrixRepBuilder:
         # build equivalence map matrix reps
         equivalence_map_matrix_rep = []  # transforms DoF
         equivalence_map_inv_matrix_rep = []  # transforms functions
-        head_group_index_list = generating_group.head_group_index()
+        head_group_index_list = generating_group.head_group_index
         for i_equiv, ops in enumerate(equivalence_map_ops):
             _matrix_reps = []
             _inv_matrix_reps = []
