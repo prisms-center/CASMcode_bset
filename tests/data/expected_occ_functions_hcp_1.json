@@ -11,7 +11,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [3],
-          "i_branch": 1,
+          "i_orbit": 1,
           "i_equiv": 0,
           "i_func": 0,
           "monomial_exponents": [
@@ -53,7 +53,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [3],
-          "i_branch": 1,
+          "i_orbit": 1,
           "i_equiv": 0,
           "i_func": 1,
           "monomial_exponents": [
@@ -97,7 +97,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [3],
-          "i_branch": 1,
+          "i_orbit": 1,
           "i_equiv": 1,
           "i_func": 0,
           "monomial_exponents": [
@@ -139,7 +139,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [3],
-          "i_branch": 1,
+          "i_orbit": 1,
           "i_equiv": 1,
           "i_func": 1,
           "monomial_exponents": [
@@ -185,7 +185,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 0,
           "i_func": 0,
           "monomial_exponents": [
@@ -249,7 +249,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 0,
           "i_func": 1,
           "monomial_exponents": [
@@ -314,7 +314,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 0,
           "i_func": 2,
           "monomial_exponents": [
@@ -381,7 +381,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 1,
           "i_func": 0,
           "monomial_exponents": [
@@ -445,7 +445,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 1,
           "i_func": 1,
           "monomial_exponents": [
@@ -510,7 +510,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 1,
           "i_func": 2,
           "monomial_exponents": [
@@ -577,7 +577,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 2,
           "i_func": 0,
           "monomial_exponents": [
@@ -641,7 +641,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 2,
           "i_func": 1,
           "monomial_exponents": [
@@ -706,7 +706,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 2,
           "i_func": 2,
           "monomial_exponents": [
@@ -773,7 +773,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 3,
           "i_func": 0,
           "monomial_exponents": [
@@ -837,7 +837,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 3,
           "i_func": 1,
           "monomial_exponents": [
@@ -902,7 +902,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 3,
           "i_func": 2,
           "monomial_exponents": [
@@ -969,7 +969,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 4,
           "i_func": 0,
           "monomial_exponents": [
@@ -1033,7 +1033,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 4,
           "i_func": 1,
           "monomial_exponents": [
@@ -1098,7 +1098,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 4,
           "i_func": 2,
           "monomial_exponents": [
@@ -1165,7 +1165,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 5,
           "i_func": 0,
           "monomial_exponents": [
@@ -1229,7 +1229,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 5,
           "i_func": 1,
           "monomial_exponents": [
@@ -1294,7 +1294,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [6, 6],
-          "i_branch": 2,
+          "i_orbit": 2,
           "i_equiv": 5,
           "i_func": 2,
           "monomial_exponents": [
@@ -1363,7 +1363,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 0,
           "i_func": 0,
           "monomial_exponents": [
@@ -1427,7 +1427,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 0,
           "i_func": 1,
           "monomial_exponents": [
@@ -1492,7 +1492,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 0,
           "i_func": 2,
           "monomial_exponents": [
@@ -1559,7 +1559,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 1,
           "i_func": 0,
           "monomial_exponents": [
@@ -1623,7 +1623,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 1,
           "i_func": 1,
           "monomial_exponents": [
@@ -1688,7 +1688,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 1,
           "i_func": 2,
           "monomial_exponents": [
@@ -1755,7 +1755,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 2,
           "i_func": 0,
           "monomial_exponents": [
@@ -1819,7 +1819,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 2,
           "i_func": 1,
           "monomial_exponents": [
@@ -1884,7 +1884,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 2,
           "i_func": 2,
           "monomial_exponents": [
@@ -1951,7 +1951,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 3,
           "i_func": 0,
           "monomial_exponents": [
@@ -2015,7 +2015,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 3,
           "i_func": 1,
           "monomial_exponents": [
@@ -2080,7 +2080,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 3,
           "i_func": 2,
           "monomial_exponents": [
@@ -2147,7 +2147,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 4,
           "i_func": 0,
           "monomial_exponents": [
@@ -2211,7 +2211,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 4,
           "i_func": 1,
           "monomial_exponents": [
@@ -2276,7 +2276,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 4,
           "i_func": 2,
           "monomial_exponents": [
@@ -2343,7 +2343,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 5,
           "i_func": 0,
           "monomial_exponents": [
@@ -2407,7 +2407,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 5,
           "i_func": 1,
           "monomial_exponents": [
@@ -2472,7 +2472,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [6, 6],
-          "i_branch": 3,
+          "i_orbit": 3,
           "i_equiv": 5,
           "i_func": 2,
           "monomial_exponents": [
@@ -2541,7 +2541,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 4,
+          "i_orbit": 4,
           "i_equiv": 0,
           "i_func": 0,
           "monomial_exponents": [
@@ -2627,7 +2627,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 4,
+          "i_orbit": 4,
           "i_equiv": 0,
           "i_func": 1,
           "monomial_exponents": [
@@ -2715,7 +2715,7 @@
           ],
           "coeff_data": [0.5773502691896258, 0.5773502691896258, 0.5773502691896258],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 4,
+          "i_orbit": 4,
           "i_equiv": 0,
           "i_func": 2,
           "monomial_exponents": [
@@ -2805,7 +2805,7 @@
           ],
           "coeff_data": [0.5773502691896258, 0.5773502691896258, 0.5773502691896258],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 4,
+          "i_orbit": 4,
           "i_equiv": 0,
           "i_func": 3,
           "monomial_exponents": [
@@ -2895,7 +2895,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 4,
+          "i_orbit": 4,
           "i_equiv": 1,
           "i_func": 0,
           "monomial_exponents": [
@@ -2981,7 +2981,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 4,
+          "i_orbit": 4,
           "i_equiv": 1,
           "i_func": 1,
           "monomial_exponents": [
@@ -3069,7 +3069,7 @@
           ],
           "coeff_data": [0.5773502691896258, 0.5773502691896258, 0.5773502691896258],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 4,
+          "i_orbit": 4,
           "i_equiv": 1,
           "i_func": 2,
           "monomial_exponents": [
@@ -3159,7 +3159,7 @@
           ],
           "coeff_data": [0.5773502691896258, 0.5773502691896258, 0.5773502691896258],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 4,
+          "i_orbit": 4,
           "i_equiv": 1,
           "i_func": 3,
           "monomial_exponents": [
@@ -3251,7 +3251,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 5,
+          "i_orbit": 5,
           "i_equiv": 0,
           "i_func": 0,
           "monomial_exponents": [
@@ -3337,7 +3337,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 5,
+          "i_orbit": 5,
           "i_equiv": 0,
           "i_func": 1,
           "monomial_exponents": [
@@ -3425,7 +3425,7 @@
           ],
           "coeff_data": [0.5773502691896258, 0.5773502691896258, 0.5773502691896258],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 5,
+          "i_orbit": 5,
           "i_equiv": 0,
           "i_func": 2,
           "monomial_exponents": [
@@ -3515,7 +3515,7 @@
           ],
           "coeff_data": [0.5773502691896258, 0.5773502691896258, 0.5773502691896258],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 5,
+          "i_orbit": 5,
           "i_equiv": 0,
           "i_func": 3,
           "monomial_exponents": [
@@ -3605,7 +3605,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 5,
+          "i_orbit": 5,
           "i_equiv": 1,
           "i_func": 0,
           "monomial_exponents": [
@@ -3691,7 +3691,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 5,
+          "i_orbit": 5,
           "i_equiv": 1,
           "i_func": 1,
           "monomial_exponents": [
@@ -3779,7 +3779,7 @@
           ],
           "coeff_data": [0.5773502691896258, 0.5773502691896258, 0.5773502691896258],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 5,
+          "i_orbit": 5,
           "i_equiv": 1,
           "i_func": 2,
           "monomial_exponents": [
@@ -3869,7 +3869,7 @@
           ],
           "coeff_data": [0.5773502691896258, 0.5773502691896258, 0.5773502691896258],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 5,
+          "i_orbit": 5,
           "i_equiv": 1,
           "i_func": 3,
           "monomial_exponents": [
@@ -3961,7 +3961,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 0,
           "i_func": 0,
           "monomial_exponents": [
@@ -4047,7 +4047,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 0,
           "i_func": 1,
           "monomial_exponents": [
@@ -4133,7 +4133,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 0,
           "i_func": 2,
           "monomial_exponents": [
@@ -4219,7 +4219,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 0,
           "i_func": 3,
           "monomial_exponents": [
@@ -4306,7 +4306,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 0,
           "i_func": 4,
           "monomial_exponents": [
@@ -4394,7 +4394,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 0,
           "i_func": 5,
           "monomial_exponents": [
@@ -4483,7 +4483,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 1,
           "i_func": 0,
           "monomial_exponents": [
@@ -4569,7 +4569,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 1,
           "i_func": 1,
           "monomial_exponents": [
@@ -4655,7 +4655,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 1,
           "i_func": 2,
           "monomial_exponents": [
@@ -4741,7 +4741,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 1,
           "i_func": 3,
           "monomial_exponents": [
@@ -4828,7 +4828,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 1,
           "i_func": 4,
           "monomial_exponents": [
@@ -4916,7 +4916,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 1,
           "i_func": 5,
           "monomial_exponents": [
@@ -5005,7 +5005,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 2,
           "i_func": 0,
           "monomial_exponents": [
@@ -5091,7 +5091,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 2,
           "i_func": 1,
           "monomial_exponents": [
@@ -5177,7 +5177,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 2,
           "i_func": 2,
           "monomial_exponents": [
@@ -5263,7 +5263,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 2,
           "i_func": 3,
           "monomial_exponents": [
@@ -5350,7 +5350,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 2,
           "i_func": 4,
           "monomial_exponents": [
@@ -5438,7 +5438,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 2,
           "i_func": 5,
           "monomial_exponents": [
@@ -5527,7 +5527,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 3,
           "i_func": 0,
           "monomial_exponents": [
@@ -5613,7 +5613,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 3,
           "i_func": 1,
           "monomial_exponents": [
@@ -5699,7 +5699,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 3,
           "i_func": 2,
           "monomial_exponents": [
@@ -5785,7 +5785,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 3,
           "i_func": 3,
           "monomial_exponents": [
@@ -5872,7 +5872,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 3,
           "i_func": 4,
           "monomial_exponents": [
@@ -5960,7 +5960,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 3,
           "i_func": 5,
           "monomial_exponents": [
@@ -6049,7 +6049,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 4,
           "i_func": 0,
           "monomial_exponents": [
@@ -6135,7 +6135,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 4,
           "i_func": 1,
           "monomial_exponents": [
@@ -6221,7 +6221,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 4,
           "i_func": 2,
           "monomial_exponents": [
@@ -6307,7 +6307,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 4,
           "i_func": 3,
           "monomial_exponents": [
@@ -6394,7 +6394,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 4,
           "i_func": 4,
           "monomial_exponents": [
@@ -6482,7 +6482,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 4,
           "i_func": 5,
           "monomial_exponents": [
@@ -6571,7 +6571,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 5,
           "i_func": 0,
           "monomial_exponents": [
@@ -6657,7 +6657,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 5,
           "i_func": 1,
           "monomial_exponents": [
@@ -6743,7 +6743,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 5,
           "i_func": 2,
           "monomial_exponents": [
@@ -6829,7 +6829,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 5,
           "i_func": 3,
           "monomial_exponents": [
@@ -6916,7 +6916,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 5,
           "i_func": 4,
           "monomial_exponents": [
@@ -7004,7 +7004,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 5,
           "i_func": 5,
           "monomial_exponents": [
@@ -7093,7 +7093,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 6,
           "i_func": 0,
           "monomial_exponents": [
@@ -7179,7 +7179,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 6,
           "i_func": 1,
           "monomial_exponents": [
@@ -7265,7 +7265,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 6,
           "i_func": 2,
           "monomial_exponents": [
@@ -7351,7 +7351,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 6,
           "i_func": 3,
           "monomial_exponents": [
@@ -7438,7 +7438,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 6,
           "i_func": 4,
           "monomial_exponents": [
@@ -7526,7 +7526,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 6,
           "i_func": 5,
           "monomial_exponents": [
@@ -7615,7 +7615,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 7,
           "i_func": 0,
           "monomial_exponents": [
@@ -7701,7 +7701,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 7,
           "i_func": 1,
           "monomial_exponents": [
@@ -7787,7 +7787,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 7,
           "i_func": 2,
           "monomial_exponents": [
@@ -7873,7 +7873,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 7,
           "i_func": 3,
           "monomial_exponents": [
@@ -7960,7 +7960,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 7,
           "i_func": 4,
           "monomial_exponents": [
@@ -8048,7 +8048,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 7,
           "i_func": 5,
           "monomial_exponents": [
@@ -8137,7 +8137,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 8,
           "i_func": 0,
           "monomial_exponents": [
@@ -8223,7 +8223,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 8,
           "i_func": 1,
           "monomial_exponents": [
@@ -8309,7 +8309,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 8,
           "i_func": 2,
           "monomial_exponents": [
@@ -8395,7 +8395,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 8,
           "i_func": 3,
           "monomial_exponents": [
@@ -8482,7 +8482,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 8,
           "i_func": 4,
           "monomial_exponents": [
@@ -8570,7 +8570,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 8,
           "i_func": 5,
           "monomial_exponents": [
@@ -8659,7 +8659,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 9,
           "i_func": 0,
           "monomial_exponents": [
@@ -8745,7 +8745,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 9,
           "i_func": 1,
           "monomial_exponents": [
@@ -8831,7 +8831,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 9,
           "i_func": 2,
           "monomial_exponents": [
@@ -8917,7 +8917,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 9,
           "i_func": 3,
           "monomial_exponents": [
@@ -9004,7 +9004,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 9,
           "i_func": 4,
           "monomial_exponents": [
@@ -9092,7 +9092,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 9,
           "i_func": 5,
           "monomial_exponents": [
@@ -9181,7 +9181,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 10,
           "i_func": 0,
           "monomial_exponents": [
@@ -9267,7 +9267,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 10,
           "i_func": 1,
           "monomial_exponents": [
@@ -9353,7 +9353,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 10,
           "i_func": 2,
           "monomial_exponents": [
@@ -9439,7 +9439,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 10,
           "i_func": 3,
           "monomial_exponents": [
@@ -9526,7 +9526,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 10,
           "i_func": 4,
           "monomial_exponents": [
@@ -9614,7 +9614,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 10,
           "i_func": 5,
           "monomial_exponents": [
@@ -9703,7 +9703,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 11,
           "i_func": 0,
           "monomial_exponents": [
@@ -9789,7 +9789,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 11,
           "i_func": 1,
           "monomial_exponents": [
@@ -9875,7 +9875,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 11,
           "i_func": 2,
           "monomial_exponents": [
@@ -9961,7 +9961,7 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 11,
           "i_func": 3,
           "monomial_exponents": [
@@ -10048,7 +10048,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 11,
           "i_func": 4,
           "monomial_exponents": [
@@ -10136,7 +10136,7 @@
           ],
           "coeff_data": [0.7071067811865475, 0.7071067811865475],
           "coeff_shape": [9, 9, 9],
-          "i_branch": 6,
+          "i_orbit": 6,
           "i_equiv": 11,
           "i_func": 5,
           "monomial_exponents": [
