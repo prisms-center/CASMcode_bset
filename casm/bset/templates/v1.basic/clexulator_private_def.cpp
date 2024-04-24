@@ -146,6 +146,7 @@ void {{ clexulator_name }}::_point_prepare(int nlist_ind) const {
   }
 }
 
+/// --- Global corr contributions ---
 {% raw %}
 // template<typename Scalar>
 // Scalar {{ clexulator_name }}::eval_bfunc_{{ function_index }}() const {
@@ -167,5 +168,32 @@ Scalar {{ clexulator_name }}::eval_orbit_bfunc_{{ function_index }}() const {
   // function_index: {{ function_index }}
   return {{ cpp }};
 }
+{% endfor %}
+
+/// --- Point corr ---
+{% raw %}
+// template<typename Scalar>
+// Scalar {{ clexulator_name }}::eval_bfunc_{{ function_index }}() const {
+//   // orbit_index: {{ orbit_index }}
+//   return {{ factored_orbit_prefix }}(
+//     {{ factored_cluster_prefix_0 }}({{ factored_cluster_function_0 }})
+//     + {{ factored_cluster_prefix_1 }}({{ factored_cluster_function_1 }})
+//     ...
+//     ) / {{ orbit_mult }};
+// }
+{% endraw %}
+{% for f_by_function_index in site_bfuncs %}
+  {% set function_index = f_by_function_index.linear_function_index %}
+  {% set orbit_index = f_by_function_index.linear_orbit_index %}
+  {% for f_by_neighbor_index in f_by_function_index.at %}
+    {% set neighbor_list_index = f_by_neighbor_index.neighbor_list_index %}
+    {% set cpp = f_by_neighbor_index.cpp %}
+template<typename Scalar>
+Scalar {{ clexulator_name }}::eval_site_bfunc_{{ function_index }}_at_{{ neighbor_list_index }}() const {
+  // orbit_index: {{ orbit_index }}
+  // function_index: {{ function_index }}
+  return {{ cpp }};
+}
+  {% endfor %}
 {% endfor %}
 

@@ -11,24 +11,26 @@
   {%- raw %}
   // template<typename Scalar> Scalar eval_site_bfunc_{{ function_index }}_at_{{ site_bfunc.neighbor_index }}() const;
   {% endraw %}
-  {% for func in functions %}
-    {% set function_index = loop.index0 %}
-    {% for site_bfunc in func.site_bfunc %}
-      {% if site_bfunc.cpp %}
-  template<typename Scalar> Scalar eval_site_bfunc_{{ function_index }}_at_{{ site_bfunc.neighbor_index }}() const;
+  {% for f_by_function_index in site_bfuncs %}
+    {% set function_index = f_by_function_index.linear_function_index %}
+    {% for f_by_neighbor_index in f_by_function_index.at %}
+      {% set neighbor_list_index = f_by_neighbor_index.neighbor_list_index %}
+      {% if f_by_neighbor_index.cpp %}
+  template<typename Scalar> Scalar eval_site_bfunc_{{ function_index }}_at_{{ neighbor_list_index }}() const;
       {% endif %}
     {% endfor %}
   {% endfor %}
 
   // Change in site functions due to an occupant change
   {%- raw %}
-  // template<typename Scalar> Scalar eval_occ_delta_site_bfunc_{{ function_index }}_at_{{ site_bfunc.neighbor_index }}() const;
+  // template<typename Scalar> Scalar eval_occ_delta_site_bfunc_{{ function_index }}_at_{{ neighbor_list_index }}() const;
   {% endraw %}
-  {% for func in functions %}
-    {% set function_index = loop.index0 %}
-    {% for site_bfunc in func.site_bfunc %}
-      {% if site_bfunc.cpp %}
-  template<typename Scalar> Scalar eval_occ_delta_site_bfunc_{{ function_index }}_at_{{ site_bfunc.neighbor_index }}() const;
+  {% for f_by_function_index in site_bfuncs %}
+    {% set function_index = f_by_function_index.linear_function_index %}
+    {% for f_by_neighbor_index in f_by_function_index.at %}
+      {% set neighbor_list_index = f_by_neighbor_index.neighbor_list_index %}
+      {% if f_by_neighbor_index.occ_delta_cpp %}
+  template<typename Scalar> Scalar eval_occ_delta_site_bfunc_{{ function_index }}_at_{{ neighbor_list_index }}() const;
       {% endif %}
     {% endfor %}
   {% endfor %}

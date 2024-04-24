@@ -27,6 +27,7 @@ def test_v1_basic_occ_fcc_1(session_shared_datadir):
             "sublattice_index": 0,
             "n_occupants": 3,
             "functions": [
+                [1.0, 1.0, 1.0],
                 [-1.2247448714, 0.0, 1.2247448714],
                 [-0.7071067812, 1.4142135624, -0.7071067812],
             ],

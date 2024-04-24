@@ -260,6 +260,7 @@ def make_site_bfuncs_data(
                 ),
                 "latex_prototype": "<todo>",
                 "latex_orbit": "<todo>",
+                "occ_delta_cpp": "<todo>",
             }
         )
     return data
@@ -478,7 +479,8 @@ class WriterV1Basic:
         self.nlist_size = 0
         self.n_corr = 0
         self.n_point_corr_sites = 0
-        self.functions = []
+        self.orbit_bfuncs = []
+        self.site_bfuncs = []
         self.linear_function_indices = linear_function_indices
         self.prim_neighbor_list = prim_neighbor_list
         self.occ_site_functions = occ_site_functions
@@ -530,7 +532,7 @@ class WriterV1Basic:
             "n_corr": self.n_corr,
             "n_point_corr_sites": self.n_point_corr_sites,
             "orbit_bfuncs": self.orbit_bfuncs,
-            "functions": self.functions,
+            "site_bfuncs": self.site_bfuncs,
             "occ_site_functions": self.occ_site_functions,
             "continuous_dof": self.continuous_dof,
             "params": self.params,
