@@ -29,3 +29,4 @@ from ._polynomial_function import (
     monomial_inner_product,
     tensor_coord_to_monomial_exponents,
 )
+from ._writer import write_clexulator

@@ -3,6 +3,7 @@ from typing import Callable, Iterable, Optional
 import libcasm.clusterography as casmclust
 import libcasm.configuration as casmconfig
 import libcasm.xtal as xtal
+import numpy as np
 from libcasm.clexulator import (
     PrimNeighborList,
     make_default_prim_neighbor_list,
@@ -21,7 +22,7 @@ from ._polynomial_function import (
 def _get_dof_types(
     xtal_prim: xtal.Prim,
     dofs: Optional[list[str]] = None,
-) -> tuple[list[str], list[str], list[str]]:
+) -> tuple[list[str], list[str], list[str], dict]:
     """Given a list of dofs, make lists of which are global, local continuous, and local
     discrete.
 
@@ -118,6 +119,7 @@ def assign_neighborhood_site_index(
     cluster: casmclust.Cluster,
     function: PolynomialFunction,
     prim_neighbor_list: PrimNeighborList,
+    translation: Optional[np.ndarray] = None,
 ):
     """Assign neighborhood_site_index for function variables
 
@@ -130,11 +132,15 @@ def assign_neighborhood_site_index(
         referring to which site in `cluster` they are associated with.
     prim_neighbor_list: libcasm.clexulator.PrimNeighborList
         The neighbor list
+    translation: Optional[np.ndarray],
+        Optional translation to apply to cluster.
 
     """
     for var in function.variables:
         if var.cluster_site_index is not None:
             integral_site_coordinate = cluster[var.cluster_site_index]
+            if translation is not None:
+                integral_site_coordinate = integral_site_coordinate + translation
             var.neighborhood_site_index = prim_neighbor_list.neighbor_index(
                 integral_site_coordinate
             )
@@ -220,7 +226,7 @@ def make_periodic_cluster_functions(
 
     Returns
     -------
-    (clusters, functions, prim_neighbor_list):
+    (clusters, functions, prim_neighbor_list, params):
 
         clusters: list[list[casmclust.Cluster]]
             Orbits of clusters, where ``orbits[i_orbit][i_equiv]``, is the
@@ -241,8 +247,12 @@ def make_periodic_cluster_functions(
             :class:`Variable` used in the :class:`PolynomialFunction` returned in
             `functions`.
 
+        params: dict
+            Parameters used in clexulator writing
+
     """
     prim = casmconfig.Prim(xtal_prim)
+    params = {}
 
     if orbit_prototypes is None:
         # generate cluster orbits
@@ -415,4 +425,97 @@ def make_periodic_cluster_functions(
         clusters.append(orbit_clusters)
         functions.append(orbit_basis_sets)
 
-    return clusters, functions, prim_neighbor_list
+    return clusters, functions, prim_neighbor_list, params
+
+
+def make_periodic_point_functions(
+    prim_neighbor_list: PrimNeighborList,
+    orbit: list[casmclust.Cluster],
+    orbit_functions: list[list[PolynomialFunction]],
+):
+    """Construct point functions
+
+    This method uses the results of :func:`~casm.bset.make_periodic_cluster_functions`
+    or :func:`~casm.bset.make_local_cluster_functions` and collects all the functions
+    that involve each point. These functions are used by Clexulator methods that can
+    calculate point correlations and changes in point correlations.
+
+    Parameters
+    ----------
+    prim_neighbor_list: PrimNeighborList
+        The :class:`PrimNeighborList` is used to uniquely index sites with local
+        variables included in the cluster functions, relative to a reference unit cell.
+
+    orbit: list[libcasm.clusterography.Cluster]
+        An orbit of clusters, where ``orbit[i_equiv]``, is the
+        `i_equiv`-th symmetrically equivalent cluster in the orbit.
+        The order of sites in the clusters may not be arbitrary, it must be
+        consistent with the `cluster_site_index` of the :class:`Variable` used
+        in the :class:`PolynomialFunction` returned in `orbit_functions`.
+
+        This should generally be one orbit as output by
+        :func:`~casm.bset.make_periodic_cluster_functions` or
+        :func:`~casm.bset.make_local_cluster_functions`.
+
+    orbit_functions: list[list[casm.bset.PolynomialFunction]]
+        Polynomial functions, where ``functions[i_equiv][i_func]``,
+        is the `i_func`-th function on the cluster given by `orbit[i_equiv]`.
+
+        This should generally be the functions for one orbit as output by
+        :func:`~casm.bset.make_periodic_cluster_functions` or
+        :func:`~casm.bset.make_local_cluster_functions`.
+
+    Returns
+    -------
+    point_functions: list[list[list[casm.bset.PolynomialFunction]]]
+        Polynomial functions, where ``point_functions[i_func][nlist_index]`` is
+        a list of PolynomialFunction that are symmetrically equivalent to the
+        `i_func`-th function on the clusters and involve the `nlist_index`-th site
+        in the neighbor list.
+
+    """
+    if len(orbit) != len(orbit_functions):
+        raise Exception(
+            "Error in make_periodic_point_functions: "
+            "orbit size does not match orbit_functions size"
+        )
+
+    if not len(orbit):
+        return [[[]]]
+
+    points = []
+    for sublattice_index in prim_neighbor_list.sublattice_indices():
+        points.append(
+            xtal.IntegralSiteCoordinate(
+                sublattice=sublattice_index,
+                unitcell=[0, 0, 0],
+            )
+        )
+
+    # orbit_point_functions: list[list[list[PolynomialFunction]]]
+    # orbit_point_functions[i_func][nlist_index][i_point_function]
+    point_functions = []
+    for i_func in range(len(orbit_functions[0])):
+        equiv_functions = []
+        for nlist_index, point in enumerate(points):
+            equiv_functions_by_point = []
+            for i_equiv, equiv in enumerate(orbit):
+                # for each cluster site on same sublattice as point,
+                for site in equiv:
+                    if site.sublattice() != point.sublattice():
+                        continue
+                    # copy function
+                    f = orbit_functions[i_equiv][i_func].copy()
+                    # assign neighborhood_site_index with translation to point
+                    assign_neighborhood_site_index(
+                        cluster=equiv,
+                        function=f,
+                        prim_neighbor_list=prim_neighbor_list,
+                        translation=-site.unitcell(),
+                    )
+                    # add to point functions
+                    equiv_functions_by_point.append(f)
+            equiv_functions.append(equiv_functions_by_point)
+        point_functions.append(equiv_functions)
+
+    return point_functions

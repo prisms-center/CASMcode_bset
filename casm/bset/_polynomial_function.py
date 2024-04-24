@@ -9,6 +9,7 @@ Notes:
 import copy
 import math
 import sys
+from collections import namedtuple
 from typing import Optional, TypeVar
 
 import numpy as np
@@ -217,6 +218,19 @@ class FunctionRep:
             )
 
 
+VariableData = namedtuple(
+    "VariableData",
+    [
+        "name",
+        "key",
+        "cluster_site_index",
+        "component_index",
+        "site_basis_function_index",
+        "neighborhood_site_index",
+    ],
+)
+
+
 class Variable:
     r"""Represents a variable in a PolynomialFunction
 
@@ -299,6 +313,24 @@ class Variable:
             site_basis_function_index=data.get("site_basis_function_index"),
             neighborhood_site_index=data.get("neighborhood_site_index"),
         )
+
+    def _to_tuple(self):
+        return VariableData(
+            self.name,
+            self.key,
+            self.component_index,
+            self.site_basis_function_index,
+            self.cluster_site_index,
+            self.neighborhood_site_index,
+        )
+
+    def __hash__(self):
+        return hash(self._to_tuple())
+
+    def __eq__(self, other):
+        if isinstance(other, Variable):
+            return self._to_tuple() == other._to_tuple()
+        return NotImplemented
 
 
 def is_subcluster_function(x: np.ndarray, variables: list[Variable], n_sites: int):

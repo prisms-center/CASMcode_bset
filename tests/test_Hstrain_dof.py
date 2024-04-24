@@ -56,7 +56,7 @@ def test_Hstrain_fcc_1(session_shared_datadir):
     assert_expected_functions(basis_set, expected)
 
     # test make_periodic_cluster_functions with only global DoF
-    clusters, functions, prim_neighbor_list = make_periodic_cluster_functions(
+    clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
         xtal_prim=xtal_prim, max_length=[0.0], global_max_poly_order=3
     )
     assert len(clusters) == 1
@@ -89,7 +89,7 @@ def test_Hstrain_fcc_2(session_shared_datadir):
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
     # test make_periodic_cluster_functions with only global DoF
-    clusters, functions, prim_neighbor_list = make_periodic_cluster_functions(
+    clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
         xtal_prim=xtal_prim,
         dofs=["Hstrain"],
         max_length=[0.0, 0.0, 1.01, 1.01],
@@ -137,7 +137,7 @@ def test_Hstrain_fcc_3(session_shared_datadir):
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
     # test make_periodic_cluster_functions with only global DoF
-    clusters, functions, prim_neighbor_list = make_periodic_cluster_functions(
+    clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
         xtal_prim=xtal_prim,
         dofs=["Hstrain"],
         max_length=[0.0, 0.0, 1.01, 1.01],
@@ -265,7 +265,7 @@ def test_Hstrain_lowsym_1(lowsym_Hstrain_prim, session_shared_datadir):
     assert_expected_functions(basis_set, expected)
 
     # test make_periodic_cluster_functions with only global DoF
-    clusters, functions, prim_neighbor_list = make_periodic_cluster_functions(
+    clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
         xtal_prim=xtal_prim, max_length=[0.0], global_max_poly_order=3
     )
     assert len(clusters) == 1
