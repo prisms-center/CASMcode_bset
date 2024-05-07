@@ -1,30 +1,22 @@
-"""Implements PolynomialFunction, symmetry application, and orthonormalization
-
-Notes:
-
-- This is intended to work given symmetry representation matrices determined
-  elsewhere.
-"""
-
 import copy
 import math
 import sys
 from collections import namedtuple
-from typing import Optional, TypeVar
+from typing import Optional, TypeVar, Union
 
 import numpy as np
 import opt_einsum
 import sparse
 from libcasm.counter import IntCounter
 
-from ._misc import (
+from casm.bset.misc import (
     factor_by_mode,
     irrational_to_tex_string,
 )
 
 
 def is_canonical_coord(x: np.ndarray):
-    """Check if 1d array x of tensor coords is sorted in decreasing order"""
+    """Check if a 1d array of tensor coordinates is sorted in decreasing order"""
     n = len(x) - 1
     for i in range(n):
         if x[i] < x[i + 1]:
@@ -33,12 +25,12 @@ def is_canonical_coord(x: np.ndarray):
 
 
 def make_canonical_coord(x):
-    """Return a copy of 1d array x of tensor coords, sorted in decreasing order"""
+    """Return a copy of a 1d array of tensor coordinates, sorted in decreasing order"""
     return np.sort(x)[::-1]
 
 
 def is_lowest_equivalent_coord(x: np.ndarray):
-    """Check if 1d array x of tensor coords is sorted in ascending order"""
+    """Check if a 1d array of tensor coordinates is sorted in ascending order"""
     n = len(x) - 1
     for i in range(n):
         if x[i] > x[i + 1]:
@@ -47,7 +39,7 @@ def is_lowest_equivalent_coord(x: np.ndarray):
 
 
 def make_lowest_equivalent_coord(x):
-    """Return a copy of 1d array x of tensor coords, sorted in ascending order"""
+    """Return a copy of a 1d array of tensor coordinates, sorted in ascending order"""
     return np.sort(x)
 
 
@@ -96,7 +88,7 @@ def tensor_coord_to_monomial_exponents(x, n_size):
 
 
 def monomial_exponents_to_tensor_coord(n):
-    """Convert tensor coordinates to vector of exponents form
+    """Convert vectors of monomial exponents to tensor coordinates
 
     Parameters
     ----------
@@ -127,18 +119,10 @@ def monomial_exponents_to_tensor_coord(n):
 class FunctionRep:
     """Symmetry operation representation used to transform PolynomialFunction
 
-    This class should be updated as necessary to transform PolynomialFunction,
-    amongst clusters of sites or with mixed type monomials (i.e. monomials of strain
-    and displacement).
-
     Currently, symmetry is applied to tensor coefficients using einstein summation
     notation. An improvement is planned to be made using the method described in
     Appendix C of J.C. Thomas, A. Van der Ven / Journal of the Mechanics and Physics of
     Solids 107 (2017) 76–95. DOI: 10.1016/j.jmps.2017.06.009
-
-    TODO:
-
-    - Rep for transforming cluster_site_index and neighbor_site_index of Variable
 
     Attributes
     ----------
@@ -146,22 +130,14 @@ class FunctionRep:
         Describes the effect of applying a symmetry operation on a vector of variables.
     sparse_matrix_rep: sparse.COO
         The `matrix_rep` as a sparse.COO array.
-    neighborhood_site_index_perm_rep: Optional[list[int]]
-        The neighborhood site index permutation representation of the inverse operation.
-        TODO, double check whether we want perm_rep or inverse, relative to matrix_rep,
-        to give
-        ``neighborhood_site_index_after = perm_rep[neighborhood_site_index_after]``.
-
     """
 
     def __init__(
         self,
         matrix_rep: np.ndarray,
-        neighborhood_site_index_perm_rep: Optional[list[int]] = None,
     ):
         self.matrix_rep = matrix_rep
         self.sparse_matrix_rep = sparse.COO.from_numpy(matrix_rep)
-        self.neighborhood_site_index_perm_rep = neighborhood_site_index_perm_rep
 
     def __mul__(self, rhs):
         if isinstance(rhs, PolynomialFunction):
@@ -203,10 +179,6 @@ class FunctionRep:
                 j += 1
             result.monomial_exponents = result.tensor_coords_to_monomial_exponents()
 
-            perm_rep = self.neighborhood_site_index_perm_rep
-            if perm_rep is not None:
-                for var in result.variables:
-                    var.neighborhood_site_index = perm_rep[var.neighborhood_site_index]
             result.make_canonical()
             result.prune()
             return result
@@ -221,7 +193,6 @@ class FunctionRep:
 VariableData = namedtuple(
     "VariableData",
     [
-        "name",
         "key",
         "cluster_site_index",
         "component_index",
@@ -315,14 +286,24 @@ class Variable:
         )
 
     def _to_tuple(self):
-        return VariableData(
-            self.name,
-            self.key,
-            self.component_index,
-            self.site_basis_function_index,
-            self.cluster_site_index,
-            self.neighborhood_site_index,
-        )
+        if self.neighborhood_site_index is None:
+            return VariableData(
+                self.key,
+                self.cluster_site_index,
+                self.component_index,
+                self.site_basis_function_index,
+                self.neighborhood_site_index,
+            )
+        else:
+            # when neighborhood_site_index is set, we don't want to
+            # compare cluster_site_index
+            return VariableData(
+                self.key,
+                None,
+                self.component_index,
+                self.site_basis_function_index,
+                self.neighborhood_site_index,
+            )
 
     def __hash__(self):
         return hash(self._to_tuple())
@@ -513,6 +494,33 @@ class PolynomialFunction:
     def copy(self):
         return copy.deepcopy(self)
 
+    def monomials(self):
+        """Return individual monomials
+
+        Returns
+        -------
+        monomials: list[PolynomialFunction]
+            List of monomials which together sum to this polynomial
+        """
+        monomials = []
+        for i in range(self.coeff.coords.shape[1]):
+            mask = [i]
+
+            monomials.append(
+                PolynomialFunction(
+                    coeff=sparse.COO(
+                        self.coeff.coords[:, mask],
+                        self.coeff.data[mask],
+                        shape=self.coeff.shape,
+                        prune=True,
+                    ),
+                    variables=self.variables,
+                    variable_subsets=self.variable_subsets,
+                    tol=self.tol,
+                )
+            )
+        return monomials
+
     def __isub__(self, rhs: PolynomialFunctionType):
         self.coeff -= rhs.coeff
         self.make_canonical()
@@ -527,21 +535,92 @@ class PolynomialFunction:
         self.monomial_exponents = self.tensor_coords_to_monomial_exponents()
         return self
 
-    def __imul__(self, c: float):
-        self.coeff *= c
-        return self
+    def __imul__(self, c: Union[float | Variable]):
+        if isinstance(c, float):
+            self.coeff *= c
+            return self
+        elif isinstance(c, Variable):
+            i_var = self.variables.index(c)
 
-    def __idiv__(self, c: float):
-        self.coeff /= c
-        return self
+            n_var = len(self.variables)
+            order = self.coeff.coords.shape[0]
+            n_monomial = self.coeff.coords.shape[1]
+            coords_new = np.array(
+                self.coeff.coords.copy().tolist() + [i_var] * n_monomial,
+                dtype="int",
+            )
+            shape_new = [n_var] * (order + 1)
 
-    def __mul__(self, c: float):
+            self.coeff = sparse.COO(
+                coords_new, self.coeff.data, shape=shape_new, prune=True
+            )
+            self.make_canonical()
+            self.prune()
+            self.monomial_exponents = self.tensor_coords_to_monomial_exponents()
+            return self
+        else:
+            raise NotImplementedError
+
+    def __mul__(self, c: Union[float | Variable]):
         result = self.copy()
         result *= c
         return result
 
-    def __rmul__(self, c: float):
+    def __rmul__(self, c: Union[float | Variable]):
         return self * c
+
+    def can_factor_by(self, var: Variable):
+        """Check if a variable can be factored out of this polynomial
+
+        Parameters
+        ----------
+        var: casm.bset.Variable
+            Variable to be factored out.
+
+        Returns
+        -------
+        result: bool
+            True if this polynomial can be factored by `var`; False otherwise.
+        """
+        if var not in self.variables:
+            return False
+        i_var = self.variables.index(var)
+        coords_list = self.coeff.coords.copy().transpose().tolist()
+        for monomial_coords in coords_list:
+            if i_var not in monomial_coords:
+                return False
+        return True
+
+    def __itruediv__(self, c: Union[float | Variable]):
+        if isinstance(c, float):
+            self.coeff /= c
+            return self
+        elif isinstance(c, Variable):
+            i_var = self.variables.index(c)
+
+            n_var = len(self.variables)
+            order = self.coeff.coords.shape[0]
+
+            coords_list = self.coeff.coords.copy().transpose().tolist()
+            for monomial_coords in coords_list:
+                monomial_coords.remove(i_var)
+            coords_new = np.array(coords_list, dtype="int").transpose()
+            shape_new = [n_var] * (order - 1)
+
+            self.coeff = sparse.COO(
+                coords_new, self.coeff.data, shape=shape_new, prune=True
+            )
+            self.make_canonical()
+            self.prune()
+            self.monomial_exponents = self.tensor_coords_to_monomial_exponents()
+            return self
+        else:
+            raise NotImplementedError
+
+    def __truediv__(self, c: Union[float | Variable]):
+        result = self.copy()
+        result /= c
+        return result
 
     def make_canonical(self):
         """Shift sparse tensor values from non-canonical coordinates to canonical \
@@ -811,10 +890,9 @@ def monomial_inner_product(
     n_b: list[int],
     variable_subsets: list[list[int]],
 ) -> float:
-    r"""Evaluates monomial inner product
+    r"""Evaluates the monomial inner product
 
-    Eq. (C.4) of J.C. Thomas, A. Van der Ven / Journal of the Mechanics and Physics of
-    Solids 107 (2017) 76–95. DOI: 10.1016/j.jmps.2017.06.009
+    Evaluates the monomial inner product as defined by Eq. (C.4) of :cite:`THOMAS2017a`:
 
     .. math::
 
@@ -830,12 +908,15 @@ def monomial_inner_product(
       i.e. for strain, :math:`\vec{x}=[e_1, e_2, e_3, e_4, e_5, e_6 ]`.
     - :math:`\alpha^{(\vec{n})}`: the coefficient for the first monomial
     - :math:`\vec{n}`: the vector of exponents for the first monomial
-    - :math:`\beta^{(\vec{n})}`: the coefficient for the second monomial
+    - :math:`\beta^{(\vec{n}')}`: the coefficient for the second monomial
     - :math:`\vec{n}'`: the vector of exponents for the second monomial
     - :math:`S_l`: the subsets of indices of variables which mix under application of
-      symmetry. For example, in a cluster of 2 sites with 3 site displacement on each
-      site, there are 6 total variables, and the variable subsets would be
-      :math:`S_1=[0, 1, 2]` and :math:`S_2=[3, 4, 5]`.
+      symmetry. For example, in a cluster of 2 sites with 3 site displacement degrees
+      of freedom on each site (:math:`dx`, :math:`dy`, :math:`dz`), there are 6 total
+      variables, the first three (with indices [0,1,2]) being the displacements on the
+      first site and the second three (with indices [3, 4, 5]) being the displacements
+      on the second site. Then the variable subsets would be :math:`S_1=[0, 1, 2]` and
+      :math:`S_2=[3, 4, 5]`.
 
     Parameters
     ----------
@@ -849,7 +930,7 @@ def monomial_inner_product(
         The vector of exponents for the second monomial, :math:`\vec{n}'`
     variable_subsets: list[list[int]]
         The subsets of variables which mix under application of symmetry, as indices
-        into the vectors of exponenets.
+        into the vectors of exponents.
 
     Returns
     -------
@@ -910,7 +991,8 @@ def gram_schmidt(
 
 
 class ExponentSumConstraint:
-    """
+    """Data structure that specifies an exponent sum for filtering monomials
+
     Attributes
     ----------
     variables: list[int]
@@ -952,17 +1034,29 @@ def make_symmetry_adapted_polynomials(
 ) -> list[PolynomialFunction]:
     """Generate symmetry adapted polynomial functions
 
+    This method systematically enumerates monomial terms of varying order, applies
+    group operations to construct symmetry adapted polynomials, and then orthogonalizes
+    the results using the Gram-Schmidt method.
+
+    Notes
+    -----
+
+    To support cluster expansion function construction, if any variable has a
+    `cluster_site_index` which is not None, then the set of
+    `cluster_site_index` is found, and monomials are checked to ensure that they
+    have at least one variable on every site in the cluster. Any monomial which
+    only has variables on a sub-cluster of sites is skipped.
+
     Parameters
     ----------
     matrix_rep: list[np.ndarray[np.float]]
-        Matrix representation for the factor group acting on global DoF in
-        the prim basis.
+        Matrix representation for the symmetry groups acting on the variables.
     variables: list[Variable]
         Describes the variable elements of the vector that `matrix_rep` acts on.
     variable_subsets: list[list[int]]
         The indices of Variable in `variables` which mix under application of symmetry,
-        or permute as a group. This could be strain variables, displacement variables
-        on a site, or occupant site basis functions on a site.
+        or permute as a group. A subset could be strain variables, displacement
+        variables on a site, or occupant site basis functions on a site.
     max_poly_order: int
         Maximum order (sum of exponents) in monomials of the generated
         polynomials.
@@ -974,17 +1068,20 @@ def make_symmetry_adapted_polynomials(
         otherwise generate all symmetry adapted polynomials of a particular order and
         then orthonormalize.
     constraints: list[ExponentSumConstraint]
-        If any constraint is not satisfied, the candidate monomial is skipped.
+        If any constraint is not satisfied, the candidate monomial is skipped. This
+        can be used to ensure one and only one of mutually exclusive discrete variables
+        is included in any monomial.
     eps: float = 1e-14
         Tolerance used for identifying zeros in the matrix representations.
     verbose: bool = False
         Print progress statements
+
     Returns
     -------
-    basis_set: list[PolynomialFunction]
-        A list of :class:`~casm.bset.PolynomialFunction` that are invariant
-        to symmetry operations in `matrix_rep` and have been orthonormalized
-        (according to the scalar product defined in Thomas and Van der Ven).
+    functions: list[PolynomialFunction]
+        A list of :class:`~casm.bset.polynomial_function.PolynomialFunction` that are
+        invariant to symmetry operations in `matrix_rep` and have been orthonormalized
+        according to the scalar product defined in :cite:`THOMAS2017a`.
     """
 
     n_variables = len(variables)
@@ -993,9 +1090,7 @@ def make_symmetry_adapted_polynomials(
     for i in range(len(matrix_rep)):
         M = matrix_rep[i].copy()
         M[np.abs(M) < eps] = 0.0
-        S = FunctionRep(
-            matrix_rep=M,
-        )
+        S = FunctionRep(matrix_rep=M)
         function_rep.append(S)
 
     # check if cluster function:

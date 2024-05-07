@@ -4,6 +4,7 @@
     // BaseClexulator({{ nlist_size }}, {{ n_corr }}, {{ n_point_corr_sites }})
     {% endraw %}
     : BaseClexulator({{ nlist_size }}, {{ n_corr }}, {{ n_point_corr_sites }}) {
+{% if occ_site_functions|length > 0 %}
 
   // Occupation site basis functions
   {%- raw %}
@@ -19,6 +20,8 @@
       {% endfor %}
     {% endfor %}
   {% endfor %}
+{% endif %}
+{% if params|length > 0 %}
 
   // Parameter packs
   {%- raw %}
@@ -27,23 +30,23 @@
   {% for param in params %}
   m_{{ param.name }}_param_key = m_params.allocate("{{ param.name }}", {{ param.rows }}, {{ param.cols }}, {{ param.is_independent }});
   {% endfor %}
+{% endif %}
+{% if continuous_dof|length > 0 %}
 
   // Register continuous DoF
   {%- raw %}
-  // _register_global_dof("{{ dof.key }}", m_{{ dof.paramname }}_param_key.index());
-  // _register_local_dof("{{ dof.key }}", m_{{ dof.paramname }}_param_key.index());
+  // _register_global_dof("{{ dof.key }}", m_{{ dof.key }}_var_param_key.index());
+  // _register_local_dof("{{ dof.key }}", m_{{ dof.key }}_var_param_key.index());
   {% endraw %}
-  {% if continuous_dof %}
-    {% for dof in continuous_dof %}
-      {% if dof.is_global %}
-  _register_global_dof("{{ dof.key }}", m_{{ dof.paramname }}_param_key.index());
-      {% else %}
-  _register_local_dof("{{ dof.key }}", m_{{ dof.paramname }}_param_key.index());
-      {% endif %}
-    {% endfor %}
-  {% else %}
-  // (none)
-  {% endif %}
+  {% for dof in continuous_dof %}
+    {% if dof.is_global %}
+  _register_global_dof("{{ dof.key }}", m_{{ dof.key }}_var_param_key.index());
+    {% else %}
+  _register_local_dof("{{ dof.key }}", m_{{ dof.key }}_var_param_key.index());
+    {% endif %}
+  {% endfor %}
+{% endif %}
+{% if orbit_bfuncs|length > 0 %}
 
   // Orbit functions (evaluate functions without duplication)
   {%- raw %}
@@ -53,6 +56,8 @@
     {% set function_index = func.linear_function_index %}
   m_orbit_func_table[{{ function_index }}] = &{{ clexulator_name }}::eval_orbit_bfunc_{{ function_index }}<double>;
   {% endfor %}
+{% endif %}
+{% if site_bfuncs|length > 0 %}
 
   // Site functions
   {%- raw %}
@@ -87,6 +92,7 @@
       {% endif %}
     {% endfor %}
   {% endfor %}
+{% endif %}
 
   // Neighbor list shape weight matrix
   m_weight_matrix.row(0) << {{ nlist_weight_matrix[0][0] }}, {{ nlist_weight_matrix[0][1] }}, {{ nlist_weight_matrix[0][2] }};

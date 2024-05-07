@@ -138,10 +138,7 @@ if True:
         for i_equiv, M_list in enumerate(builder.equivalence_map_inv_matrix_rep):
             print(f"- Equivalent: {i_equiv}")
             M = M_list[0]
-            S = FunctionRep(
-                matrix_rep=M,
-                neighborhood_site_index_perm_rep=None,
-            )
+            S = FunctionRep(matrix_rep=M)
             f_equiv = S * f_prototype
             equiv_cluster = builder.equivalence_map_clusters[i_equiv][0]
             f_equiv._basic_print()

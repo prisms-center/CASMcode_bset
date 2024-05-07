@@ -17,7 +17,7 @@ from libcasm.sym_info import (
     SymGroup,
 )
 
-from ._polynomial_function import (
+from casm.bset.polynomial_functions import (
     ExponentSumConstraint,
     Variable,
 )
@@ -158,8 +158,8 @@ def make_cluster_permutation_rep(
         The `cluster_permutation_rep` species how cluster sites map under application of
         cluster group operations, by index into the list of cluster sites, according to
         `from_site_index = cluster_permutation_rep[cluster_group_index][to_site_index]`,
-        where `cluster_group_index` is an index into ``cluster_group.elements`, and
-        `from_site_index` and `to_site_index` are indices into ``cluster.sites()`
+        where `cluster_group_index` is an index into ``cluster_group.elements``, and
+        `from_site_index` and `to_site_index` are indices into ``cluster.sites()``
         before and after application of the cluster group operation, respectively.
 
     """
@@ -589,7 +589,7 @@ def make_cluster_matrix_rep(
     total_dim: int,
     site_index_to_basis_index: dict[int, int],
 ):
-    """
+    """Make the matrix representation for the cluster group
 
     Parameters
     ----------
@@ -641,7 +641,7 @@ def make_cluster_matrix_rep(
 
 class ClusterMatrixRepBuilder:
     """Builds cluster matrix reps for generating symmetry adapted polynomial functions
-    on a local cluster, for a single local degree of freedom (DoF)
+    on a cluster, for a single local degree of freedom (DoF)
 
     Attributes
     ----------
@@ -750,7 +750,8 @@ class ClusterMatrixRepBuilder:
 
 
 class PeriodicOrbitMatrixRepBuilder:
-    """Builds cluster matrix reps for generating orbits of functions
+    """Builds cluster matrix reps for generating polynomial functions \
+    on an orbit of clusters, coupling all local and global DoFs
 
     Attributes
     ----------
@@ -846,7 +847,7 @@ class PeriodicOrbitMatrixRepBuilder:
         variables are coupled, with strain variables included first, then
         `variable_subsets=[[0,1,2,3,4,5], [6, 7, 8], [9, 10, 11]]`
     equivalence_map_matrix_rep: list[list[np.ndarray]]
-        The coupled matrix rep of corresponding `equivalence_map_ops`. hese are the
+        The coupled matrix rep of corresponding `equivalence_map_ops`. These are the
         matrix representations that can be used to transform at the same time global
         DoF values and local DoF values from the prototype cluster onto equivalent
         clusters. Index using ``equivalence_map_matrix_rep[i_equiv][i_op]``.

@@ -13,10 +13,12 @@ from utils.helpers import (
     assert_expected_functions,
 )
 
-from casm.bset import (
-    Variable,
+from casm.bset.cluster_functions import (
     make_global_dof_matrix_rep,
     make_periodic_cluster_functions,
+)
+from casm.bset.polynomial_functions import (
+    Variable,
     make_symmetry_adapted_polynomials,
 )
 
@@ -209,7 +211,7 @@ def test_Hstrain_hcp_1(session_shared_datadir):
     assert_expected_functions(basis_set, expected)
 
     # test make_periodic_cluster_functions with only global DoF
-    clusters, functions, prim_neighbor_lists = make_periodic_cluster_functions(
+    clusters, functions, prim_neighbor_lists, params = make_periodic_cluster_functions(
         xtal_prim=xtal_prim, max_length=[0.0], global_max_poly_order=3
     )
     assert len(clusters) == 1

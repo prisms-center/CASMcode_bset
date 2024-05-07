@@ -124,30 +124,53 @@ void {{ clexulator_name }}::_calc_restricted_delta_point_corr(int nlist_ind, int
   m_params.post_eval();
 }
 
-// Prepare variables for global corr evaluation
+/// --- Prepare variables for global corr evaluation  ---
+
 template<typename Scalar>
 void {{ clexulator_name }}::_global_prepare() const {
-  if(m_params.eval_mode(m_occ_site_func_param_key) != ParamPack::READ) {
-    {%- raw %}
-    ParamPack::Val<Scalar>::set(m_params, m_occ_site_func_param_key, 0, 0, eval_occ_func_0_0(0));
-    {% endraw %}
+{% for key, variables in orbit_bfuncs_variables_needed.items() %}
+  {% if key == "occ" %}{# /*DISCRETE DOF*/ #}
+    {% set param_key = "m_occ_site_func_param_key" %}
+  {% else %}
+    {% set param_key = "m_" + key + "_var_param_key" %}
+  {% endif %}
+  if(m_params.eval_mode({{ param_key}}) != ParamPack::READ) {
+    {%- if key == "occ" %}{# /*DISCRETE DOF*/ #}
+      {% raw %}
+    // ParamPack::Val<Scalar>::set(
+    //     m_params, {{ param_key}}, {{ site_function_index }}, {{ neighbor_list_index }},
+    //     eval_occ_func_{{ sublattice_index }}_{{ site_function_index }}({{ neighbor_list_index }}));
+      {% endraw %}
+    {% elif neighbor_list_index %}{# /*LOCAL CONTINUOUS DOF*/ #}
+      {% raw %}
+    // ParamPack::Val<Scalar>::set(m_params, {{ param_key}}, {{ component_index }}, {{ neighbor_list_index }}, eval_{{ key }}_var_{{ sublattice_index }}_{{ component_index }}({{ neighbor_list_index }}));
+      {% endraw %}
+    {% else %}{# /*GLOBAL CONTINUOUS DOF*/ #}
+      {% raw %}
+    // ParamPack::Val<Scalar>::set(m_params, {{ param_key}}, {{ component_index }}, eval_{{ key }}_var({{ component_index }}));
+      {% endraw %}
+    {% endif %}
+    {% for var_indices in variables %}
+      {% set neighbor_list_index = var_indices[1] %}
+      {% set sublattice_index = var_indices[2] %}
+      {% if key == "occ" %}{# /*DISCRETE DOF*/ #}
+        {% set site_function_index = var_indices[0] %}
+    ParamPack::Val<Scalar>::set(m_params, {{ param_key}}, {{ site_function_index }}, {{ neighbor_list_index }}, eval_occ_func_{{ sublattice_index }}_{{ site_function_index }}({{ neighbor_list_index }}));
+      {% elif neighbor_list_index %}{# /*LOCAL CONTINUOUS DOF*/ #}
+        {% set component_index = var_indices[0] %}
+    ParamPack::Val<Scalar>::set(m_params, {{ param_key}}, {{ component_index }}, {{ neighbor_list_index }}, eval_{{ key }}_var_{{ sublattice_index }}_{{ component_index }}({{ neighbor_list_index }}));
+      {% else %}{# /*GLOBAL CONTINUOUS DOF*/ #}
+        {% set component_index = var_indices[0] %}
+    ParamPack::Val<Scalar>::set(m_params, {{ param_key}}, {{ component_index }}, eval_{{ key }}_var({{ component_index }}));
+      {% endif %}
+    {% endfor %}
   }
+{% endfor %}
 }
-
-// Prepare variables for point corr evaluation
-template<typename Scalar>
-void {{ clexulator_name }}::_point_prepare(int nlist_ind) const {
-  switch(nlist_ind) {
-  case 0:
-  if(m_params.eval_mode(m_occ_site_func_param_key) != ParamPack::READ) {
-    {%- raw %}
-    // ParamPack::Val<Scalar>::set(m_params, m_occ_site_func_param_key, 0, 0, eval_occ_func_0_0(0));
-    {% endraw %}
-  }
-}
+{% if orbit_bfuncs|length > 0 %}
 
 /// --- Global corr contributions ---
-{% raw %}
+  {% raw %}
 // template<typename Scalar>
 // Scalar {{ clexulator_name }}::eval_bfunc_{{ function_index }}() const {
 //   // orbit_index: {{ orbit_index }}
@@ -157,21 +180,59 @@ void {{ clexulator_name }}::_point_prepare(int nlist_ind) const {
 //     ...
 //     ) / {{ orbit_mult }};
 // }
-{% endraw %}
-{% for func in orbit_bfuncs %}
-  {% set function_index = func.linear_function_index %}
-  {% set orbit_index = func.linear_orbit_index %}
-  {% set cpp = func.cpp %}
+  {% endraw %}
+  {% for func in orbit_bfuncs %}
+    {% set function_index = func.linear_function_index %}
+    {% set orbit_index = func.linear_orbit_index %}
+    {% set cpp = func.cpp %}
+    {% if cpp %}
+
 template<typename Scalar>
 Scalar {{ clexulator_name }}::eval_orbit_bfunc_{{ function_index }}() const {
   // orbit_index: {{ orbit_index }}
   // function_index: {{ function_index }}
   return {{ cpp }};
 }
+    {% endif %}
+  {% endfor %}
+{% endif %}
+
+///  --- Prepare variables for point corr evaluation  ---
+
+template<typename Scalar>
+void {{ clexulator_name }}::_point_prepare(int nlist_ind) const {
+  switch(nlist_ind) {
+{% for site_bfuncs_variables_needed in site_bfuncs_variables_needed_at %}
+  {% set neighbor_list_index = loop.index0 %}
+  case {{ neighbor_list_index }}:
+  {% for key, variables in site_bfuncs_variables_needed.items() %}
+    {% if key == "occ" %} {# /*DISCRETE DOF*/ #}
+      {% set param_key = "m_occ_site_func_param_key" %}
+    {% else %}
+      {% set param_key = "m_" + key + "_var_param_key" %}
+    {% endif %}
+  if(m_params.eval_mode({{ param_key }}) != ParamPack::READ) {
+    {%- raw %}
+    // ParamPack::Val<Scalar>::set(m_params, {{ param_key }}, {{ site_function_index }}, {{ neighbor_list_index }}, eval_occ_func_{{ sublattice_index }}_{{ site_function_index }}({{ neighbor_list_index }}));
+    {% endraw %}
+  }
+  {% endfor %}
 {% endfor %}
+  } // switch
+}
+{% if site_bfuncs|length > 0 %}
+  {% set vars = {'first': True} %}
+  {% for f_by_function_index in site_bfuncs %}
+    {% set function_index = f_by_function_index.linear_function_index %}
+    {% set orbit_index = f_by_function_index.linear_orbit_index %}
+    {% for f_by_neighbor_index in f_by_function_index.at %}
+      {% set neighbor_list_index = f_by_neighbor_index.neighbor_list_index %}
+      {% set cpp = f_by_neighbor_index.cpp %}
+      {% if cpp %}
+        {% if vars.first %}
 
 /// --- Point corr ---
-{% raw %}
+          {% raw %}
 // template<typename Scalar>
 // Scalar {{ clexulator_name }}::eval_bfunc_{{ function_index }}() const {
 //   // orbit_index: {{ orbit_index }}
@@ -181,19 +242,18 @@ Scalar {{ clexulator_name }}::eval_orbit_bfunc_{{ function_index }}() const {
 //     ...
 //     ) / {{ orbit_mult }};
 // }
-{% endraw %}
-{% for f_by_function_index in site_bfuncs %}
-  {% set function_index = f_by_function_index.linear_function_index %}
-  {% set orbit_index = f_by_function_index.linear_orbit_index %}
-  {% for f_by_neighbor_index in f_by_function_index.at %}
-    {% set neighbor_list_index = f_by_neighbor_index.neighbor_list_index %}
-    {% set cpp = f_by_neighbor_index.cpp %}
+          {% endraw %}
+          {% if vars.update({'first': False}) %} {% endif %}
+        {% endif %}
+
 template<typename Scalar>
 Scalar {{ clexulator_name }}::eval_site_bfunc_{{ function_index }}_at_{{ neighbor_list_index }}() const {
   // orbit_index: {{ orbit_index }}
   // function_index: {{ function_index }}
   return {{ cpp }};
 }
+      {% endif %}
+    {% endfor %}
   {% endfor %}
-{% endfor %}
+{% endif %}
 

@@ -17,6 +17,15 @@ def almost_int(value, abs_tol=1e-5) -> bool:
     return almost_zero(abs(value - round(value)), abs_tol=abs_tol)
 
 
+def signof(value, abs_tol=1e-5) -> float:
+    if value < -abs_tol:
+        return -1.0
+    elif value > abs_tol:
+        return 1.0
+    else:
+        return 0.0
+
+
 def irrational_to_tex_string(
     value: float,
     limit: int,

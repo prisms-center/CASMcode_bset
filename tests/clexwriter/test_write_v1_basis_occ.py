@@ -1,6 +1,8 @@
 from io import StringIO
 
+import libcasm.xtal as xtal
 import libcasm.xtal.prims as xtal_prims
+import libcasm.configuration as casmconfig
 
 from casm.bset import (
     make_periodic_cluster_functions,
@@ -12,7 +14,10 @@ def test_v1_basic_occ_fcc_1(session_shared_datadir):
     xtal_prim = xtal_prims.FCC(
         r=0.5,
         occ_dof=["A", "B", "C"],
+        # local_dof=[xtal.DoFSetBasis("disp")],
+        # global_dof=[xtal.DoFSetBasis("Hstrain")],
     )
+    prim = casmconfig.Prim(xtal_prim)
 
     clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
         xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
@@ -34,31 +39,27 @@ def test_v1_basic_occ_fcc_1(session_shared_datadir):
         }
     ]
 
-    continuous_dof = []
-
-    # continuous_dof = [
-    #     {
-    #         "is_global": False,
-    #         "key": "disp",
-    #         "max_n_components": 3,
-    #         "paramname": "disp_var",
-    #         "sites": [
-    #             {
-    #                 "sublattice_index": 0,
-    #                 "n_components": 3,
-    #             },
-    #             {
-    #                 "sublattice_index": 1,
-    #                 "n_components": 3,
-    #             },
-    #         ],
-    #     },
-    #     {
-    #         "is_global": True,
-    #         "key": "Hstrain",
-    #         "paramname": "Hstrain_var",
-    #     },
-    # ]
+    continuous_dof = [
+        # {
+        #     "is_global": False,
+        #     "key": "disp",
+        #     "max_n_components": 3,
+        #     "sites": [
+        #         {
+        #             "sublattice_index": 0,
+        #             "n_components": 3,
+        #         },
+        #         {
+        #             "sublattice_index": 1,
+        #             "n_components": 3,
+        #         },
+        #     ],
+        # },
+        # {
+        #     "is_global": True,
+        #     "key": "Hstrain",
+        # },
+    ]
 
     params = [
         {
@@ -67,6 +68,18 @@ def test_v1_basic_occ_fcc_1(session_shared_datadir):
             "cols": prim_neighbor_list.n_neighborhood_sites(),
             "is_independent": "true",
         },
+        # {
+        #     "name": "Hstrain_var",
+        #     "rows": 6,
+        #     "cols": 1,
+        #     "is_independent": "true",
+        # },
+        # {
+        #     "name": "disp_var",
+        #     "rows": 3,
+        #     "cols": prim_neighbor_list.n_neighborhood_sites(),
+        #     "is_independent": "true",
+        # },
         {
             "name": "corr",
             "rows": n_corr,

@@ -1,4 +1,6 @@
-  // Orbit functions (evaluate functions without duplication)
+{% if orbit_bfuncs|length > 0 %}
+
+// Orbit functions (evaluate functions without duplication)
   {%- raw %}
   // template<typename Scalar> Scalar eval_orbit_bfunc_{{ function_index }}() const;
   {% endraw %}
@@ -6,10 +8,12 @@
     {% set function_index = func.linear_function_index %}
   template<typename Scalar> Scalar eval_orbit_bfunc_{{ function_index }}() const;
   {% endfor %}
+{% endif %}
+{% if site_bfuncs|length > 0 %}
 
   // Site functions
   {%- raw %}
-  // template<typename Scalar> Scalar eval_site_bfunc_{{ function_index }}_at_{{ site_bfunc.neighbor_index }}() const;
+  // template<typename Scalar> Scalar eval_site_bfunc_{{ function_index }}_at_{{ neighbor_list_index }}() const;
   {% endraw %}
   {% for f_by_function_index in site_bfuncs %}
     {% set function_index = f_by_function_index.linear_function_index %}
@@ -34,6 +38,7 @@
       {% endif %}
     {% endfor %}
   {% endfor %}
+{% endif %}
 
   // ParamPack object, which stores temporary data for calculations
   mutable ParamPack m_params;
@@ -43,12 +48,15 @@
 
   // typedef for method pointers
   typedef double ({{ clexulator_name }}::*DeltaBasisFuncPtr)(int, int) const;
+{% if orbit_bfuncs|length > 0 %}
 
   // array of pointers to member functions for calculating basis functions of scalar type double
   {%- raw %}
   // BasisFuncPtr m_orbit_func_table[{{ n_corr }}];
   {% endraw %}
   BasisFuncPtr m_orbit_func_table[{{ n_corr }}];
+{% endif %}
+{% if site_bfuncs|length > 0 %}
 
   // array of pointers to member functions for calculating flower functions of scalar type double
   {%- raw %}
@@ -61,6 +69,8 @@
   // DeltaBasisFuncPtr m_occ_delta_site_func_table[{{ n_point_corr_sites }}][{{ n_corr }}];
   {% endraw %}
   DeltaBasisFuncPtr m_occ_delta_site_func_table[{{ n_point_corr_sites }}][{{ n_corr }}];
+{% endif %}
+{% if occ_site_functions|length > 0 %}
 
   // Occupation site basis functions
   {%- raw %}
@@ -74,6 +84,8 @@
   double m_occ_func_{{ sublattice_index }}_{{ site_function_index }}[{{ n_occupants }}];
     {% endfor %}
   {% endfor %}
+{% endif %}
+{% if params|length > 0 %}
 
   // Parameter packs
   {%- raw %}
@@ -82,6 +94,7 @@
   {% for param in params %}
   ParamPack::Key m_{{ param.name }}_param_key;
   {% endfor %}
+{% endif %}
 
   /// \brief Clone the {{ clexulator_name }}
   BaseClexulator *_clone() const override {
@@ -175,10 +188,10 @@
   Scalar zero_func(int, int) const {
     return Scalar(0.0);
   }
+{% if occ_site_functions|length > 0 %}
 
-  {% if occ_site_functions %}
   // --- Occupation function evaluators and accessors: --- //
-    {% raw %}
+  {% raw %}
   // double const &eval_occ_func_{{ sublattice_index }}_{{ site_function_index }}(const int &nlist_ind) const {
   //   return m_occ_func_{{ sublattice_index }}_{{ site_function_index }}[_occ(nlist_ind)];
   // }
@@ -186,13 +199,13 @@
   // double const &occ_func_{{ sublattice_index }}_{{ site_function_index }}(const int &nlist_ind) const {
   //   return m_params.read(m_occ_site_func_param_key, {{ site_function_index }}, nlist_ind);
   // }
-    {% endraw %}
+  {% endraw %}
 
-    {% for site_funcs in occ_site_functions %}
-      {% set sublattice_index = site_funcs.sublattice_index %}
-      {% set n_occupants = site_funcs.n_occupants %}
-      {% for func in site_funcs.functions %}
-        {% set site_function_index  = loop.index0 %}
+  {% for site_funcs in occ_site_functions %}
+    {% set sublattice_index = site_funcs.sublattice_index %}
+    {% set n_occupants = site_funcs.n_occupants %}
+    {% for func in site_funcs.functions %}
+      {% set site_function_index  = loop.index0 %}
   double const &eval_occ_func_{{ sublattice_index }}_{{ site_function_index }}(const int &nlist_ind) const {
     return m_occ_func_{{ sublattice_index }}_{{ site_function_index }}[_occ(nlist_ind)];
   }
@@ -201,28 +214,25 @@
     return m_params.read(m_occ_site_func_param_key, {{ site_function_index }}, nlist_ind);
   }
 
-      {% endfor %}
     {% endfor %}
-  {% endif %}
-
-
-
-  {% if continuous_dof %}
-    {% for dof in continuous_dof %}
-      {% if dof.is_global %}
+  {% endfor %}
+{% endif %}
+{% if continuous_dof|length > 0 %}
+  {% for dof in continuous_dof %}
+    {% if dof.is_global %}
   // --- {{ dof.key }} DoF evaluators and accessors: --- //
 
-  double eval_{{ key }}_var(const int &ind) const {
-    return (*(m_global_dof_ptrs[m_{{ key }}_var_param_key.index()]))[ind];
+  double eval_{{ dof.key }}_var(const int &ind) const {
+    return (*(m_global_dof_ptrs[m_{{ dof.key }}_var_param_key.index()]))[ind];
   }
 
   template<typename Scalar>
-  Scalar const &{{ key }}_var(const int &ind) const {
-    return ParamPack::Val<Scalar>::get(m_params, m_{{ key }}_var_param_key, ind);
+  Scalar const &{{ dof.key }}_var(const int &ind) const {
+    return ParamPack::Val<Scalar>::get(m_params, m_{{ dof.key }}_var_param_key, ind);
   }
-      {% else %}
+    {% else %}
   // --- {{ dof.key }} DoF evaluators and accessors: --- //
-        {% raw %}
+      {% raw %}
   // double eval_{{ dof.key }}_var_{{ sublattice_index }}_{{ component_index }}(const int &nlist_ind) const {
   //   return m_local_dof_ptrs[m_{{ key }}_var_param_key.index()]->col(_l(nlist_ind))[{{ component_index }}];
   // }
@@ -231,24 +241,22 @@
   // Scalar const &disp_var_{{ component_index }}(const int &nlist_ind) const {
   //   return ParamPack::Val<Scalar>::get(m_params, m_{{ key }}_var_param_key, {{ component_index }}, nlist_ind);
   // }
-        {% endraw %}
-        {% for site in dof.sites %}
-          {% set sublattice_index = site.sublattice_index %}
-          {% for component_index in range(site.n_components) %}
+      {% endraw %}
+      {% for site in dof.sites %}
+        {% set sublattice_index = site.sublattice_index %}
+        {% for component_index in range(site.n_components) %}
   double eval_{{ dof.key }}_var_{{ sublattice_index }}_{{ component_index }}(const int &nlist_ind) const {
     return m_local_dof_ptrs[m_{{ dof.key }}_var_param_key.index()]->col(_l(nlist_ind))[{{ component_index }}];
   }
-          {% endfor %}
         {% endfor %}
-        {% for component_index in range(dof.max_n_components) %}
+      {% endfor %}
+      {% for component_index in range(dof.max_n_components) %}
   template<typename Scalar>
   Scalar const &disp_var_{{ component_index }}(const int &nlist_ind) const {
     return ParamPack::Val<Scalar>::get(m_params, m_{{ dof.key }}_var_param_key, {{ component_index }}, nlist_ind);
   }
-        {% endfor %}
-      {% endif %}
-    {% endfor %}
-  {% else %}
-  // --- Continuous DoF evaluators and accessors: --- //
-  // (none)
-  {% endif %}
+      {% endfor %}
+    {% endif %}
+  {% endfor %}
+{% endif %}
+

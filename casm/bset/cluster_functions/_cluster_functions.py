@@ -9,10 +9,10 @@ from libcasm.clexulator import (
     make_default_prim_neighbor_list,
 )
 
-from ._matrix_rep import (
+from casm.bset.cluster_functions._matrix_rep import (
     PeriodicOrbitMatrixRepBuilder,
 )
-from ._polynomial_function import (
+from casm.bset.polynomial_functions import (
     FunctionRep,
     PolynomialFunction,
     make_symmetry_adapted_polynomials,
@@ -146,6 +146,64 @@ def assign_neighborhood_site_index(
             )
 
 
+def make_equivalent_cluster_basis_sets(
+    prototype_cluster_basis_set: list[list[PolynomialFunction]],
+    equivalence_map_clusters: list[list[casmclust.Cluster]],
+    equivalence_map_inv_matrix_rep: list[list[np.ndarray]],
+    prim_neighbor_list: PrimNeighborList,
+    verbose: bool = False,
+    prim: Optional[casmconfig.Prim] = None,
+    i_orbit: Optional[int] = None,
+) -> tuple[list[casmclust.Cluster], list[list[PolynomialFunction]]]:
+    orbit = []
+    orbit_basis_sets = []
+
+    # generate basis sets on all equivalent clusters
+    if verbose:
+        print("Generating equivalents...")
+        print()
+    # i_equiv: index for equivalent clusters
+    # M_list: sym rep matrices (1 for each sym op that prototype cluster to
+    #     the equivalent cluster, only the first is needed here)
+    for i_equiv, M_list in enumerate(equivalence_map_inv_matrix_rep):
+        # add equivalent cluster to orbit of clusters
+        equiv_cluster = equivalence_map_clusters[i_equiv][0]
+        orbit.append(equiv_cluster)
+        if verbose:
+            print(f"~~~ i_orbit: {i_orbit}, i_equiv: {i_equiv} ~~~")
+            print("Equivalent cluster:")
+            print(xtal.pretty_json(equiv_cluster.to_dict(prim.xtal_prim)))
+            print()
+
+        # add basis set for equivalent cluster to orbit of basis sets
+        equiv_basis_set = []
+        for f_prototype in prototype_cluster_basis_set:
+            M = M_list[0]
+            S = FunctionRep(matrix_rep=M)
+            f_equiv = S * f_prototype
+            assign_neighborhood_site_index(
+                cluster=equiv_cluster,
+                function=f_equiv,
+                prim_neighbor_list=prim_neighbor_list,
+            )
+            assert f_equiv.variables is not f_prototype.variables
+            for i in range(len(f_prototype.variables)):
+                assert f_equiv.variables[i] is not f_prototype.variables[i]
+            equiv_basis_set.append(f_equiv)
+        orbit_basis_sets.append(equiv_basis_set)
+        if verbose:
+            print("Equivalent cluster basis set:")
+            if len(equiv_basis_set) == 0:
+                print("Empty")
+            for i_func, func in enumerate(equiv_basis_set):
+                print(f"~~~ order: {func.order()}, function_index: {i_func} ~~~")
+                func._basic_print()
+                print()
+            print()
+
+    return (orbit, orbit_basis_sets)
+
+
 def make_periodic_cluster_functions(
     xtal_prim: xtal.Prim,
     dofs: Optional[Iterable[str]] = None,
@@ -157,7 +215,12 @@ def make_periodic_cluster_functions(
     make_variable_name_f: Optional[Callable] = None,
     prim_neighbor_list: Optional[PrimNeighborList] = None,
     verbose: bool = False,
-) -> tuple[list[list[casmclust.Cluster]], list[list[list[PolynomialFunction]]]]:
+) -> tuple[
+    list[list[casmclust.Cluster]],
+    list[list[list[PolynomialFunction]]],
+    PrimNeighborList,
+    dict,
+]:
     """Construct cluster functions with periodic symmetry
 
     Notes
@@ -395,10 +458,7 @@ def make_periodic_cluster_functions(
                 equiv_basis_set = []
                 for f_prototype in prototype_basis_set:
                     M = M_list[0]
-                    S = FunctionRep(
-                        matrix_rep=M,
-                        neighborhood_site_index_perm_rep=None,
-                    )
+                    S = FunctionRep(matrix_rep=M)
                     f_equiv = S * f_prototype
                     assign_neighborhood_site_index(
                         cluster=equiv_cluster,

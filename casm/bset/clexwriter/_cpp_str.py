@@ -5,11 +5,11 @@ from libcasm.clexulator import (
     PrimNeighborList,
 )
 
-from ._misc import (
+from casm.bset.misc import (
     almost_equal,
     factor_by_mode,
 )
-from ._polynomial_function import (
+from casm.bset.polynomial_functions import (
     PolynomialFunction,
     Variable,
 )
@@ -30,6 +30,45 @@ class CppFormatProperties:
 
 def is_one(x, atol: float = 1e-10):
     return almost_equal(x, 1.0, abs_tol=atol)
+
+
+def occ_func_cpp_str(
+    var: Variable,
+    prim_neighbor_list: PrimNeighborList,
+    occupant_index_argname: str,
+) -> str:
+    """Get C++ expression to evaluate an occupation site basis variable
+
+    Parameters
+    ----------
+    var: casm.bset.Variable
+        A :class:`casm.bset.Variable` representing the occupation site basis
+        function being evaluated.
+    prim_neighbor_list: libcasm.clexulator.PrimNeighborList
+        The primitive neighbor list, used to find the sublattice index
+    occupant_index_argname: str
+        The occupant index argument name. Usually "occ_i" or "occ_f".
+
+    Returns
+    -------
+    cpp_str: str
+        C++ expression to evaluate the specified variable, with form:
+
+        .. code-block:: Python
+
+            # b: int, sublattice indiex
+            # m: int, site basis function index
+            cpp_str = f"m_occ_func{b}_{m}[{occupant_index_argname}]"
+
+    """
+    if var.key != "occ":
+        raise Exception('Error in occ_func_cpp_str: key != "occ"')
+    # occupant_index_str = "occ_i", "occ_f"
+    nlist_sublat_indices = prim_neighbor_list.sublattice_indices()
+    i = var.neighborhood_site_index % len(nlist_sublat_indices)
+    b = nlist_sublat_indices[i]
+    m = var.site_basis_function_index
+    return f"m_occ_func{b}_{m}[{occupant_index_argname}]"
 
 
 def variable_cpp_str(
@@ -103,11 +142,13 @@ def polynomial_sum_cpp_str(
         factored_coeff.append(_factored_coeff)
 
     common_prefix, factored_prefixes = factor_by_mode(np.array(prefix_coeff))
+    print("common_prefix:", common_prefix)
+    print("factored_prefixes:", factored_prefixes)
 
     cpp_str = ""
+    if not is_one(common_prefix, atol=cpp_fmt.coeff_atol):
+        cpp_str += f"{common_prefix:{cpp_fmt.coeff_fmt_spec}} * "
     if len(functions) > 1:
-        if not is_one(common_prefix, atol=cpp_fmt.coeff_atol):
-            cpp_str += f"{common_prefix:{cpp_fmt.coeff_fmt_spec}} * "
         cpp_str += "(\n"
 
     indent = "  "
@@ -175,3 +216,80 @@ def site_bfunc_cpp_str(
         prim_neighbor_list=prim_neighbor_list,
         cpp_fmt=cpp_fmt,
     )
+
+
+def occ_delta_site_bfunc_cpp_str(
+    neighbor_list_index: int,
+    point_functions: list[PolynomialFunction],
+    orbit_size: int,
+    prim_neighbor_list: PrimNeighborList,
+    cpp_fmt: CppFormatProperties,
+) -> Optional[str]:
+    if len(point_functions) == 0:
+        return None
+
+    def find_occ_site_var(monomial: PolynomialFunction):
+        variables = monomial.variables
+        if len(monomial.monomial_exponents) != 1:
+            raise Exception(
+                "Error in occ_delta_site_bfunc_cpp_str: "
+                "failed to split point function into monomials"
+            )
+
+        occ_site_var = None
+        for i_var, x in enumerate(monomial.monomial_exponents[0]):
+            if x == 0:
+                continue
+            var = variables[i_var]
+            if var.key != "occ":
+                continue
+            if var.neighborhood_site_index == neighbor_list_index:
+                if occ_site_var is not None:
+                    raise Exception(
+                        "Error in occ_delta_site_bfunc_cpp_str: "
+                        ">1 occ site basis function found in monomial"
+                    )
+                occ_site_var = var
+        return occ_site_var
+
+    monomials = []
+    for point_function in point_functions:
+        monomials += point_function.monomials()
+
+    occ_delta_functions = {}
+    for monomial in monomials:
+        var = find_occ_site_var(monomial)
+        if var is not None:
+            if var not in occ_delta_functions:
+                occ_delta_functions[var] = []
+            occ_delta_functions[var].append(monomial / var)
+
+    if len(occ_delta_functions) == 0:
+        return None
+
+    indent = "  "
+    cpp_str = ""
+    use_plus = False
+    for var, factored_point_functions in occ_delta_functions.items():
+        site_var_final = occ_func_cpp_str(
+            var=var,
+            prim_neighbor_list=prim_neighbor_list,
+            occupant_index_argname="occ_f",
+        )
+        site_var_init = occ_func_cpp_str(
+            var=var,
+            prim_neighbor_list=prim_neighbor_list,
+            occupant_index_argname="occ_i",
+        )
+        if use_plus:
+            cpp_str += "\n\n" + indent * 1 + " + "
+        else:
+            use_plus = True
+        cpp_str += f"({site_var_final} - {site_var_init}) * "
+        cpp_str += polynomial_sum_cpp_str(
+            functions=factored_point_functions,
+            normalization=float(orbit_size),
+            prim_neighbor_list=prim_neighbor_list,
+            cpp_fmt=cpp_fmt,
+        )
+    return cpp_str
