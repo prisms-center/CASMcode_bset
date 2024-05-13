@@ -1,3 +1,5 @@
+from typing import Optional
+
 import libcasm.casmglobal as casmglobal
 import numpy as np
 
@@ -210,3 +212,56 @@ def make_orthonormal_discrete_functions(
                 phi[i, j] = round(phi[i, j])
 
     return phi.transpose()
+
+
+def get_occ_site_functions(
+    occ_site_functions: list[dict],
+    sublattice_index: int,
+    site_function_index: Optional[int],
+):
+    """Get a specified occupation site function
+
+    Parameters
+    ----------
+    occ_site_functions: list[dict]
+        List of occupation site basis functions. For each sublattice with discrete
+        site basis functions, must include:
+
+        - `"sublattice_index"`: int, index of the sublattice
+        - `"functions"`: list[list[float]], list of the site basis function values, as
+          ``value = functions[function_index][occupant_index]``.
+
+    sublattice_index: int
+        The sublattice to get a site function for.
+
+    site_function_index: Optional[int] = None
+        The particular site function to get. If None, get all site functions.
+
+    Returns
+    -------
+    phi: Optional[np.ndarray]
+        If `site_function_index` is None, returns the `shape=(n_occupants, n_occupants)`
+        array with rows representing site functions and columns representing occupant
+        index, if it exists for the specified sublattice; else returns None. If
+        `site_function_index` is not None, returns the `shape=(n_occupants,)` array
+        representing the `site_function_index`-th site function, with indices
+        representing occupant index, on the specified sublattice.
+    """
+    for site_funcs in occ_site_functions:
+        if site_funcs["sublattice_index"] == sublattice_index:
+            site_functions = np.array(site_funcs["functions"])
+            if sublattice_index is None:
+                return site_functions
+            elif site_function_index < 0:
+                raise Exception(
+                    "Error in get_occ_site_functions: "
+                    f"invalid site_function_index={site_function_index}"
+                )
+            elif site_function_index < site_functions.shape[0]:
+                return site_functions[site_function_index, :]
+            else:
+                raise Exception(
+                    "Error in get_occ_site_functions: "
+                    f"invalid site_function_index={site_function_index}"
+                )
+    return None

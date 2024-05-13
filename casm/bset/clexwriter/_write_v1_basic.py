@@ -50,23 +50,23 @@ class WriterV1Basic:
         prim_neighbor_list: libcasm.clexulator.PrimNeighborList
             :class:`~libcasm.clexulator.PrimNeighborList`, containing all the neighbors
             needed for evaluation, as output by
-            :func:`~casm.bset.make_periodic_cluster_functions` or
+            :func:`~casm.bset.make_cluster_functions` or
             :func:`~casm.bset.make_local_cluster_functions`.
         clusters: list[list[libcasm.clusterography.Cluster]]
             List of clusters, as output by
-            :func:`~casm.bset.make_periodic_cluster_functions` or
+            :func:`~casm.bset.make_cluster_functions` or
             :func:`~casm.bset.make_local_cluster_functions`.
         functions: list[list[list[casm.bset.PolynomialFunction]]]
             List of functions, as output by as output by
-            :func:`~casm.bset.make_periodic_cluster_functions` or
+            :func:`~casm.bset.make_cluster_functions` or
             :func:`~casm.bset.make_local_cluster_functions`.
         occ_site_functions: list[dict]
-            List of occupation site basis functions. For each sublattice with site
-            basis functions, must include:
+            List of occupation site basis functions. For each sublattice with discrete
+            site basis functions, must include:
 
             - `"sublattice_index"`: int, index of the sublattice
-            - `"functions"`: list[list[float]], list of the site basis function values,
-              as ``value = functions[function_index][occupant_index]``.
+            - `"function"`: list[list[float]], list of the site basis function values,
+              by DoF key (i.e. "occ") as ``value = X[function_index][occupant_index]``.
 
         continuous_dof: list[dict]
             List of continuous DoF to register. For each, must include:

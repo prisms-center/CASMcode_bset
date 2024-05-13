@@ -124,12 +124,6 @@ class FunctionRep:
     Appendix C of J.C. Thomas, A. Van der Ven / Journal of the Mechanics and Physics of
     Solids 107 (2017) 76–95. DOI: 10.1016/j.jmps.2017.06.009
 
-    Attributes
-    ----------
-    matrix_rep: np.ndarray[np.float64[m,m]]
-        Describes the effect of applying a symmetry operation on a vector of variables.
-    sparse_matrix_rep: sparse.COO
-        The `matrix_rep` as a sparse.COO array.
     """
 
     def __init__(
@@ -137,7 +131,12 @@ class FunctionRep:
         matrix_rep: np.ndarray,
     ):
         self.matrix_rep = matrix_rep
+        """np.ndarray[np.float64[m,m]]: Describes the effect of applying a symmetry 
+        operation on a vector of variables.
+        """
+
         self.sparse_matrix_rep = sparse.COO.from_numpy(matrix_rep)
+        """sparse.COO: The `matrix_rep` as a sparse.COO array."""
 
     def __mul__(self, rhs):
         if isinstance(rhs, PolynomialFunction):
@@ -208,39 +207,6 @@ class Variable:
     This class is used to keep the information necessary for collecting the degree
     of freedom (DoF) values necessary for evaluating polynomial functions.
 
-    Attributes
-    ----------
-    name: str
-        Name used for identification and printing. For example "{e_1}", "{e_2}", etc.
-        or "{E_{xx}}", "{E_{yy}}", etc. for strain degrees of freedom; "{d_1}",
-        "{d_2}", etc. or "dx", "dy", "dz" for displacement degrees of freedom;
-        "{\phi_1}", "{\phi_2}", etc. for occupation site basis functions, or
-        "{\phi_{a,1}}", "{\phi_{a,2}}", etc. and "{\phi_{b,1}}", "{\phi_{b,2}}", etc.
-        for occupation site basis functions on symmetrically distinct sites :math:`a`
-        and :math:`b`.
-
-    key: str
-        Name of the degree of freedom (DoF) this variable represents.
-
-    cluster_site_index: Optional[int] = None
-        For site variables, the cluster site index of the site associated with the
-        variable. This is used for:
-
-        - checking if a polynomial function includes all sites in a cluster
-        - printing latex formulas for functions on a cluster
-
-    component_index: Optional[int] = None
-        For vector-valued continuous variables, the component of the vector this
-        variable corresponds to.
-
-    site_basis_function_index: Optional[int] = None
-        For occupation variables, the site basis function index this variable
-        corresponds to.
-
-    neighborhood_site_index: Optional[int] = None
-        For site variables, the neighbor list index of the site associated with the
-        variable. (For printing formulations for evaluation in terms of values on sites
-        determined by the neighbor list position.)
     """
 
     def __init__(
@@ -253,11 +219,51 @@ class Variable:
         neighborhood_site_index: Optional[int] = None,
     ) -> object:
         self.name = name
+        """str: Name used for identification and printing.
+        
+        For example:
+         
+        - "{e_1}", "{e_2}", etc. or "{E_{xx}}", "{E_{yy}}", etc. for strain
+          degrees of freedom; 
+        - "{d_1}", "{d_2}", etc. or "dx", "dy", "dz" for displacement degrees of 
+          freedom;
+        - "{\phi_1}", "{\phi_2}", etc. for occupation site basis functions, or
+          "{\phi_{a,1}}", "{\phi_{a,2}}", etc. and "{\phi_{b,1}}", "{\phi_{b,2}}", etc.
+          for occupation site basis functions on symmetrically distinct sites :math:`a`
+          and :math:`b`.
+        """
+
         self.key = key
+        """str: Name of the degree of freedom (DoF) this variable represents."""
+
         self.cluster_site_index = cluster_site_index
+        """Optional[int]: For site variables, the cluster site index of the site 
+        associated with the variable. 
+        
+        This is used for:
+
+        - checking if a polynomial function includes all sites in a cluster
+        - in combination with a cluster to determine the neighbor list index
+        - printing latex formulas for functions on a cluster
+        """
+
         self.component_index = component_index
+        """Optional[int]: For vector-valued continuous variables, the component of \
+        the vector this variable corresponds to.
+        """
+
         self.site_basis_function_index = site_basis_function_index
+        """Optional[int]: For occupation variables, the site basis function index \
+        this variable corresponds to.
+        """
+
         self.neighborhood_site_index = neighborhood_site_index
+        """Optional[int]: For site variables, the neighbor list index of the site \
+        associated with the variable.
+        
+        Used for printing expressions for evaluation of functions in terms of values on 
+        sites determined by the neighbor list position.
+        """
 
     def to_dict(self):
         data = {

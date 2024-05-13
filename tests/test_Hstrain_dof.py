@@ -14,8 +14,8 @@ from utils.helpers import (
 )
 
 from casm.bset.cluster_functions import (
+    make_cluster_functions,
     make_global_dof_matrix_rep,
-    make_periodic_cluster_functions,
 )
 from casm.bset.polynomial_functions import (
     Variable,
@@ -57,8 +57,8 @@ def test_Hstrain_fcc_1(session_shared_datadir):
     expected = expected_Hstrain_functions_fcc_1()
     assert_expected_functions(basis_set, expected)
 
-    # test make_periodic_cluster_functions with only global DoF
-    clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
+    # test make_cluster_functions with only global DoF
+    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
         xtal_prim=xtal_prim, max_length=[0.0], global_max_poly_order=3
     )
     assert len(clusters) == 1
@@ -90,8 +90,8 @@ def test_Hstrain_fcc_2(session_shared_datadir):
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    # test make_periodic_cluster_functions with only global DoF
-    clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
+    # test make_cluster_functions with only global DoF
+    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
         xtal_prim=xtal_prim,
         dofs=["Hstrain"],
         max_length=[0.0, 0.0, 1.01, 1.01],
@@ -138,8 +138,8 @@ def test_Hstrain_fcc_3(session_shared_datadir):
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    # test make_periodic_cluster_functions with only global DoF
-    clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
+    # test make_cluster_functions with only global DoF
+    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
         xtal_prim=xtal_prim,
         dofs=["Hstrain"],
         max_length=[0.0, 0.0, 1.01, 1.01],
@@ -210,8 +210,8 @@ def test_Hstrain_hcp_1(session_shared_datadir):
     expected = expected_Hstrain_functions_hcp_1()
     assert_expected_functions(basis_set, expected)
 
-    # test make_periodic_cluster_functions with only global DoF
-    clusters, functions, prim_neighbor_lists, params = make_periodic_cluster_functions(
+    # test make_cluster_functions with only global DoF
+    clusters, functions, prim_neighbor_lists, params = make_cluster_functions(
         xtal_prim=xtal_prim, max_length=[0.0], global_max_poly_order=3
     )
     assert len(clusters) == 1
@@ -266,8 +266,8 @@ def test_Hstrain_lowsym_1(lowsym_Hstrain_prim, session_shared_datadir):
     expected = expected_Hstrain_functions_lowsym_1()
     assert_expected_functions(basis_set, expected)
 
-    # test make_periodic_cluster_functions with only global DoF
-    clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
+    # test make_cluster_functions with only global DoF
+    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
         xtal_prim=xtal_prim, max_length=[0.0], global_max_poly_order=3
     )
     assert len(clusters) == 1

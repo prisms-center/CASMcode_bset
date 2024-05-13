@@ -1,15 +1,12 @@
-from typing import Any, Optional, Union
-import pathlib
+from typing import Any, Optional
 
 import jinja2
-
-import libcasm.xtal as xtal
 import libcasm.clusterography as casmclust
+import libcasm.configuration as casmconfig
+import libcasm.configuration.io as config_io
 from libcasm.clexulator import (
     PrimNeighborList,
 )
-import libcasm.configuration as casmconfig
-import libcasm.configuration.io as config_io
 
 from casm.bset.clexwriter import (
     CppFormatProperties,
@@ -19,9 +16,9 @@ from casm.bset.clexwriter import (
 )
 from casm.bset.cluster_functions import (
     ClexBasisSpecs,
+    make_cluster_functions,
     make_equivalents_generators,
-    make_periodic_cluster_functions,
-    make_periodic_point_functions,
+    make_point_functions,
     orbits_to_dict,
 )
 from casm.bset.polynomial_functions import (
@@ -68,13 +65,13 @@ def make_orbit_bfuncs(
     ----------
     functions: list[list[list[casm.bset.PolynomialFunction]]]
         List of functions, as output by as output by
-        :func:`~casm.bset.make_periodic_cluster_functions` or
+        :func:`~casm.bset.make_cluster_functions` or
         :func:`~casm.bset.make_local_cluster_functions`.
 
     prim_neighbor_list: libcasm.clexulator.PrimNeighborList
         :class:`~libcasm.clexulator.PrimNeighborList`, containing all the neighbors
         needed for evaluation, as output by
-        :func:`~casm.bset.make_periodic_cluster_functions` or
+        :func:`~casm.bset.make_cluster_functions` or
         :func:`~casm.bset.make_local_cluster_functions`.
 
     linear_function_indices : Optional[set[int]]
@@ -222,15 +219,15 @@ def make_site_bfuncs(
     prim_neighbor_list: libcasm.clexulator.PrimNeighborList
         :class:`~libcasm.clexulator.PrimNeighborList`, containing all the neighbors
         needed for evaluation, as output by
-        :func:`~casm.bset.make_periodic_cluster_functions` or
+        :func:`~casm.bset.make_cluster_functions` or
         :func:`~casm.bset.make_local_cluster_functions`.
     clusters: list[list[libcasm.clusterography.Cluster]]
         List of clusters, as output by
-        :func:`~casm.bset.make_periodic_cluster_functions` or
+        :func:`~casm.bset.make_cluster_functions` or
         :func:`~casm.bset.make_local_cluster_functions`.
     functions: list[list[list[casm.bset.PolynomialFunction]]]
         List of functions, as output by as output by
-        :func:`~casm.bset.make_periodic_cluster_functions` or
+        :func:`~casm.bset.make_cluster_functions` or
         :func:`~casm.bset.make_local_cluster_functions`.
     linear_function_indices : Optional[set[int]]
         The linear indices of the functions that will be included. If None,
@@ -308,7 +305,7 @@ def make_site_bfuncs(
         #     point_functions[i_func][nlist_index][i_point_function]
         if is_periodic:
             # take global functions (non-duplicating) and make all point functions
-            point_functions = make_periodic_point_functions(
+            point_functions = make_point_functions(
                 prim_neighbor_list=prim_neighbor_list,
                 orbit=orbit,
                 orbit_functions=functions[i_orbit],
@@ -393,23 +390,23 @@ def write_clexulator(
     prim_neighbor_list: libcasm.clexulator.PrimNeighborList
         :class:`~libcasm.clexulator.PrimNeighborList`, containing all the neighbors
         needed for evaluation, as output by
-        :func:`~casm.bset.make_periodic_cluster_functions` or
+        :func:`~casm.bset.make_cluster_functions` or
         :func:`~casm.bset.make_local_cluster_functions`.
     clusters: list[list[libcasm.clusterography.Cluster]]
         List of clusters, as output by
-        :func:`~casm.bset.make_periodic_cluster_functions` or
+        :func:`~casm.bset.make_cluster_functions` or
         :func:`~casm.bset.make_local_cluster_functions`.
     functions: list[list[list[casm.bset.PolynomialFunction]]]
         List of functions, as output by as output by
-        :func:`~casm.bset.make_periodic_cluster_functions` or
+        :func:`~casm.bset.make_cluster_functions` or
         :func:`~casm.bset.make_local_cluster_functions`.
     occ_site_functions: list[dict]
-        List of occupation site basis functions. For each sublattice with site
-        basis functions, must include:
+        List of occupation site basis functions. For each sublattice with discrete
+        site basis functions, must include:
 
         - `"sublattice_index"`: int, index of the sublattice
-        - `"functions"`: list[list[float]], list of the site basis function values,
-          as ``value = functions[function_index][occupant_index]``.
+        - `"functions"`: list[list[float]], list of the site basis function values, by
+          DoF key (i.e. "occ") as ``value = functions[function_index][occupant_index]``.
 
     continuous_dof: list[dict]
         List of continuous DoF to register. For each, must include:
@@ -525,7 +522,7 @@ class ClexulatorWriter:
             functions,
             prim_neighbor_list,
             params,
-        ) = make_periodic_cluster_functions(
+        ) = make_cluster_functions(
             xtal_prim=prim.xtal_prim,
             dofs=bfunc_specs.dofs,
             orbit_prototypes=orbit_prototypes,
@@ -545,7 +542,8 @@ class ClexulatorWriter:
                 generating_indices,
                 generating_site_reps,
             ) = make_equivalents_generators(
-                cluster_specs=cluster_specs,
+                phenomenal=cluster_specs.phenomenal(),
+                generating_group=cluster_specs.generating_group(),
                 prim=prim,
             )
 

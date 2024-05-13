@@ -12,7 +12,7 @@ from utils.helpers import (
 )
 
 from casm.bset import (
-    make_periodic_cluster_functions,
+    make_cluster_functions,
 )
 
 
@@ -23,7 +23,7 @@ def test_occ_fcc_1(session_shared_datadir):
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
+    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
         xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
     )
 
@@ -66,7 +66,7 @@ def test_occ_hcp_1(session_shared_datadir):
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
+    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
         xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
     )
 
@@ -118,7 +118,7 @@ def test_occ_lowsym_1(lowsym_occ_prim, session_shared_datadir):
     xtal_prim = lowsym_occ_prim
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
+    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
         xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
     )
 

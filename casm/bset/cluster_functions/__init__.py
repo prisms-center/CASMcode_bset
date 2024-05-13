@@ -5,8 +5,9 @@ from ._clex_basis_specs import (
     ClexBasisSpecs,
 )
 from ._cluster_functions import (
-    make_periodic_cluster_functions,
-    make_periodic_point_functions,
+    ClusterFunctionsBuilder,
+    make_cluster_functions,
+    make_point_functions,
 )
 from ._discrete_functions import (
     make_composition_gram_matrix,
@@ -14,7 +15,7 @@ from ._discrete_functions import (
 )
 from ._matrix_rep import (
     ClusterMatrixRepBuilder,
-    PeriodicOrbitMatrixRepBuilder,
+    OrbitMatrixRepBuilder,
     make_cluster_dof_info,
     make_cluster_matrix_rep,
     make_cluster_permutation_rep,

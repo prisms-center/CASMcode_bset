@@ -1,10 +1,11 @@
-import numpy as np
-from casm.bset.cluster_functions import BasisFunctionSpecs, ClexBasisSpecs
+import libcasm.configuration as casmconfig
 import libcasm.xtal.prims as xtal_prims
+import numpy as np
 from libcasm.clusterography import (
     ClusterSpecs,
 )
-import libcasm.configuration as casmconfig
+
+from casm.bset.cluster_functions import BasisFunctionSpecs, ClexBasisSpecs
 
 
 def test_clex_basis_specs_1():

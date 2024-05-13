@@ -2,7 +2,7 @@ import libcasm.xtal as xtal
 import libcasm.xtal.prims as xtal_prims
 
 from casm.bset import (
-    make_periodic_cluster_functions,
+    make_cluster_functions,
 )
 
 xtal_prim = xtal_prims.FCC(
@@ -38,7 +38,7 @@ xtal_prim = xtal_prims.FCC(
 # )
 print(xtal.pretty_json(xtal_prim.to_dict()))
 
-clusters, functions = make_periodic_cluster_functions(
+clusters, functions = make_cluster_functions(
     xtal_prim=xtal_prim,
     dofs=None,
     max_length=[0.0, 0.0, 1.01, 1.01],

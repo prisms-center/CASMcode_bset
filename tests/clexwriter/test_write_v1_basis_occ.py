@@ -1,11 +1,9 @@
 from io import StringIO
 
-import libcasm.xtal as xtal
 import libcasm.xtal.prims as xtal_prims
-import libcasm.configuration as casmconfig
 
 from casm.bset import (
-    make_periodic_cluster_functions,
+    make_cluster_functions,
     write_clexulator,
 )
 
@@ -17,9 +15,9 @@ def test_v1_basic_occ_fcc_1(session_shared_datadir):
         # local_dof=[xtal.DoFSetBasis("disp")],
         # global_dof=[xtal.DoFSetBasis("Hstrain")],
     )
-    prim = casmconfig.Prim(xtal_prim)
+    # prim = casmconfig.Prim(xtal_prim)
 
-    clusters, functions, prim_neighbor_list, params = make_periodic_cluster_functions(
+    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
         xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
     )
 

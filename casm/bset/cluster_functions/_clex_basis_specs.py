@@ -1,7 +1,7 @@
 from typing import TypeVar
 
-from libcasm.clusterography import ClusterSpecs
 import libcasm.configuration as casmconfig
+from libcasm.clusterography import ClusterSpecs
 
 from casm.bset.parsing import (
     required_from_dict,
