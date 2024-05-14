@@ -281,7 +281,54 @@ def make_constraints(
 
 
 class ClusterFunctionsBuilder:
-    """Constructs cluster functions"""
+    """Constructs cluster functions
+
+    Notes
+    -----
+
+    Cluster functions are generated using the following steps:
+
+    1. A cluster in each orbit for which cluster functions are to be generated is
+       either:
+
+       i. Specified explicitly using `clusters`, or
+       ii. Generated using :class:`~libcasm.clusterography.ClusterSpecs` from
+           the prim and the `max_length`, `phenomenal`, and `cutoff_radius` parameters.
+
+    2. For each orbit,
+       :func:`~casm.bset.polynomial_functions.make_symmetry_adapted_polynomials`
+       is used to construct symmetry-adapted polynomial functions
+       (:class:`~casm.bset.polynomial_functions.PolynomialFunction`) using matrix
+       representations constructed by
+       :class:`~casm.bset.cluster_functions.OrbitMatrixRepBuilder`.
+
+       - For functions of discrete DoF, the polynomial functions include a single
+         occupation site basis function on each site in a cluster.
+       - For functions that include continuous DoF, by default, polynomials of order up
+         to the cluster size are created. Higher order polynomials are requested either
+         according to cluster size using the `orbit_branch_max_poly_order` parameter or
+         globally using `global_max_poly_order`. For each orbit, the most specific
+         level specified is used.
+       - Functions are generated for all clusters in the orbit by default. If only
+         functions on the prototype cluster are needed, then the `make_equivalents`
+         parameter can be set to `False`.
+       - The `prim_neighbor_list` is used to set the `neighborhood_site_index` for the
+         :class:`~casm.bset.polynomial_functions.Variable` corresponding to local DoF
+         used by each :class:`~casm.bset.polynomial_functions.PolynomialFunction`.
+
+    3. If this is a local cluster expansion (if `phenomenal` is not None), then
+       local cluster functions are generated for the orbits associated with each of the
+       symmetrically equivalent phenomenal clusters.
+
+       - The symmetrically equivalent, but distinct, local cluster expansions are
+         found by using the prim factor group to generate equivalent phenomenal
+         clusters and excluding those that are equivalent by `generating_group`
+         symmetry.
+       - For local cluster expansions, all local cluster expansions in the orbit are
+         constructed by default. If only functions in the original orbits are needed,
+         then the `make_all_local_basis_sets` parameter can be set to `False`.
+
+    """
 
     def __init__(
         self,
@@ -293,7 +340,7 @@ class ClusterFunctionsBuilder:
         phenomenal: Optional[casmclust.Cluster] = None,
         cutoff_radius: Optional[list[float]] = None,
         global_max_poly_order: Optional[int] = None,
-        orbit_branch_max_poly_order: dict[int, int] = None,
+        orbit_branch_max_poly_order: Optional[dict[int, int]] = None,
         occ_site_functions: Optional[list[dict]] = None,
         prim_neighbor_list: Optional[PrimNeighborList] = None,
         make_equivalents: bool = True,
@@ -301,25 +348,9 @@ class ClusterFunctionsBuilder:
         make_variable_name_f: Optional[Callable] = None,
         verbose: bool = False,
     ):
-        """Construct cluster functions
+        """
 
-        Notes
-        -----
-        - Cluster functions are constructed for cluster orbits which may be given
-          explicitly using the `orbit_prototypes` parameter, or generated automatically
-          using the `max_length` parameter to specify the maximum site-to-site distance
-          for  clusters of a given number of sites.
-        - For functions of only discrete DoF, the polynomial functions include a single
-          site basis function from each discrete DoF type on each site in a cluster.
-        - For functions that include continuous DoF, by default, polynomials of order up
-          to the cluster size are created. Higher order polynomials are requested either
-          according to cluster size using the `orbit_branch_max_poly_order` parameter or
-          globally using `global_max_poly_order`. The most specific level specified is
-          used.
-        - Functions are generated for all equivalent clusters in the orbit by default.
-          If only functions on the prototype cluster are needed, the `make_equivalents`
-          parameter can be set to `False`.
-
+        .. rubric:: Constructor
 
         Parameters
         ----------
@@ -584,16 +615,17 @@ class ClusterFunctionsBuilder:
 
         self.orbit_matrix_rep_builders = orbit_matrix_rep_builders
         """list[casm.bset.cluster_functions.OrbitMatrixRepBuilder]: For each orbit, \
-        the OrbitMatrixRepBuilder contains matrix reps for generating polynomial \
-        cluster functions on the orbit prototype, coupling all local and global DoFs. 
+        the OrbitMatrixRepBuilder contains matrix representations of symmetry \
+        operations for generating symmetry-adapted polynomial cluster functions on the \
+        orbit prototype, coupling all local and global DoFs. 
                 
         Also includes:
 
-        - Matrix reps for generating equivalent functions on other equivalent clusters
-          in the same orbit.
-        - Matrix reps for constructing local cluster functions for the symmetrically
-          equivalent orbits about symmetrically equivalent phenomenal clusters (local 
-          cluster functions only).
+        - Matrix representations for generating equivalent functions on other \
+          equivalent clusters in the same orbit.
+        - Matrix representations for constructing local cluster functions for the \
+          symmetrically equivalent orbits about symmetrically equivalent phenomenal \
+          clusters (local cluster functions only).
         """
 
         self.constraints = constraints
@@ -669,7 +701,8 @@ class ClusterFunctionsBuilder:
         """
 
         self.equivalent_functions = equivalent_orbit_clusters
-        """Optional[list[list[list[list[casm.bset.polynomial_functions.PolynomialFunction]]]]]: \
+        """Optional[list[list[list[list[\
+        casm.bset.polynomial_functions.PolynomialFunction]]]]]: \
         The generated cluster functions about all equivalent phenomenal clusters (if \
         a local cluster expansion).
         
@@ -734,16 +767,17 @@ class ClusterFunctionsBuilder:
                 cluster in the orbit generated from `cluster`.
 
             orbit_matrix_rep_builder: casm.bset.cluster_functions.OrbitMatrixRepBuilder
-                The OrbitMatrixRepBuilder contains matrix reps for generating
+                The OrbitMatrixRepBuilder contains matrix representations for generating
                 polynomial cluster functions on the orbit prototype, coupling all local
                 and global DoFs.
 
                 Also includes:
 
-                - Matrix reps for generating equivalent functions on other clusters in
-                  the orbit.
-                - Matrix reps for constructing local cluster functions for symmetrically
-                  equivalent phenomenal clusters (local cluster functions only).
+                - Matrix representations for generating equivalent functions on other
+                  clusters in the orbit.
+                - Matrix representations for constructing local cluster functions for
+                  symmetrically equivalent phenomenal clusters (local cluster functions
+                  only).
 
             constraints: list[ExponentSumConstraint]
                 The constraints used when constructing `prototype_basis_set` to ensure
@@ -837,9 +871,9 @@ class ClusterFunctionsBuilder:
             Orbit number, starting from 0, used for printing information when
             `verbose` is set to `True`.
         orbit_matrix_rep_builder: casm.bset.cluster_functions.OrbitMatrixRepBuilder
-            An OrbitMatrixRepBuilder which contains matrix reps for generating
-            polynomial cluster functions for the orbit from the orbit prototype, as
-            output from
+            An OrbitMatrixRepBuilder which contains matrix representations of
+            symmetry operations for generating symmetry-adapted polynomial cluster
+            functions for the orbit from the orbit prototype, as output from
             :func:`~casm.bset.cluster_functions.ClusterFunctionsBuilder._build_prototype_basis_set`.
         prototype_basis_set: list[casm.bset.polynomial_functions.PolynomialFunction]
             Symmetry adapted polynomial cluster functions for the prototype
@@ -850,7 +884,8 @@ class ClusterFunctionsBuilder:
         -------
         (orbit_basis_sets, orbit_clusters):
 
-            orbit_basis_sets: list[list[casm.bset.polynomial_functions.PolynomialFunction]]
+            orbit_basis_sets: list[list[\
+            casm.bset.polynomial_functions.PolynomialFunction]]
                 Symmetry adapted polynomial cluster functions for each cluster in
                 the orbit, where ``orbit_basis_sets[i_equiv][i_func]``, is the
                 `i_func`-th function on the `i_equiv`-th cluster in the orbit.
@@ -935,9 +970,9 @@ class ClusterFunctionsBuilder:
             `verbose` is set to `True`.
 
         orbit_matrix_rep_builder: casm.bset.cluster_functions.OrbitMatrixRepBuilder
-            An OrbitMatrixRepBuilder which contains matrix reps for generating
-            polynomial cluster functions for the orbit from the orbit prototype, as
-            output from
+            An OrbitMatrixRepBuilder which contains matrix representations of
+            symmetry operations for generating polynomial cluster functions for the
+            orbit from the orbit prototype, as output from
             :func:`~casm.bset.cluster_functions.ClusterFunctionsBuilder._build_prototype_basis_set`.
 
         orbit_basis_sets: list[list[casm.bset.polynomial_functions.PolynomialFunction]]
@@ -960,7 +995,8 @@ class ClusterFunctionsBuilder:
         -------
         (equivalent_orbit_basis_sets, equivalent_orbit_clusters):
 
-            equivalent_orbit_basis_sets: list[list[list[casm.bset.polynomial_functions.PolynomialFunction]]]
+            equivalent_orbit_basis_sets: list[list[list[\
+            casm.bset.polynomial_functions.PolynomialFunction]]]
                 Symmetry adapted polynomial cluster functions for each cluster in each
                 equivalent orbit about a symmetrically equivalent phenomenal cluster,
                 where ``equivalent_orbit_basis_sets[i_clex][i_equiv][i_func]``, is the
@@ -994,11 +1030,11 @@ class ClusterFunctionsBuilder:
             print()
 
         # i_clex: index for equivalent local cluster expansion
-        for i_clex in range(len(builder.basis_set_generating_ops)):
+        for i_clex in range(len(builder.phenomenal_generating_ops)):
             if self._verbose:
                 print(f"*** i_orbit: {i_orbit}, i_clex: {i_clex} ***")
                 print("Equivalent phenomenal cluster:")
-                site_rep = builder.basis_set_generating_site_rep[i_clex]
+                site_rep = builder.phenomenal_generating_site_rep[i_clex]
                 equiv_phenomenal = site_rep * self.phenomenal
                 print(xtal.pretty_json(equiv_phenomenal.to_dict(self.prim.xtal_prim)))
                 print()
@@ -1009,10 +1045,10 @@ class ClusterFunctionsBuilder:
             # M: sym rep matrix for transforming functions on the `i_clust`-th cluster
             #    to the orbit around the `i_clex`-th equivalent phenomenal cluster
             for i_clust, M in enumerate(
-                builder.basis_set_generating_inv_matrix_rep[i_clex]
+                builder.phenomenal_generating_inv_matrix_rep[i_clex]
             ):
                 # add equivalent cluster to orbit of clusters
-                site_rep = builder.basis_set_generating_site_rep[i_clex][i_clust]
+                site_rep = builder.phenomenal_generating_site_rep[i_clex][i_clust]
                 equiv_cluster = site_rep * orbit_clusters[i_clust]
                 _equiv_orbit_clusters.append(equiv_cluster)
 

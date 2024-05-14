@@ -9,6 +9,7 @@ from libcasm.clusterography import (
     Cluster,
     make_cluster_group,
     make_integral_site_coordinate_symgroup_rep,
+    make_local_cluster_group,
     make_local_equivalence_map,
     make_local_equivalence_map_indices,
     make_periodic_equivalence_map,
@@ -73,7 +74,7 @@ def make_cluster_dof_info(
     (site_index_to_basis_index, total_dim):
         site_index_to_basis_index: dict[int, int]
             Specifies the beginning row or column, `basis_index`, in the cluster
-            matrix rep for each site in the cluster,
+            matrix representation for each site in the cluster,
             ``basis_index = site_index_to_basis_index[site_index]``.
         total_dim: int
             The total dimension of the resulting cluster DoF vector / and cluster
@@ -489,8 +490,8 @@ def make_cluster_matrix_rep_no_permutation(
 
     Notes
     -----
-    This function is used to make matrix reps that can transform polynomial functions
-    that have already been generated.
+    This function is used to make matrix representations of symmetr operations that can
+    transform polynomial functions that have already been generated.
 
     It doesn't include permutations amongst sites on the same cluster, so it can't
     be used in generating the polynomial functions on the prototype cluster in the
@@ -665,12 +666,12 @@ def make_equivalence_map_matrix_rep(
     )
 
 
-def make_basis_set_generating_matrix_rep(
+def make_phenomenal_generating_matrix_rep(
     local_dof_matrix_rep: list[list[np.ndarray]],
     symgroup: SymGroup,
     equivalence_map_clusters: list[list[Cluster]],
-    basis_set_generating_indices: list[int],
-    basis_set_generating_site_rep: list[xtal.IntegralSiteCoordinateRep],
+    phenomenal_generating_indices: list[int],
+    phenomenal_generating_site_rep: list[xtal.IntegralSiteCoordinateRep],
     total_dim: int,
     site_index_to_basis_index: dict[int, int],
 ):
@@ -689,7 +690,7 @@ def make_basis_set_generating_matrix_rep(
        equivalence_map_inv_matrix_rep
     3. Cluster functions and equivalent local clusters are generated for each
        equivalent local cluster expansions by applying
-       basis_set_generating_inv_matrix_rep to the results of step 2.
+       phenomenal_generating_inv_matrix_rep to the results of step 2.
 
     Parameters
     ----------
@@ -703,10 +704,10 @@ def make_basis_set_generating_matrix_rep(
     equivalence_map_clusters: list[list[Cluster]]
         The clusters generated from applying equivalence map operations to the
         prototype cluster without any permutation.
-    basis_set_generating_indices: list[int]
+    phenomenal_generating_indices: list[int]
         The indices of elements in `symgroup` elements list for each local basis
         set generating operation.
-    basis_set_generating_site_rep: list[xtal.IntegralSiteCoordinateRep]
+    phenomenal_generating_site_rep: list[xtal.IntegralSiteCoordinateRep]
         Site representations (xtal.IntegralSiteCoordinateRep) for each local basis
         set generating operation.
     total_dim: int
@@ -718,45 +719,45 @@ def make_basis_set_generating_matrix_rep(
 
     Returns
     -------
-    (basis_set_generating_matrix_rep, \
-    basis_set_generating_inv_matrix_rep, \
+    (phenomenal_generating_matrix_rep, \
+    phenomenal_generating_inv_matrix_rep, \
     basis_set_clusters):
 
-        basis_set_generating_matrix_rep: \
+        phenomenal_generating_matrix_rep: \
         list[list[np.ndarray[np.float64[total_dim,total_dim]]]]
-            Matrix representations for equivalence map operations. Indexing is
-            ``basis_set_generating_matrix_rep[i_clex][i_cluster]`.
+            Matrix representations for phenomenal generating operations. Indexing is
+            ``phenomenal_generating_matrix_rep[i_clex][i_cluster]`.
 
-        basis_set_generating_inv_matrix_rep: \
+        phenomenal_generating_inv_matrix_rep: \
         list[list[np.ndarray[np.float64[total_dim,total_dim]]]]
-            Matrix representations for the inverse operation of equivalence map
+            Matrix representations for the inverse operation of phenomenal generating
             operations. Indexing is
-            ``basis_set_generating_inv_matrix_rep[i_clex][i_cluster]`.
+            ``phenomenal_generating_inv_matrix_rep[i_clex][i_cluster]`.
 
         basis_set_clusters: list[list[Cluster]]
-            The clusters generated from applying generating operations to the
+            The clusters generated from applying phenomenal generating operations to the
             prototype cluster, without any permutation. Indexing is
             ``basis_set_clusters[i_clex][i_cluster]`.
 
 
     """
     ## Build equivalence map op matrix reps, without permutation
-    basis_set_generating_matrix_rep = []
-    basis_set_generating_inv_matrix_rep = []
+    phenomenal_generating_matrix_rep = []
+    phenomenal_generating_inv_matrix_rep = []
     basis_set_clusters = []
     head_group = symgroup.head_group
     if head_group is None:
         head_group = symgroup
     head_group_index_list = symgroup.head_group_index
-    for i_clex in range(len(basis_set_generating_indices)):
+    for i_clex in range(len(phenomenal_generating_indices)):
         matrix_rep = []
         inv_matrix_rep = []
         clusters = []
 
-        # Make basis set generating matrix rep (no permutations)
-        symgroup_index = basis_set_generating_indices[i_clex]
+        # Make phenomenal generating matrix rep (no permutations)
+        symgroup_index = phenomenal_generating_indices[i_clex]
         head_group_index = head_group_index_list[symgroup_index]
-        site_rep = basis_set_generating_site_rep[i_clex]
+        site_rep = phenomenal_generating_site_rep[i_clex]
 
         for i_clust in range(len(equivalence_map_clusters)):
             (
@@ -777,12 +778,12 @@ def make_basis_set_generating_matrix_rep(
             inv_matrix_rep.append(_inv_matrix_rep)
             clusters.append(_equiv_cluster)
 
-        basis_set_generating_matrix_rep.append(matrix_rep)
-        basis_set_generating_inv_matrix_rep.append(inv_matrix_rep)
+        phenomenal_generating_matrix_rep.append(matrix_rep)
+        phenomenal_generating_inv_matrix_rep.append(inv_matrix_rep)
         basis_set_clusters.append(clusters)
     return (
-        basis_set_generating_matrix_rep,
-        basis_set_generating_inv_matrix_rep,
+        phenomenal_generating_matrix_rep,
+        phenomenal_generating_inv_matrix_rep,
         basis_set_clusters,
     )
 
@@ -815,13 +816,6 @@ def make_cluster_matrix_rep(
         Specifies the beginning row or column, `basis_index`, in the cluster matrix rep
         for each site in the cluster,
         ``basis_index = site_index_to_basis_index[site_index]``.
-    occ_site_functions: list[dict]
-        List of occupation site basis functions. For each sublattice with discrete
-        site basis functions, must include:
-
-        - `"sublattice_index"`: int, index of the sublattice
-        - `"functions"`: list[list[float]], list of the site basis function values, by
-          DoF key (i.e. "occ") as ``value = functions[function_index][occupant_index]``.
 
     Returns
     -------
@@ -906,50 +900,35 @@ def make_occ_site_functions_matrix_rep(
 
 
 class ClusterMatrixRepBuilder:
-    """Builds cluster matrix reps for generating symmetry adapted polynomial functions
-    on a cluster, for a single local degree of freedom (DoF)
+    """Builds cluster matrix representations of symmetry operations for generating \
+    symmetry adapted polynomial functions on a particular cluster, for a single local \
+    degree of freedom (DoF)
 
-    Attributes
-    ----------
-    prim: casmconfig.Prim
-        The prim.
-    generating_group: casmsyminfo.SymGroup
-        The symmetry group
-    key: str
-        The degree of freedom (DoF) to build the matrix representations for.
-    cluster: Cluster
-        The cluster on which to build the matrix representation
-    cluster_group: SymGroup
-        The subgroup of the phenomenal group that leaves `cluster` invariant,
-        including proper translations.
-    cluster_perm_rep: list[int[int]]
-        The `cluster_perm_rep` species how `cluster` sites permute under application
-        of cluster group operations, by index into the list of cluster sites, according
-        to ``from_site_index = cluster_perm_rep[cluster_group_index][to_site_index]``,
-        where `cluster_group_index` is an index into ``cluster_group.elements``, and
-        `from_site_index` and `to_site_index` are indices into ``cluster.sites()``
-        before and after application of the cluster group operation, respectively.
-    cluster_matrix_rep: list[np.ndarray[np.float64[total_dim, total_dim]]]
-        The matrix representations for transforming cluster site DoF under cluster
-        group operations. The array ``cluster_matrix_rep[cluster_group_index]``
-        specifies how a vector of cluster site DoF transforms under the application
-        of the `cluster_group_index`-th cluster group operation.
-    variables: list[Variable]
-        The variables associated with each element of the vector of cluster site DoF
-        that can be transformed by the cluster matrix representations.
-    variable_subsets: list[list[int]]
-        Lists of variables (as indices into the `variables` list) which mix under
-        application of symmetry. For example, if all variables are the 6 strain
-        variables, then `var_subsets=[[0,1,2,3,4,5]]`. If the variables are the 3
-        displacements on each site in a cluster of 2 sites, then
-        `variable_subsets=[[0, 1, 2], [3, 4, 5]]`.
-    site_index_to_basis_index: dict[int, int]
-        Specifies the beginning row or column, `basis_index`, in the cluster
-        matrix rep for each site in the cluster,
-        ``basis_index = site_index_to_basis_index[site_index]``.
-    total_dim: int
-        The total dimension of the resulting cluster DoF vector / and cluster
-        matrix reps.
+    Notes
+    -----
+
+    - ClusterMatrixRepBuilder builds the matrix representations for a single
+      local degree of freedom for a given cluster.
+    - The resulting matrices are block matrices that properly permute DoF amongst the
+      cluster sites for the generating group operations which leave the cluster
+      invariant (up to a permutation of sites).
+    - The component blocks are the matrix representations for the local DoF values on
+      a particular sublattice:
+
+      - For continuous local DoF, the matrix representations for each sublattice are
+        given by :func:`~libcasm.configuration.Prim.local_dof_matrix_rep`.
+      - For discrete local DoF,
+        :func:`~casm.bset.cluster_functions.make_occ_site_functions_matrix_rep` is
+        used to construct the matrix representations for the occupation site basis
+        functions given by `occ_site_functions` from the indicator variable
+        representations given by
+        :func:`~libcasm.configuration.Prim.local_dof_matrix_rep`.
+
+    - For coupled cluster functions, block diagonal matrix representations can be built
+      (i.e. using ``scipy.linalg.block_diag(*_all_matrices)``) from a list containing,
+      for a single symmetry operation, the representations for global DoF given by
+      :func:`~libcasm.configuration.Prim.global_dof_matrix_rep` followed by the
+      representations for each local DoF.
 
     """
 
@@ -959,9 +938,10 @@ class ClusterMatrixRepBuilder:
         generating_group: casmsyminfo.SymGroup,
         key: str,
         cluster: Cluster,
+        phenomenal: Optional[Cluster] = None,
         make_variable_name_f: Optional[Callable] = None,
-        local_discrete_dof: list[str] = [],
-        occ_site_functions: list[dict] = [],
+        local_discrete_dof: Optional[list[str]] = None,
+        occ_site_functions: Optional[list[dict]] = None,
     ):
         """
 
@@ -977,13 +957,22 @@ class ClusterMatrixRepBuilder:
             The degree of freedom (DoF) to build the matrix representations for.
         cluster: Cluster
             The cluster on which to build the matrix representation
+        phenomenal: Optional[Cluster] = None
+            For local cluster functions, specifies the sites about which
+            local-clusters orbits are generated. The phenomenal cluster must be chosen
+            from one of the equivalents that is generated by
+            :func:`~libcasm.clusterography.make_periodic_orbit` using the prim factor
+            group.
         make_variable_name_f: Optional[Callable] = None
             Allows specifying a custom function to construct variable names. The default
             function used is :func:`make_variable_name`. Custom functions should have
             the same signature as :func:`make_variable_name`.
-        local_discrete_dof: list[str]
-            The types of local discrete degree of freedom (DoF).
-        occ_site_functions: list[dict]
+        local_discrete_dof: Optional[list[str]] = None
+            The types of local discrete degree of freedom (DoF). If `key` is in
+            `local_discrete_dof`, then :func:`make_occ_site_functions_matrix_rep` is
+            used to construct the matrix representations for the occupation site basis
+            functions given by `occ_site_functions`.
+        occ_site_functions: Optional[list[dict]] = None
             List of occupation site basis functions. For each sublattice with discrete
             site basis functions, must include:
 
@@ -992,11 +981,34 @@ class ClusterMatrixRepBuilder:
               by DoF key (i.e. "occ") as
               ``value = functions[function_index][occupant_index]``.
         """
+
+        if local_discrete_dof is None:
+            local_discrete_dof = []
+        if occ_site_functions is None:
+            occ_site_functions = []
+
         ## Constructor parameters ##
         self.prim = prim
+        """libcasm.configuration.Prim: The prim, with symmetry information."""
+
         self.generating_group = generating_group
+        """libcasm.sym_info.SymGroup: The symmetry group to build matrix \
+        representations for."""
+
         self.key = key
+        """str: The degree of freedom (DoF) to build the matrix representations for."""
+
         self.cluster = cluster
+        """libcasm.clusterography.Cluster: The cluster on which to build the matrix \
+        representations."""
+
+        self.phenomenal = phenomenal
+        """Optional[libcasm.clusterography.Cluster]: For local cluster functions, \
+        specifies the sites about which local-clusters orbits are generated. 
+        
+        The phenomenal cluster must be chosen from one of the equivalents that is
+        generated by :func:`~libcasm.clusterography.make_periodic_orbit` using the 
+        prim factor group."""
 
         ## Build cluster matrix rep ##
         generating_group_site_rep = make_integral_site_coordinate_symgroup_rep(
@@ -1015,12 +1027,19 @@ class ClusterMatrixRepBuilder:
         else:
             local_dof_matrix_rep = prim.local_dof_matrix_rep(key)
 
-        cluster_group = make_cluster_group(
-            cluster=cluster,
-            group=generating_group,
-            lattice=prim.xtal_prim.lattice(),
-            integral_site_coordinate_symgroup_rep=generating_group_site_rep,
-        )
+        if self.phenomenal is not None:
+            cluster_group = make_cluster_group(
+                cluster=cluster,
+                group=generating_group,
+                lattice=prim.xtal_prim.lattice(),
+                integral_site_coordinate_symgroup_rep=generating_group_site_rep,
+            )
+        else:
+            cluster_group = make_local_cluster_group(
+                cluster=cluster,
+                group=generating_group,
+                integral_site_coordinate_symgroup_rep=generating_group_site_rep,
+            )
         cluster_perm_rep = make_cluster_permutation_rep(
             prim=prim,
             cluster=cluster,
@@ -1048,153 +1067,118 @@ class ClusterMatrixRepBuilder:
 
         ## Generated data ##
         self.cluster_group = cluster_group
+        """libcasm.sym_info.SymGroup: The subgroup of the generating group that leaves \
+        `cluster` invariant.
+        
+        If this is for periodic cluster expansion (`phenomenal` is None), this 
+        includes the cluster group elements may differ by a translation from the
+        elements in `generating_group`. If this is for a local cluster expansion
+        (`phenomenal` is not None), no additional translation can be included."""
+
         self.cluster_perm_rep = cluster_perm_rep
+        """list[int[int]]: The `cluster_perm_rep` species how `cluster` sites permute \
+        under application of cluster group operations.
+        
+        The convention is that 
+        ``from_site_index = cluster_perm_rep[cluster_group_index][to_site_index]``,
+        where `cluster_group_index` is an index into ``cluster_group.elements``, and
+        `from_site_index` and `to_site_index` are indices into ``cluster.sites()``
+        before and after application of the cluster group operation, respectively."""
+
         self.cluster_matrix_rep = cluster_matrix_rep
+        """list[numpy.ndarray[numpy.float64[total_dim, total_dim]]]: The matrix \
+        representations for transforming cluster site DoF values by cluster group \
+        operations. 
+        
+        The array ``M = cluster_matrix_rep[cluster_group_index]`` specifies that a 
+        vector of cluster site DoF values transforms under the application of the 
+        `cluster_group_index`-th cluster group operation according to 
+        ``x_after = M @ x_before.``"""
+
         self.variables = variables
+        """list[casm.bset.polynomial_functions.Variable]:  The variables associated \
+        with each element of the vector of cluster site DoF that can be transformed by \
+        the cluster matrix representations."""
+
         self.variable_subsets = variable_subsets
+        """list[list[int]]: Lists of variables (as indices into the `variables` list) \
+        which mix under application of symmetry. 
+        
+        For example, if all variables are the 6 strain variables, then 
+        `var_subsets=[[0,1,2,3,4,5]]`. If the variables are the 3 displacements on each 
+        site in a cluster of 2 sites, then `variable_subsets=[[0, 1, 2], [3, 4, 5]]`."""
+
         self.site_index_to_basis_index = site_index_to_basis_index
+        """dict[int, int]: Defines the mapping of cluster site DoF values to the \
+        elements of the vectors transformed by the matrix representations.
+        
+        The beginning row or column, `basis_index`, in the cluster matrix representation
+        for each site in the cluster is specified using the convention
+        ``basis_index = site_index_to_basis_index[site_index]``."""
+
         self.total_dim = total_dim
+        """int: The total dimension of the resulting cluster DoF vector and cluster \
+        matrix reps."""
 
 
 class OrbitMatrixRepBuilder:
-    """Builds cluster matrix reps for generating polynomial functions \
-    on an orbit of clusters, coupling all local and global DoFs
+    """Builds cluster matrix representations of symmetry operations for generating \
+    polynomial functions on an orbit of clusters, coupling all local and global DoFs
 
-    Attributes
-    ----------
-    prim: casmconfig.Prim
-        The prim.
-    generating_group: casmsyminfo.SymGroup
-        The symmetry group
-    orbit: list[casmclust.Cluster]
-        The generated orbit
-    global_dof: list[str]
-        The types of global degree of freedom (DoF) to include in the matrix
-        representation. All global DoF are treated as continuous.
-    local_dof: list[str]
-        The types of local continuous and discrete degrees of freedom (DoF) to include
-        in the matrix representation.
-    local_continuous_dof: list[str]
-        The types of local discrete degree of freedom (DoF) to include in the matrix
-        representation.
-    local_discrete_dof: list[str]
-        The types of local discrete degree of freedom (DoF) to include in the matrix
-        representation.
-    equivalence_map_ops: list[list[xtal.SymOp]
-        The list of SymOp `equivalence_map_ops[i]` all map ``prototype.cluster``
-        onto the same `i`-th equivalent cluster, including proper translation, up to a
-        permutation of sites.
-    equivalence_map_indices: list[list[int]]
-        Indices into the `generating_group` elements list of corresponding
-        `equivalence_map_ops`.
-    equivalence_map_site_rep: list[list[xtal.IntegralSiteCoordinateRep]]
-        Site transformation representation of corresponding `equivalence_map_ops`.
-    equivalence_map_clusters: list[list[Cluster]]
-        The equivalent clusters that the corresponding `equivalence_map_ops` all map
-        ``prototype.cluster`` onto, satisfying:
+    Notes
+    -----
 
-        .. code-block:: Python
+    OrbitMatrixRepBuilder performs the following steps:
 
-            equivalence_map_clusters[i][j] == \
-                equivalence_map_site_rep[i][j] * prototype.cluster
+    1. For the `cluster` provided, generate an orbit of equivalent clusters according
+       to the operations in the provided symmetry group (`generating_group`).
 
-        The clusters in the list ``equivalence_map_clusters[i]`` all have the same
-        sites, but the order of sites may be permuted.
-    basis_set_generating_ops: list[xtal.SymOp]
-        Symmetry operations that generate the equivalent local orbits in
-        the primitive unit cell.
-    basis_set_generating_indices: list[int]
-        Indices of factor group operations corresponding to `basis_set_generating_ops`.
-    basis_set_generating_site_rep: list[xtal.IntegralSiteCoordinateRep]
-        Symmetry group representation for transforming IntegralSiteCoordinate
-        and Cluster corresponding to `basis_set_generating_ops`.
-    global_variables: list[list[Variable]]
-        For each global DoF in `global_dof`, the variables used in functions.
-    n_global_variables: int
-        The total number of global variables.
-    global_variable_subsets: list[list[list[int]]]
-        For each global DoF in `global_dof`, the variable subsets.
-    global_matrix_rep: list[list[np.ndarray]]
-        For each global DoF in `global_dof`, the matrix rep of corresponding
-        generating group ops. These are the matrix representations that
-        should be used to transform global DoF values. Index using
-        ``global_matrix_rep[i_global_dof][i_factor_group]``.
-    global_inv_matrix_rep: list[list[np.ndarray]]
-        For each global DoF in `global_dof`, the matrix rep of the inverse of
-        corresponding generating group ops. These are the matrix representations that
-        should be used to generate functions of single global DoF type. Index using
-        ``global_inv_matrix_rep[i_global_dof][i_factor_group]``.
-    local_prototype: list[ClusterMatrixRepBuilder]
-        For each local DoF in `local_dof`, the cluster matrix representations and
-        associated information for the canonical equivalent cluster.
-    n_local_variables: int
-        The total number of local variables.
-    local_equivalence_map_matrix_rep: list[list[list[np.ndarray]]
-        For each DoF in `local_dof` and `discrete_dof`, the cluster matrix rep of
-        corresponding `equivalence_map_ops`. These are the matrix representations that
-        should be used to transform local DoF values onto equivalent clusters. Index
-        using ``local_equivalence_map_matrix_rep[i_local_dof][i_equiv][i_op]``.
-    local_equivalence_map_inv_matrix_rep: list[list[list[np.ndarray]]
-        For each local DoF in `local_dof` and `discrete_dof`, the cluster matrix rep of
-        the inverse of corresponding `equivalence_map_ops`. These are the matrix
-        representations that should be used to generate functions on the equivalent
-        clusters from functions on the prototype cluster for a single local DoF type.
-        Index using
-        ``local_equivalence_map_inv_matrix_rep[i_local_dof][i_equiv][i_op]``.
-    local_basis_set_generating_matrix_rep: list[list[list[np.ndarray]]
-        For each DoF in `local_dof` and `discrete_dof`, the cluster matrix rep of
-        corresponding `basis_set_generating_ops`. These are the matrix representations
-        that should be used to transform local DoF values onto equivalent clusters in
-        an equivalent local cluster expansion. Index using
-        ``local_basis_set_generating_matrix_rep[i_local_dof][i_clex][i_cluster]``.
-    local_basis_set_generating_inv_matrix_rep: list[list[list[np.ndarray]]
-        For each local DoF in `local_dof` and `discrete_dof`, the cluster matrix rep of
-        the inverse of corresponding `basis_set_generating_ops`. These are the matrix
-        representations that should be used to generate functions on the equivalent
-        clusters in a different local cluster expansion, for a single local DoF type.
-        Index using
-        ``local_basis_set_generating_inv_matrix_rep[i_local_dof][i_clex][i_cluster]``.
-    prototype_matrix_rep: list[np.ndarray]
-        The coupled matrix rep of corresponding generating group ops. These are the
-        matrix representations that can be used to transform at the same time global
-        DoF values and local DoF values on the prototype cluster. Index using
-        ``prototype_matrix_rep[i_cluster_group]``. The components of the DoF value
-        vectors these matrices transform are described by the corresponding elements of
-        `prototype_variables`.
-    prototype_variables: list[Variable]
-        The variables associated with each element of the vector of global DoF values
-        and prototype cluster site DoF values that can be transformed by the matrix
-        representations in `prototype_matrix_rep` and `equivalence_map_matrix_rep`.
-        Global variables are included first, in the order specified by `global_dof`,
-        followed by cluster site variables, in the order specified by `local_dof`.
-    prototype_variable_subsets: list[list[int]]
-        Lists of variables (as indices into the `prototype_variables` list) which mix
-        under application of symmetry. For example, if all variables are the 6 strain
-        variables, then `var_subsets=[[0,1,2,3,4,5]]`. If the variables are the 3
-        displacements on each site in a cluster of 2 sites, then
-        `variable_subsets=[[0, 1, 2], [3, 4, 5]]`. If those strain and displacement
-        variables are coupled, with strain variables included first, then
-        `variable_subsets=[[0,1,2,3,4,5], [6, 7, 8], [9, 10, 11]]`
-    equivalence_map_matrix_rep: list[list[np.ndarray]]
-        The coupled matrix rep of corresponding `equivalence_map_ops`. These are the
-        matrix representations that can be used to transform at the same time global
-        DoF values and local DoF values from the prototype cluster onto equivalent
-        clusters. Index using ``equivalence_map_matrix_rep[i_equiv][i_op]``.
-    equivalence_map_inv_matrix_rep: list[list[np.ndarray]]
-        The inverse of the coupled matrix rep of corresponding `equivalence_map_ops`.
-        These are the matrix representations that should be used to generate coupled
-        functions on the equivalent clusters from coupled functions on the prototype
-        cluster. Index using ``equivalence_map_inv_matrix_rep[i_equiv][i_op]``.
-    basis_set_generating_matrix_rep: list[list[np.ndarray]]
-        The coupled matrix rep of corresponding `basis_set_generating_ops`. These are
-        the matrix representations that can be used to transform at the same time global
-        DoF values and local DoF values from the prototype cluster onto equivalent
-        clusters. Index using ``equivalence_map_matrix_rep[i_equiv][i_op]``.
-    basis_set_generating_inv_matrix_rep: list[list[np.ndarray]]
-        The inverse of the coupled matrix rep of corresponding `equivalence_map_ops`.
-        These are the matrix representations that should be used to generate coupled
-        functions on the equivalent clusters from coupled functions on the prototype
-        cluster. Index using ``equivalence_map_inv_matrix_rep[i_equiv][i_op]``.
+       - Also generates the "equivalence map" which organizes generating group
+         operations by which orbit element they map the prototype cluster onto.
+       - If the matrix representations are for a local cluster expansion (if
+         `phenomenal` is not None), then the prim factor group operations that generate
+         the symmetrically equivalent phenomenal clusters are found and stored as
+         "phenomenal generating ops".
+
+    2. For the prototype cluster (the first element in the generated orbit), use
+       :class:`~casm.bset.ClusterMatrixRepBuilder` to build matrix representations for
+       each local DoF type for each generating group symmetry operation, along with
+       vectors of :class:`~casm.bset.polynomial_functions.Variable` representing the
+       individual local DoF components.
+
+    3. Build coupled matrix representations (block diagonal matrices) combining the
+       matrix representations for global and local DoFs for each generating group
+       symmetry operation, along with a vector of
+       :class:`~casm.bset.polynomial_functions.Variable` representing all individual
+       global and local DoF components.
+
+       - Global DoF matrix representations are obtained for the prim using
+         :func:`~libcasm.configuration.Prim.global_dof_matrix_rep` and variables
+         are constructed for each global DoF component.
+       - Local DoF matrix representations and variables are obtained from step 2.
+
+       The coupled matrix representations are stored organized by which orbit element
+       they map the prototype cluster onto, in the same order as the equivalence map
+       operations. The inverse matrices, which are the representations used for
+       transforming cluster functions, are also constructed.
+
+       The clusters created by transforming the prototype cluster to each equivalent
+       cluster in the orbit are also constructed with sites ordered consistently for
+       the same vector of variables (though they are now associated with different
+       sites).
+
+    3. If the matrix representations are for a local cluster expansion (if 
+       `phenomenal` is not None), then for each phenomenal generating op, matrix
+       representations are generated that transform DoF values associated with each
+       cluster in the original orbit to a symmetrically equivalent cluster in the
+       orbit around a symmetrically equivalent phenomenal cluster.
+
+       The clusters created by transforming the cluster in the original orbit by
+       the phenomenal generating ops are also constructed with sites ordered
+       consistently for the same vector of variables (though they are again associated
+       with different sites).
+
+
     """
 
     def __init__(
@@ -1253,12 +1237,29 @@ class OrbitMatrixRepBuilder:
               ``value = functions[function_index][occupant_index]``.
 
         """
+
         ### Constructor parameters ###
         self.prim = prim
+        """libcasm.configuration.Prim: The prim, with symmetry information."""
+
         self.generating_group = generating_group
+        """libcasm.sym_info.SymGroup: The symmetry group used to construct equivalent \
+        clusters and functions."""
+
         self.global_dof = global_dof
+        """list[str]: The types of global degree of freedom (DoF) included in the \
+        matrix representation. 
+        
+        All global DoF are continuous DoF."""
+
         self.local_continuous_dof = local_continuous_dof
+        """list[str]: The types of local discrete degree of freedom (DoF) included \
+        in the matrix representation."""
+
         self.local_discrete_dof = local_discrete_dof
+        """list[str]: The types of local discrete degree of freedom (DoF) included \
+        in the matrix representation."""
+
         self.cluster = cluster
         self.phenomenal = phenomenal
         self.make_variable_name_f = make_variable_name_f
@@ -1266,40 +1267,273 @@ class OrbitMatrixRepBuilder:
 
         local_dof = local_continuous_dof + local_discrete_dof
         self.local_dof = local_dof
+        """list[str]: The types of local continuous and discrete degrees of freedom \
+        (DoF) included in the matrix representation.
+        """
 
         ## The following generate all the matrix reps needed for this orbit:
 
+        #
         ## Generate orbit, equivalence map, and cluster group
+        #
+        self.orbit = None
+        """list[libcasm.clusterography.Cluster]: The generated orbit of clusters."""
+
+        self.cluster_group = None
+        """libcasm.sym_info.SymGroup: The subgroup of `generating_group` that leaves
+        `orbit[0]` invariant."""
+
+        self.equivalence_map_ops = None
+        """list[list[libcasm.xtal.SymOp]: Symmetry operations that map the prototype \
+        cluster to equivalent clusters.
+
+        The SymOp in the list `equivalence_map_ops[i]` all map `orbit[0]`
+        onto the same `i`-th equivalent cluster, including proper translation, up to a
+        permutation of sites."""
+
+        self.equivalence_map_indices = None
+        """list[list[int]]: Indices into the `generating_group` elements list of \
+        the corresponding SymOp in `equivalence_map_ops`."""
+
+        self.equivalence_map_site_rep = None
+        """list[list[libcasm.xtal.IntegralSiteCoordinateRep]]: Site transformation \
+        representation of the corresponding SymOp in `equivalence_map_ops`."""
+
+        self.equivalence_map_clusters = None
+        """list[list[libcasm.clusterography.Cluster]]: The equivalent clusters that \
+        the corresponding `equivalence_map_ops` all map ``orbit[0]`` onto.
+
+        The elements of `equivalence_map_clusters` are:
+
+        .. code-block:: Python
+
+            equivalence_map_clusters[i][j] == equivalence_map_site_rep[i][j] * orbit[0]
+
+        The clusters in the list ``equivalence_map_clusters[i]`` all have the same
+        sites, but the order of sites may be permuted."""
+
         self._make_orbit_and_equivalence_map()
 
-        ## If a local cluster expansion,
-        # make equivalent local basis set generating symmetry operations
-        self._make_basis_set_generators()
+        #
+        # ## If a local cluster expansion,
+        # make equivalent phenomenal cluster generating symmetry operations
 
+        self.phenomenal_generating_ops = None
+        """list[libcasm.xtal.SymOp]: Symmetry operations that generate the \
+        symmetrically equivalent phenomenal cluster (if a local cluster expansion)."""
+
+        self.phenomenal_generating_indices = None
+        """list[int]: Indices of factor group operations corresponding to \
+        `phenomenal_generating_ops`."""
+
+        self.phenomenal_generating_site_rep = None
+        """list[libcasm.xtal.IntegralSiteCoordinateRep]: Symmetry group representation \
+        for transforming IntegralSiteCoordinate and Cluster corresponding to 
+        `phenomenal_generating_ops`."""
+
+        self._make_phenomenal_generators()
+
+        #
         ## Make global DoF variables, variable subsets,
         # and matrix reps for individual DoF
+
+        self.global_variables = None
+        """list[list[casm.bset.polynomial_functions.Variable]]: For each global DoF \
+        in `global_dof`, the variables used in functions.
+
+        The variable `global_variables[i_global_dof][i_var]`, is the `i_var`-th 
+        global variable of the `i_global_dof`-th global DoF type, where `i_global_dof` 
+        is an index into `global_dof`."""
+
+        self.global_variable_subsets = None
+        """list[list[list[int]]]: For each global DoF in `global_dof`, the variable \
+        subsets.
+
+        The each list in `global_variable_subsets[i_global_dof]` contains the indices
+        of variables in `global_variables[i_global_dof]` that can mix under
+        application of symmetry. This information is used in the calculation of 
+        :func:`~casm.bset.polynomial_functions.monomial_inner_product()`.
+        """
+
+        self.global_matrix_rep = None
+        """list[list[np.ndarray]]:  For each global DoF in `global_dof`, the matrix \
+        rep of corresponding generating group ops. 
+
+        These are the matrix representations that should be used to transform global 
+        DoF values. Index using ``global_matrix_rep[i_global_dof][i_factor_group]``."""
+
+        self.global_inv_matrix_rep = None
+        """list[list[np.ndarray]]: For each global DoF in `global_dof`, the matrix 
+        representation of the inverse of corresponding generating group ops. 
+
+        These are the matrix representations that should be used to generate functions \
+        of a single global DoF type. Index using 
+        ``global_inv_matrix_rep[i_global_dof][i_factor_group]``."""
+
         self._make_global_dof_info()
 
+        #
         ## Make local DoF variables, variable subsets,
         # and matrix reps for individual DoF, including cluster matrix reps
+
+        self.local_prototype = None
+        """list[casm.bset.cluster_functions.ClusterMatrixRepBuilder]: For each local
+        DoF in `local_dof`, the cluster matrix representations and associated
+        information for the canonical equivalent cluster.
+        """
+
+        self.local_equivalence_map_matrix_rep = None
+        """list[list[list[np.ndarray]]: For each local DoF in `local_dof`, the cluster
+        matrix representation of corresponding `equivalence_map_ops`. 
+
+        These are the matrix representations that should be used to transform local
+        DoF values onto equivalent clusters in the orbit. Index using 
+        ``local_equivalence_map_matrix_rep[i_local_dof][i_equiv][i_op]``."""
+
+        self.local_equivalence_map_inv_matrix_rep = None
+        """list[list[list[np.ndarray]]: For each local DoF in `local_dof`, the cluster
+        matrix representation of the inverse of corresponding `equivalence_map_ops`. 
+
+        These are the matrix representations that should be used to generate functions
+        on the equivalent clusters in the orbit from functions on the prototype
+        cluster for a single local DoF type. Index using
+        ``local_equivalence_map_inv_matrix_rep[i_local_dof][i_equiv][i_op]``."""
+
+        self.local_phenomenal_generating_matrix_rep = None
+        """list[list[list[np.ndarray]]: For each local DoF in `local_dof`, the cluster
+        matrix representation of corresponding `phenomenal_generating_ops`, for each 
+        cluster.
+
+        These are the matrix representations that should be used to transform local
+        DoF values onto equivalent clusters in a symmetrically equivalent orbit in
+        a local cluster expansion for a symmetrically equivalent phenomenal cluster. 
+        Index using 
+        ``local_phenomenal_generating_matrix_rep[i_local_dof][i_clex][i_cluster]``,
+        where `i_local_dof` is the index into `local_dof`, `i_clex` is the index 
+        into `phenomenal_generating_ops`, and `i_cluster` is the index into
+        `orbit`."""
+
+        self.local_phenomenal_generating_inv_matrix_rep = None
+        """list[list[list[np.ndarray]]: For each local DoF in `local_dof`, the
+        cluster matrix representation of the inverse of corresponding
+        `phenomenal_generating_ops`, for each cluster.
+
+        These are the matrix representations that should be used to generate functions
+        on equivalent clusters in a symmetrically equivalent orbit in a local cluster
+        expansion for a symmetrically equivalent phenomenal cluster, for a single
+        local DoF type. Index using
+        ``local_phenomenal_generating_inv_matrix_rep[i_local_dof][i_clex][i_cluster]``,
+        where `i_local_dof` is the index into `local_dof`, `i_clex` is the index 
+        into `phenomenal_generating_ops`, and `i_cluster` is the index into
+        `orbit`."""
+
         self._make_local_dof_info()
 
+        #
         ## Combine individual DoF matrix reps
         # into a coupled matrix rep for the prototype cluster
         # Also, make variables and variable subsets for the coupled cluster functions
+
+        self.prototype_matrix_rep = None
+        """list[numpy.ndarray]: The coupled matrix representation of the symmetry
+        operations that leave the prototype cluster invariant.
+
+        These are the matrix representations that can be used to transform at the 
+        same time global DoF values and local DoF values on the prototype cluster. 
+        Index using ``prototype_matrix_rep[i_cluster_group]``, where `i_cluster_group`
+        is an index into 
+        :py:data:`OrbitMatrixRepBuilder.cluster_group.elements <casm.bset.cluster_functions.OrbitMatrixRepBuilder.cluster_group>`.
+        The components of the  DoF value vectors these matrices transform are described 
+        by the corresponding elements of 
+        :py:data:`OrbitMatrixRepBuilder.prototype_variables <casm.bset.cluster_functions.OrbitMatrixRepBuilder.prototype_variables>`.
+        """  # noqa
+
+        self.n_global_variables = None
+        """int: The total number of global variables."""
+
+        self.n_local_variables = None
+        """int: The total number of local variables."""
+
+        self.prototype_variables = None
+        """list[casm.bset.polynomial_functions.Variable]: Variables representing all \
+        global and local DoF included in coupled cluster functions on the prototype \
+        cluster.
+
+        The variables associated with each element of the vector of global DoF values 
+        and prototype cluster site DoF values that can be transformed by the matrix 
+        representations in `prototype_matrix_rep` and `equivalence_map_matrix_rep`.
+        Global variables are included first, in the order specified by `global_dof`,
+        followed by cluster site variables, in the order specified by `local_dof`."""
+
+        self.prototype_variable_subsets = None
+        """list[list[int]]: Lists of variables (as indices into the \
+        `prototype_variables` list) which mix under application of symmetry. 
+
+        For example, if all variables are the 6 strain variables, then 
+        `var_subsets=[[0,1,2,3,4,5]]`. If the variables are the 3 displacements on 
+        each site in a cluster of 2 sites, then 
+        `variable_subsets=[[0,1,2], [3,4,5]]`. If those strain and displacement
+        variables are coupled, with strain variables included first, then
+        `variable_subsets=[[0,1,2,3,4,5], [6,7,8], [9,10,11]]`"""
+
         self._make_coupled_prototype_matrix_rep_and_variables()
 
+        #
         ## Build equivalence map matrix reps
         # Build matrix reps which
         # transform cluster functions generated on the prototype cluster
         # to other clusters in the orbit
+
+        self.equivalence_map_matrix_rep = None
+        """list[list[numpy.ndarray]]: The coupled matrix rep of corresponding \
+        `equivalence_map_ops`.
+
+        These are the matrix representations that can be used to transform at the same
+        time global DoF values and local DoF values from the prototype cluster onto
+        equivalent clusters. Index using 
+        ``equivalence_map_matrix_rep[i_equiv][i_op]``."""
+
+        self.equivalence_map_inv_matrix_rep = None
+        """list[list[numpy.ndarray]]: The inverse of the coupled matrix rep of \
+        corresponding `equivalence_map_ops`.
+
+        These are the matrix representations that should be used to generate coupled
+        functions on the equivalent clusters from coupled functions on the prototype
+        cluster. Index using ``equivalence_map_inv_matrix_rep[i_equiv][i_op]``."""
+
         self._make_equivalence_map_matrix_rep()
 
+        #
         ## If a local cluster expansion,
-        # Build basis set generating matrix reps which
+        # Build phenomenal generating matrix reps which
         # transform cluster functions on all local clusters in the orbit
         # to cluster functions on a different but equivalent orbit of local clusters
-        self._make_basis_set_generating_matrix_rep()
+        # around a symmetrically equivalent phenomenal cluster
+
+        self.phenomenal_generating_matrix_rep = None
+        """list[list[numpy.ndarray]]: The coupled matrix rep of corresponding \
+        `phenomenal_generating_ops`, for each cluster. 
+
+        These are the matrix representations that can be used to transform at the same 
+        time global DoF values and local DoF values from clusters in the original 
+        local-cluster orbit to local-clusters in the orbit for a symmetrically
+        equivalent phenomenal cluster. Index using 
+        ``phenomenal_generating_matrix_rep[i_clex][i_cluster]``, where 
+        `i_clex` is the index into `phenomenal_generating_ops`, and `i_cluster` is the
+        index into `orbit`."""
+
+        self.phenomenal_generating_inv_matrix_rep = None
+        """list[list[numpy.ndarray]]: The inverse of the coupled matrix rep of \
+        corresponding `phenomenal_generating_ops`, for each cluster.
+
+        These are the matrix representations that should be used to generate coupled
+        functions on the local-clusters in the orbit for a symmetrically equivalent
+        phenomenal cluster from local-cluster functions in the original orbit. Index 
+        using ``phenomenal_generating_inv_matrix_rep[i_clex][i_cluster]``, where 
+        `i_clex` is the index into `phenomenal_generating_ops`, and `i_cluster` is the 
+        index into `orbit`."""
+
+        self._make_phenomenal_generating_matrix_rep()
 
     def _make_orbit_and_equivalence_map(self):
         # Data used
@@ -1317,13 +1551,14 @@ class OrbitMatrixRepBuilder:
             cluster,
             generating_group_site_rep,
         )
-        cluster_group = make_cluster_group(
-            cluster=orbit[0],
-            group=generating_group,
-            lattice=prim.xtal_prim.lattice(),
-            integral_site_coordinate_symgroup_rep=generating_group_site_rep,
-        )
+
         if phenomenal is None:
+            cluster_group = make_cluster_group(
+                cluster=orbit[0],
+                group=generating_group,
+                lattice=prim.xtal_prim.lattice(),
+                integral_site_coordinate_symgroup_rep=generating_group_site_rep,
+            )
             equivalence_map_indices = make_periodic_equivalence_map_indices(
                 orbit=orbit,
                 integral_site_coordinate_symgroup_rep=generating_group_site_rep,
@@ -1336,6 +1571,11 @@ class OrbitMatrixRepBuilder:
             )
 
         else:
+            cluster_group = make_local_cluster_group(
+                cluster=orbit[0],
+                group=generating_group,
+                integral_site_coordinate_symgroup_rep=generating_group_site_rep,
+            )
             equivalence_map_indices = make_local_equivalence_map_indices(
                 orbit=orbit,
                 integral_site_coordinate_symgroup_rep=generating_group_site_rep,
@@ -1362,22 +1602,22 @@ class OrbitMatrixRepBuilder:
         self.equivalence_map_site_rep = equivalence_map_site_rep
         self.equivalence_map_clusters = equivalence_map_clusters
 
-    def _make_basis_set_generators(self):
+    def _make_phenomenal_generators(self):
         # Data used
         phenomenal = self.phenomenal
         generating_group = self.generating_group
         prim = self.prim
 
         ## If a local cluster expansion,
-        # make equivalent local basis set generating symmetry operations
-        basis_set_generating_ops = None
-        basis_set_generating_indices = None
-        basis_set_generating_site_rep = None
+        # make equivalent phenomenal generating symmetry operations
+        phenomenal_generating_ops = None
+        phenomenal_generating_indices = None
+        phenomenal_generating_site_rep = None
         if phenomenal is not None:
             (
-                basis_set_generating_ops,
-                basis_set_generating_indices,
-                basis_set_generating_site_rep,
+                phenomenal_generating_ops,
+                phenomenal_generating_indices,
+                phenomenal_generating_site_rep,
             ) = make_equivalents_generators(
                 phenomenal=phenomenal,
                 generating_group=generating_group,
@@ -1385,9 +1625,9 @@ class OrbitMatrixRepBuilder:
             )
 
         # Data generated
-        self.basis_set_generating_ops = basis_set_generating_ops
-        self.basis_set_generating_indices = basis_set_generating_indices
-        self.basis_set_generating_site_rep = basis_set_generating_site_rep
+        self.phenomenal_generating_ops = phenomenal_generating_ops
+        self.phenomenal_generating_indices = phenomenal_generating_indices
+        self.phenomenal_generating_site_rep = phenomenal_generating_site_rep
 
     def _make_global_dof_info(self):
         # Note: global DoF info could be factored out of each individual orbit
@@ -1446,16 +1686,16 @@ class OrbitMatrixRepBuilder:
         equivalence_map_indices = self.equivalence_map_indices
         equivalence_map_site_rep = self.equivalence_map_site_rep
 
-        basis_set_generating_indices = self.basis_set_generating_indices
-        basis_set_generating_site_rep = self.basis_set_generating_site_rep
+        phenomenal_generating_indices = self.phenomenal_generating_indices
+        phenomenal_generating_site_rep = self.phenomenal_generating_site_rep
 
         ## Make local DoF variables, variable subsets,
         # and matrix reps for individual DoF, including cluster matrix reps
         local_prototype = []
         local_equivalence_map_matrix_rep = []
         local_equivalence_map_inv_matrix_rep = []
-        local_basis_set_generating_matrix_rep = []
-        local_basis_set_generating_inv_matrix_rep = []
+        local_phenomenal_generating_matrix_rep = []
+        local_phenomenal_generating_inv_matrix_rep = []
         for key in local_dof:
             _local_dof_matrix_rep = prim.local_dof_matrix_rep(key)
 
@@ -1468,6 +1708,7 @@ class OrbitMatrixRepBuilder:
                 make_variable_name_f=make_variable_name_f,
                 local_discrete_dof=local_discrete_dof,
                 occ_site_functions=occ_site_functions,
+                phenomenal=phenomenal,
             )
             local_prototype.append(_local_prototype)
 
@@ -1485,28 +1726,28 @@ class OrbitMatrixRepBuilder:
             local_equivalence_map_inv_matrix_rep.append(_2)
 
             if phenomenal is not None:
-                ## Build local DoF basis set generating matrix reps (no permutation)
-                _4, _5, _6 = make_basis_set_generating_matrix_rep(
+                ## Build local DoF phenomenal generating matrix reps (no permutation)
+                _4, _5, _6 = make_phenomenal_generating_matrix_rep(
                     local_dof_matrix_rep=_local_dof_matrix_rep,
                     symgroup=generating_group,
                     equivalence_map_clusters=_3,
-                    basis_set_generating_indices=basis_set_generating_indices,
-                    basis_set_generating_site_rep=basis_set_generating_site_rep,
+                    phenomenal_generating_indices=phenomenal_generating_indices,
+                    phenomenal_generating_site_rep=phenomenal_generating_site_rep,
                     total_dim=_local_prototype.total_dim,
                     site_index_to_basis_index=_local_prototype.site_index_to_basis_index,
                 )
-                local_basis_set_generating_matrix_rep.append(_4)
-                local_basis_set_generating_inv_matrix_rep.append(_5)
+                local_phenomenal_generating_matrix_rep.append(_4)
+                local_phenomenal_generating_inv_matrix_rep.append(_5)
 
         # Data generated
         self.local_prototype = local_prototype
         self.local_equivalence_map_matrix_rep = local_equivalence_map_matrix_rep
         self.local_equivalence_map_inv_matrix_rep = local_equivalence_map_inv_matrix_rep
-        self.local_basis_set_generating_matrix_rep = (
-            local_basis_set_generating_matrix_rep
+        self.local_phenomenal_generating_matrix_rep = (
+            local_phenomenal_generating_matrix_rep
         )
-        self.local_basis_set_generating_inv_matrix_rep = (
-            local_basis_set_generating_inv_matrix_rep
+        self.local_phenomenal_generating_inv_matrix_rep = (
+            local_phenomenal_generating_inv_matrix_rep
         )
 
     def _make_coupled_prototype_matrix_rep_and_variables(self):
@@ -1605,39 +1846,40 @@ class OrbitMatrixRepBuilder:
         self.equivalence_map_matrix_rep = equivalence_map_matrix_rep
         self.equivalence_map_inv_matrix_rep = equivalence_map_inv_matrix_rep
 
-    def _make_basis_set_generating_matrix_rep(self):
+    def _make_phenomenal_generating_matrix_rep(self):
         # Data used
         phenomenal = self.phenomenal
         equivalence_map_ops = self.equivalence_map_ops
-        basis_set_generating_ops = self.basis_set_generating_ops
+        phenomenal_generating_ops = self.phenomenal_generating_ops
         global_matrix_rep = self.global_matrix_rep
         global_inv_matrix_rep = self.global_inv_matrix_rep
-        local_basis_set_generating_matrix_rep = (
-            self.local_basis_set_generating_matrix_rep
+        local_phenomenal_generating_matrix_rep = (
+            self.local_phenomenal_generating_matrix_rep
         )
-        local_basis_set_generating_inv_matrix_rep = (
-            self.local_basis_set_generating_inv_matrix_rep
+        local_phenomenal_generating_inv_matrix_rep = (
+            self.local_phenomenal_generating_inv_matrix_rep
         )
 
         ## If a local cluster expansion,
-        # Build basis set generating matrix reps which
+        # Build phenomenal generating matrix reps which
         # transform cluster functions on all local clusters in the orbit
         # to cluster functions on a different but equivalent orbit of local clusters
-        basis_set_generating_matrix_rep = None
-        basis_set_generating_inv_matrix_rep = None
+        # around a symmetrically equivalent phenomenal cluster
+        phenomenal_generating_matrix_rep = None
+        phenomenal_generating_inv_matrix_rep = None
         if phenomenal is not None:
-            basis_set_generating_matrix_rep: list[list[np.ndarray]] = []
-            basis_set_generating_inv_matrix_rep: list[list[np.ndarray]] = []
-            for i_clex in enumerate(basis_set_generating_ops):
+            phenomenal_generating_matrix_rep: list[list[np.ndarray]] = []
+            phenomenal_generating_inv_matrix_rep: list[list[np.ndarray]] = []
+            for i_clex in enumerate(phenomenal_generating_ops):
                 _matrix_reps = []
                 _inv_matrix_reps = []
-                head_group_index = basis_set_generating_ops[i_clex]
+                head_group_index = phenomenal_generating_ops[i_clex]
                 for i_clust in enumerate(equivalence_map_ops):
                     # get matrix rep
                     _global_matrices = [x[head_group_index] for x in global_matrix_rep]
                     _local_matrices = [
                         x[i_clex][i_clust]
-                        for x in local_basis_set_generating_matrix_rep
+                        for x in local_phenomenal_generating_matrix_rep
                     ]
                     _all_matrices = _global_matrices + _local_matrices
                     _matrix_reps.append(scipy.linalg.block_diag(*_all_matrices))
@@ -1648,13 +1890,13 @@ class OrbitMatrixRepBuilder:
                     ]
                     _local_inv_matrices = [
                         x[i_clex][i_clust]
-                        for x in local_basis_set_generating_inv_matrix_rep
+                        for x in local_phenomenal_generating_inv_matrix_rep
                     ]
                     _all_inv_matrices = _global_inv_matrices + _local_inv_matrices
                     _inv_matrix_reps.append(scipy.linalg.block_diag(*_all_inv_matrices))
-                basis_set_generating_matrix_rep.append(_matrix_reps)
-                basis_set_generating_inv_matrix_rep.append(_inv_matrix_reps)
+                phenomenal_generating_matrix_rep.append(_matrix_reps)
+                phenomenal_generating_inv_matrix_rep.append(_inv_matrix_reps)
 
         # Data generated
-        self.basis_set_generating_matrix_rep = basis_set_generating_matrix_rep
-        self.basis_set_generating_inv_matrix_rep = basis_set_generating_inv_matrix_rep
+        self.phenomenal_generating_matrix_rep = phenomenal_generating_matrix_rep
+        self.phenomenal_generating_inv_matrix_rep = phenomenal_generating_inv_matrix_rep

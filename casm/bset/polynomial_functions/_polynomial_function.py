@@ -130,6 +130,17 @@ class FunctionRep:
         self,
         matrix_rep: np.ndarray,
     ):
+        """
+
+        .. rubric:: Constructor
+
+        Parameters
+        ----------
+        matrix_rep: np.ndarray[np.float64[m,m]]
+            Describes the effect of applying a symmetry operation on a vector of
+            variables.
+        """
+
         self.matrix_rep = matrix_rep
         """np.ndarray[np.float64[m,m]]: Describes the effect of applying a symmetry 
         operation on a vector of variables.
@@ -218,6 +229,48 @@ class Variable:
         site_basis_function_index: Optional[int] = None,
         neighborhood_site_index: Optional[int] = None,
     ) -> object:
+        """
+
+        .. rubric:: Constructor
+
+        Parameters
+        ----------
+        name: str
+            Name used for identification and printing. For example:
+
+            - "{e_1}", "{e_2}", etc. or "{E_{xx}}", "{E_{yy}}", etc. for strain
+              degrees of freedom;
+            - "{d_1}", "{d_2}", etc. or "dx", "dy", "dz" for displacement degrees of
+              freedom;
+            - "{\phi_1}", "{\phi_2}", etc. for occupation site basis functions, or
+              "{\phi_{a,1}}", "{\phi_{a,2}}", etc. and "{\phi_{b,1}}", "{\phi_{b,2}}",
+              etc. for occupation site basis functions on symmetrically distinct sites
+              :math:`a` and :math:`b`.
+
+        key: str
+            Name of the degree of freedom (DoF) this variable represents.
+
+        cluster_site_index: Optional[int] = None
+            For site variables, the cluster site index of the site associated with the
+            variable.
+
+        component_index: Optional[int] = None
+            For vector-valued continuous variables, the component of the vector this
+            variable corresponds to.
+
+        site_basis_function_index: Optional[int] = None
+            For discrete occupation variables, the site basis function index
+            this variable corresponds to.
+
+        neighborhood_site_index: Optional[int] = None
+            For site variables, the neighbor list index of the site associated with the
+            variable.
+
+            Used for printing expressions for evaluation of functions in terms of
+            values on sites determined by the neighbor list position.
+
+        """
+
         self.name = name
         """str: Name used for identification and printing.
         
@@ -352,10 +405,38 @@ class PolynomialFunction:
     etc. PolynomialFunction does not currently represent sums of monomials with
     different order (i.e. :math:`f_1 x{_1} + f_2 x{_1}^2`).
 
-    Attributes
-    ----------
-    coeff: sparse.COO
-        A sparse tensor holding coefficients of a polynomial.
+    """
+
+    def __init__(
+        self,
+        coeff: sparse.COO,
+        variables: list[Variable],
+        variable_subsets: list[list[int]],
+        tol: float = 1e-10,
+    ):
+        """
+
+        .. rubric:: Constructor
+
+        Parameters
+        ----------
+        coeff: sparse.COO
+            A sparse tensor specifying non-zero monomial terms and corresponding
+            coefficients.
+        variables: list[Variable]
+            The variables in the monomial terms.
+        variable_subsets: list[list[int]]
+            Lists of variables (as indices into the `variables` list) which mix under
+            application of symmetry. For example, if all variables are the 6 strain
+            variables, then `var_subsets=[[0,1,2,3,4,5]]`. If the variables are the 3
+            displacements on each site in a cluster of 2 sites, then
+            `variable_subsets=[[0, 1, 2], [3, 4, 5]]`.
+        tol: float
+            A tolerance used for pruning coefficients which are approximately zero.
+        """
+
+        self.coeff = coeff
+        """sparse.COO: A sparse tensor holding coefficients of a polynomial.
 
         Example, polynomial with maximum order=2:
 
@@ -375,22 +456,17 @@ class PolynomialFunction:
 
         Operations (`*`, `+=`, `-=`, etc.) can be expected to also make
         `coeff` canonical and prune the coefficients that are
-        approximately zero.
+        approximately zero."""
 
-    variables: list[Variable]
-        The variables `x` of the polynomial
+        self.variables = variables
+        """list[casm.bset.polynomial_functions.Variable]: The variables `x` of the 
+        polynomial."""
 
-    variable_subsets: list[list[int]]
-        Lists of variables (as indices into the `variables` list) which mix under
-        application of symmetry. For example, if all variables are the 6 strain
-        variables, then `var_subsets=[[0,1,2,3,4,5]]`. If the variables are the 3
-        displacements on each site in a cluster of 2 sites, then
-        `variable_subsets=[[0, 1, 2], [3, 4, 5]]`. This information is used in
-        the calculation of :func:`monomial_inner_product()`.
+        self.monomial_exponents = self.tensor_coords_to_monomial_exponents()
+        """list[numpy.ndarray[numpy.int]]: The corresponding vectors of exponents for 
+        the monomials (i.e. the non-zero tensor coefficients).
 
-    monomial_exponents: list[np.ndarray[np.int]]
-        The corresponding vectors of exponents for the monomials
-        (i.e. the non-zero tensor coefficients), i.e.:
+        For example:
 
         .. code-block:: Python
 
@@ -399,43 +475,21 @@ class PolynomialFunction:
                 coeff.coords[:,i], n_size)
 
         The `monomial_exponents` is determined from `coeff` and must be updated
-        whenever coeff.coords is modified.
+        whenever coeff.coords is modified."""
 
-    tol: float
-        A tolerance used for pruning coefficients which are approximately zero.
-
-    """
-
-    def __init__(
-        self,
-        coeff: sparse.COO,
-        variables: list[Variable],
-        variable_subsets: list[list[int]],
-        tol: float = 1e-10,
-    ):
-        """Constructor
-
-        Parameters
-        ----------
-        coeff: sparse.COO
-            A sparse tensor specifying non-zero monomial terms and corresponding
-            coefficients.
-        variables: list[Variable]
-            The variables in the monomial terms.
-        variable_subsets: list[list[int]]
-            Lists of variables (as indices into the `variables` list) which mix under
-            application of symmetry. For example, if all variables are the 6 strain
-            variables, then `var_subsets=[[0,1,2,3,4,5]]`. If the variables are the 3
-            displacements on each site in a cluster of 2 sites, then
-            `variable_subsets=[[0, 1, 2], [3, 4, 5]]`.
-        tol: float
-            A tolerance used for pruning coefficients which are approximately zero.
-        """
-        self.coeff = coeff
-        self.variables = variables
-        self.monomial_exponents = self.tensor_coords_to_monomial_exponents()
         self.variable_subsets = variable_subsets
+        """list[list[int]]: Lists of variables (as indices into the `variables` list) 
+        which mix under application of symmetry. 
+        
+        For example, if all variables are the 6 strain variables, then 
+        `var_subsets=[[0,1,2,3,4,5]]`. If the variables are the 3 displacements on 
+        each site in a cluster of 2 sites, then 
+        `variable_subsets=[[0, 1, 2], [3, 4, 5]]`. This information is used in the 
+        calculation of :func:`monomial_inner_product()`."""
+
         self.tol = tol
+        """float: A tolerance used for pruning coefficients which are approximately 
+        zero."""
 
     @staticmethod
     def zeros(
@@ -997,21 +1051,30 @@ def gram_schmidt(
 
 
 class ExponentSumConstraint:
-    """Data structure that specifies an exponent sum for filtering monomials
-
-    Attributes
-    ----------
-    variables: list[int]
-        Indices of the variables included in the constraint
-    sum: list[int]
-        The sum of the exponents of the specified variables
-        must be in the `sum` list for the constraint to
-        be satisfied.
-    """
+    """Data structure that specifies an exponent sum for filtering monomials"""
 
     def __init__(self, variables, sum):
+        """
+
+        .. rubric:: Constructor
+
+        Parameters
+        ----------
+        variables: list[int]
+            Indices of the variables included in the constraint
+        sum: list[int]
+            The sum of the exponents of the specified variables
+            must be in the `sum` list for the constraint to
+            be satisfied.
+        """
         self.variables = variables
+        """list[int]: Indices of the variables in the
+        :py:data:`PolynomialFunction.variables <casm.bset.polynomial_functions.PolynomialFunction.variables>`
+        list that are included in the constraint."""  # noqa
+
         self.sum = sum
+        """list[int]: The sum of the exponents of the specified variables must be in \
+        the `sum` list for the constraint to be satisfied."""
 
     def satisfied(self, monomial_exponents):
         curr_sum = 0
