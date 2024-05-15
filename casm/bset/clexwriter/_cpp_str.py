@@ -16,11 +16,25 @@ from casm.bset.polynomial_functions import (
 
 
 class CppFormatProperties:
+    """Holds options for C++ formatting"""
+
     def __init__(
         self,
         coeff_fmt_spec: str = ".10f",
         coeff_atol: float = 1e-10,
     ):
+        """
+
+        .. rubric:: Constructor
+
+        Parameters
+        ----------
+        coeff_fmt_spec: str
+            Format specification for coefficient printing.
+
+        coeff_atol: float
+            Tolerance for checking for zeros and ones.
+        """
         self.coeff_fmt_spec = coeff_fmt_spec
         """str: Format specification for coefficient printing."""
 

@@ -229,7 +229,7 @@ class Variable:
         site_basis_function_index: Optional[int] = None,
         neighborhood_site_index: Optional[int] = None,
     ) -> object:
-        """
+        R"""
 
         .. rubric:: Constructor
 
@@ -242,10 +242,10 @@ class Variable:
               degrees of freedom;
             - "{d_1}", "{d_2}", etc. or "dx", "dy", "dz" for displacement degrees of
               freedom;
-            - "{\phi_1}", "{\phi_2}", etc. for occupation site basis functions, or
-              "{\phi_{a,1}}", "{\phi_{a,2}}", etc. and "{\phi_{b,1}}", "{\phi_{b,2}}",
-              etc. for occupation site basis functions on symmetrically distinct sites
-              :math:`a` and :math:`b`.
+            - "{\\\\\\phi_1}", "{\\\\\\phi_2}", etc. for occupation site basis
+              functions, or "{\\\\\\phi_{a,1}}", "{\\\\\\phi_{a,2}}", etc. and
+              "{\\\\\\phi_{b,1}}", "{\\\\\\phi_{b,2}}", etc. for occupation site basis
+              functions on symmetrically distinct sites :math:`a` and :math:`b`.
 
         key: str
             Name of the degree of freedom (DoF) this variable represents.
@@ -393,16 +393,18 @@ class PolynomialFunction:
 
     .. math::
 
-        f(\vec{x}) = f_1 x{_1} + f_2 x{_2},
+        f(\vec{x}) &= f_1 x{_1} + f_2 x{_2},
 
-        f(\vec{x}) = f_1 x{_1}^2 + f_2 x{_1} x{_2} + f_3 x{_2}^2,
+        f(\vec{x}) &= f_1 x{_1}^2 + f_2 x{_1} x{_2} + f_3 x{_2}^2,
 
-        f(\vec{x}) = f_1 x{_1}^3 + f_2 x{_1}^2 x{_2} + f_3 x{_1} x{_2}^2 + f_4 x{_2}^3,
+        f(\vec{x}) &= f_1 x{_1}^3 + f_2 x{_1}^2 x{_2} + f_3 x{_1} x{_2}^2 + f_4 x{_2}^3,
 
-        f(\vec{x}) = f_1 x{_1}^4 + f_2 x{_1}^3 x{_2} + f_3 x{_1}^2 x{_2}^2 + \
+        f(\vec{x}) &= f_1 x{_1}^4 + f_2 x{_1}^3 x{_2} + f_3 x{_1}^2 x{_2}^2 + \
         f_4 x{_1} x{_2}^3 + f_5 x{_2}^4,
 
-    etc. PolynomialFunction does not currently represent sums of monomials with
+        \mathrm{etc.}
+
+    PolynomialFunction does not currently represent sums of monomials with
     different order (i.e. :math:`f_1 x{_1} + f_2 x{_1}^2`).
 
     """
