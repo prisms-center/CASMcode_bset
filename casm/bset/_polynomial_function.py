@@ -771,6 +771,36 @@ class PolynomialFunction:
             tol=tol,
         )
 
+    def _latex_print(self, variables):
+        """Latex printing for development
+        It might be good to take variables as strings."""
+        limit = len(self.variables) ** 2
+        max_pow = 2
+
+        a, factored_data = factor_by_mode(self.coeff.data)
+        exponents = self.monomial_exponents
+
+        # build terms
+        latex_formula = ""
+        for i, val in enumerate(factored_data): # len(factored_data) is the number of terms
+            coeff = a*factored_data[i]
+            if np.isclose(coeff, 1):
+                coeff_tex = ""
+            else:
+                coeff_tex = irrational_to_tex_string(a*factored_data[i], limit=limit, max_pow=max_pow, abs_tol=1e-5)
+            polynomial_tex = ""
+            for j, exp in enumerate(exponents[i]):
+                if exp == 0: continue # constant contribution
+                if exp == 1:
+                    polynomial_tex += f" * ({variables[j].name})"
+                else:
+                    polynomial_tex += f" * ({variables[j].name})^{exp}"
+            polynomial_tex = polynomial_tex.strip("* ")
+            latex_formula += f"{coeff_tex} * [{polynomial_tex}] + "
+
+        latex_formula = latex_formula.strip("*+ ")
+        print(latex_formula)
+
 
 def monomial_inner_product(
     a_coeff: float,
