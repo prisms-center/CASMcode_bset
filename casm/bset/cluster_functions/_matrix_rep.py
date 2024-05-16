@@ -71,14 +71,13 @@ def make_cluster_dof_info(
 
     Returns
     -------
-    (site_index_to_basis_index, total_dim):
-        site_index_to_basis_index: dict[int, int]
-            Specifies the beginning row or column, `basis_index`, in the cluster
-            matrix representation for each site in the cluster,
-            ``basis_index = site_index_to_basis_index[site_index]``.
-        total_dim: int
-            The total dimension of the resulting cluster DoF vector / and cluster
-            matrix reps.
+    site_index_to_basis_index: dict[int, int]
+        Specifies the beginning row or column, `basis_index`, in the cluster
+        matrix representation for each site in the cluster,
+        ``basis_index = site_index_to_basis_index[site_index]``.
+    total_dim: int
+        The total dimension of the resulting cluster DoF vector / and cluster
+        matrix reps.
 
     """
     # Make a dict of site_index (index into the cluster) ->
@@ -216,7 +215,7 @@ def make_equivalence_map_site_rep(
 
     Returns
     -------
-    equivalence_map_site_rep: list[list[xtal.IntegralSiteCoordinateRep]]
+    equivalence_map_site_rep: list[list[libcasm.xtal.IntegralSiteCoordinateRep]]
         The :class:`~libcasm.xtal.IntegralSiteCoordinateRep` representation of an
         equivalence map
     """
@@ -283,15 +282,13 @@ def make_global_variables(
 
     Returns
     -------
-    (variables, variable_subsets):
-
-        variables: list[Variable]
-            A list of Variable for each component of DoF of type `key` from each site
-            in `cluster`.
-        variable_subsets: list[list[int]]
-            Lists of variables (as indices into the `variables` list) which mix under
-            application of symmetry. For example, if the variables are the 6
-            strain components, then `var_subsets=[[0, 1, 2, 3, 4, 5]]`.
+    variables: list[`Variable <casm.bset.polynomial_functions.Variable>`_]
+        A list of Variable for each component of DoF of type `key` from each site
+        in `cluster`.
+    variable_subsets: list[list[int]]
+        Lists of variables (as indices into the `variables` list) which mix under
+        application of symmetry. For example, if the variables are the 6
+        strain components, then `var_subsets=[[0, 1, 2, 3, 4, 5]]`.
     """
     if make_variable_name_f is None:
         make_variable_name_f = make_variable_name
@@ -352,16 +349,14 @@ def make_cluster_variables(
 
     Returns
     -------
-    (variables, variable_subsets):
-
-        variables: list[Variable]
-            A list of Variable for each component of DoF of type `key` from each site
-            in `cluster`.
-        variable_subsets: list[list[int]]
-            Lists of variables (as indices into the `variables` list) which mix under
-            application of symmetry. For example, if the variables are the 3
-            displacements on each site in a cluster of 2 sites, then
-            `var_subsets=[[0, 1, 2], [3, 4, 5]]`.
+    variables: list[`Variable <casm.bset.polynomial_functions.Variable>`_]
+        A list of Variable for each component of DoF of type `key` from each site
+        in `cluster`.
+    variable_subsets: list[list[int]]
+        Lists of variables (as indices into the `variables` list) which mix under
+        application of symmetry. For example, if the variables are the 3
+        displacements on each site in a cluster of 2 sites, then
+        `var_subsets=[[0, 1, 2], [3, 4, 5]]`.
     """
     if make_variable_name_f is None:
         make_variable_name_f = make_variable_name
@@ -524,17 +519,15 @@ def make_cluster_matrix_rep_no_permutation(
 
     Returns
     -------
-    (matrix_rep, inv_matrix_rep, equiv_cluster):
+    matrix_rep: np.ndarray[np.float64[total_dim,total_dim]]
+        Matrix representations for the symmetry operation.
 
-        matrix_rep: np.ndarray[np.float64[total_dim,total_dim]]
-            Matrix representations for the symmetry operation.
+    inv_matrix_rep: np.ndarray[np.float64[total_dim,total_dim]]
+        Matrix representations for the inverse operation of the symmetry operation.
 
-        inv_matrix_rep: np.ndarray[np.float64[total_dim,total_dim]]
-            Matrix representations for the inverse operation of the symmetry operation.
-
-        equiv_cluster: Cluster
-            The cluster generated from the symmetry operation to
-            `prototype_cluster`, without any permutation.
+    equiv_cluster: Cluster
+        The cluster generated from the symmetry operation to
+        `prototype_cluster`, without any permutation.
 
     """
     # Make equivalence map matrix rep (no permutations)
@@ -599,24 +592,19 @@ def make_equivalence_map_matrix_rep(
 
     Returns
     -------
-    (equivalence_map_matrix_rep, \
-    equivalence_map_inv_matrix_rep, \
-    equivalence_map_clusters):
+    equivalence_map_matrix_rep: \
+    list[list[np.ndarray[np.float64[total_dim,total_dim]]]]
+        Matrix representations for equivalence map operations.
 
-        equivalence_map_matrix_rep: \
-        list[list[np.ndarray[np.float64[total_dim,total_dim]]]]
-            Matrix representations for equivalence map operations.
+    equivalence_map_inv_matrix_rep: \
+    list[list[np.ndarray[np.float64[total_dim,total_dim]]]]
+        Matrix representations for the inverse operation of equivalence map operations.
 
-        equivalence_map_inv_matrix_rep: \
-        list[list[np.ndarray[np.float64[total_dim,total_dim]]]]
-            Matrix representations for the inverse operation of equivalence map
-            operations.
-
-        equivalence_map_clusters: list[list[Cluster]]
-            The clusters generated from applying equivalence map operations to the
-            prototype cluster without any permutation. The generated
-            clusters, ``equivalence_map_clusters[i][j]``, are equivalent to orbit
-            element ``orbit[i]`` up to a permutation.
+    equivalence_map_clusters: list[list[Cluster]]
+        The clusters generated from applying equivalence map operations to the
+        prototype cluster without any permutation. The generated
+        clusters, ``equivalence_map_clusters[i][j]``, are equivalent to orbit
+        element ``orbit[i]`` up to a permutation.
 
 
     """
@@ -667,8 +655,8 @@ def make_equivalence_map_matrix_rep(
 
 
 def make_phenomenal_generating_matrix_rep(
+    prim: casmconfig.Prim,
     local_dof_matrix_rep: list[list[np.ndarray]],
-    symgroup: SymGroup,
     equivalence_map_clusters: list[list[Cluster]],
     phenomenal_generating_indices: list[int],
     phenomenal_generating_site_rep: list[xtal.IntegralSiteCoordinateRep],
@@ -694,19 +682,17 @@ def make_phenomenal_generating_matrix_rep(
 
     Parameters
     ----------
+    prim: libcasm.configuration.Prim
+        The prim, with symmetry info
     local_dof_matrix_rep: list[list[np.ndarray]]
         The local DoF matrix reps, `M`, for each operation in the head symmetry group,
         for each sublattice,
         ``M = local_dof_matrix_rep[head_group_index][sublattice_index]``.
-    symgroup: SymGroup
-        The symmetry group used to generate the equivalent local basis sets. May be a
-        subgroup.
-    equivalence_map_clusters: list[list[Cluster]]
+    equivalence_map_clusters: list[list[libcasm.clusterography.Cluster]]
         The clusters generated from applying equivalence map operations to the
         prototype cluster without any permutation.
     phenomenal_generating_indices: list[int]
-        The indices of elements in `symgroup` elements list for each local basis
-        set generating operation.
+        The prim factor group indices for each local basis set generating operation.
     phenomenal_generating_site_rep: list[xtal.IntegralSiteCoordinateRep]
         Site representations (xtal.IntegralSiteCoordinateRep) for each local basis
         set generating operation.
@@ -719,25 +705,21 @@ def make_phenomenal_generating_matrix_rep(
 
     Returns
     -------
-    (phenomenal_generating_matrix_rep, \
-    phenomenal_generating_inv_matrix_rep, \
-    basis_set_clusters):
+    phenomenal_generating_matrix_rep: \
+    list[list[np.ndarray[np.float64[total_dim,total_dim]]]]
+        Matrix representations for phenomenal generating operations. Indexing is
+        ``phenomenal_generating_matrix_rep[i_clex][i_cluster]`.
 
-        phenomenal_generating_matrix_rep: \
-        list[list[np.ndarray[np.float64[total_dim,total_dim]]]]
-            Matrix representations for phenomenal generating operations. Indexing is
-            ``phenomenal_generating_matrix_rep[i_clex][i_cluster]`.
+    phenomenal_generating_inv_matrix_rep: \
+    list[list[np.ndarray[np.float64[total_dim,total_dim]]]]
+        Matrix representations for the inverse operation of phenomenal generating
+        operations. Indexing is
+        ``phenomenal_generating_inv_matrix_rep[i_clex][i_cluster]`.
 
-        phenomenal_generating_inv_matrix_rep: \
-        list[list[np.ndarray[np.float64[total_dim,total_dim]]]]
-            Matrix representations for the inverse operation of phenomenal generating
-            operations. Indexing is
-            ``phenomenal_generating_inv_matrix_rep[i_clex][i_cluster]`.
-
-        basis_set_clusters: list[list[Cluster]]
-            The clusters generated from applying phenomenal generating operations to the
-            prototype cluster, without any permutation. Indexing is
-            ``basis_set_clusters[i_clex][i_cluster]`.
+    basis_set_clusters: list[list[Cluster]]
+        The clusters generated from applying phenomenal generating operations to the
+        prototype cluster, without any permutation. Indexing is
+        ``basis_set_clusters[i_clex][i_cluster]`.
 
 
     """
@@ -745,18 +727,14 @@ def make_phenomenal_generating_matrix_rep(
     phenomenal_generating_matrix_rep = []
     phenomenal_generating_inv_matrix_rep = []
     basis_set_clusters = []
-    head_group = symgroup.head_group
-    if head_group is None:
-        head_group = symgroup
-    head_group_index_list = symgroup.head_group_index
+    prim_factor_group = prim.factor_group
     for i_clex in range(len(phenomenal_generating_indices)):
         matrix_rep = []
         inv_matrix_rep = []
         clusters = []
 
         # Make phenomenal generating matrix rep (no permutations)
-        symgroup_index = phenomenal_generating_indices[i_clex]
-        head_group_index = head_group_index_list[symgroup_index]
+        prim_factor_group_index = phenomenal_generating_indices[i_clex]
         site_rep = phenomenal_generating_site_rep[i_clex]
 
         for i_clust in range(len(equivalence_map_clusters)):
@@ -767,8 +745,8 @@ def make_phenomenal_generating_matrix_rep(
             ) = make_cluster_matrix_rep_no_permutation(
                 local_dof_matrix_rep=local_dof_matrix_rep,
                 cluster=equivalence_map_clusters[i_clust][0],
-                head_group=head_group,
-                head_group_index=head_group_index,
+                head_group=prim_factor_group,
+                head_group_index=prim_factor_group_index,
                 site_rep=site_rep,
                 total_dim=total_dim,
                 site_index_to_basis_index=site_index_to_basis_index,
@@ -865,8 +843,8 @@ def make_occ_site_functions_matrix_rep(
         site basis functions, must include:
 
         - `"sublattice_index"`: int, index of the sublattice
-        - `"functions"`: list[list[float]], list of the site basis function values, by
-          DoF key (i.e. "occ") as ``value = functions[function_index][occupant_index]``.
+        - `"value"`: list[list[float]], list of the site basis function values,
+          as ``value[function_index][occupant_index]``.
         
     Returns
     -------
@@ -977,9 +955,8 @@ class ClusterMatrixRepBuilder:
             site basis functions, must include:
 
             - `"sublattice_index"`: int, index of the sublattice
-            - `"functions"`: list[list[float]], list of the site basis function values,
-              by DoF key (i.e. "occ") as
-              ``value = functions[function_index][occupant_index]``.
+            - `"value"`: list[list[float]], list of the site basis function values,
+              as ``value[function_index][occupant_index]``.
         """
 
         if local_discrete_dof is None:
@@ -1232,9 +1209,8 @@ class OrbitMatrixRepBuilder:
             site basis functions, must include:
 
             - `"sublattice_index"`: int, index of the sublattice
-            - `"functions"`: list[list[float]], list of the site basis function values,
-              by DoF key (i.e. "occ") as
-              ``value = functions[function_index][occupant_index]``.
+            - `"value"`: list[list[float]], list of the site basis function values,
+              as ``value[function_index][occupant_index]``.
 
         """
 
@@ -1323,7 +1299,7 @@ class OrbitMatrixRepBuilder:
         symmetrically equivalent phenomenal cluster (if a local cluster expansion)."""
 
         self.phenomenal_generating_indices = None
-        """list[int]: Indices of factor group operations corresponding to \
+        """list[int]: Indices of prim factor group elements corresponding to \
         `phenomenal_generating_ops`."""
 
         self.phenomenal_generating_site_rep = None
@@ -1713,6 +1689,7 @@ class OrbitMatrixRepBuilder:
             local_prototype.append(_local_prototype)
 
             ## Build local DoF equivalence map matrix reps (no permutation)
+            # noinspection PyTupleAssignmentBalance
             _1, _2, _3 = make_equivalence_map_matrix_rep(
                 local_dof_matrix_rep=_local_dof_matrix_rep,
                 prototype_cluster=_local_prototype.cluster,
@@ -1727,9 +1704,10 @@ class OrbitMatrixRepBuilder:
 
             if phenomenal is not None:
                 ## Build local DoF phenomenal generating matrix reps (no permutation)
+                # noinspection PyTupleAssignmentBalance
                 _4, _5, _6 = make_phenomenal_generating_matrix_rep(
+                    prim=self.prim,
                     local_dof_matrix_rep=_local_dof_matrix_rep,
-                    symgroup=generating_group,
                     equivalence_map_clusters=_3,
                     phenomenal_generating_indices=phenomenal_generating_indices,
                     phenomenal_generating_site_rep=phenomenal_generating_site_rep,

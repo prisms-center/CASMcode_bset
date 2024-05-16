@@ -12,7 +12,7 @@
   {% endraw %}
   {% for site_funcs in occ_site_functions %}
     {% set sublattice_index = site_funcs.sublattice_index %}
-    {% for func in site_funcs.functions %}
+    {% for func in site_funcs.value %}
       {% set site_function_index  = loop.index0 %}
       {% for value in func %}
         {% set occupant_index = loop.index0 %}

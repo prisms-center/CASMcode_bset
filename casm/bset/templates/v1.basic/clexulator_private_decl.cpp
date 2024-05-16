@@ -79,7 +79,7 @@
   {% for site_funcs in occ_site_functions %}
     {% set sublattice_index = site_funcs.sublattice_index %}
     {% set n_occupants = site_funcs.n_occupants %}
-    {% for func in site_funcs.functions %}
+    {% for func in site_funcs.value %}
       {% set site_function_index  = loop.index0 %}
   double m_occ_func_{{ sublattice_index }}_{{ site_function_index }}[{{ n_occupants }}];
     {% endfor %}
@@ -204,7 +204,7 @@
   {% for site_funcs in occ_site_functions %}
     {% set sublattice_index = site_funcs.sublattice_index %}
     {% set n_occupants = site_funcs.n_occupants %}
-    {% for func in site_funcs.functions %}
+    {% for func in site_funcs.value %}
       {% set site_function_index  = loop.index0 %}
   double const &eval_occ_func_{{ sublattice_index }}_{{ site_function_index }}(const int &nlist_ind) const {
     return m_occ_func_{{ sublattice_index }}_{{ site_function_index }}[_occ(nlist_ind)];

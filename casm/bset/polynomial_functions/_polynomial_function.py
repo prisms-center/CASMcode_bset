@@ -97,12 +97,10 @@ def monomial_exponents_to_tensor_coord(n):
 
     Returns
     -------
-    (x, n_size): tuple[np.ndarray[np.int], int]
-
-        x: np.ndarray[np.int]
-            Tensor indices
-        n_size: int
-            Number of variable components, i.e. 6 for strain.
+    x: np.ndarray[np.int]
+        Tensor indices
+    n_size: int
+        Number of variable components, i.e. 6 for strain.
     """
     x = np.zeros((n.sum(),), dtype="int")
     j = 0
@@ -955,15 +953,20 @@ class PolynomialFunction:
 
         # build terms
         latex_formula = ""
-        for i, val in enumerate(factored_data): # len(factored_data) is the number of terms
-            coeff = a*factored_data[i]
+        for i, val in enumerate(
+            factored_data
+        ):  # len(factored_data) is the number of terms
+            coeff = a * factored_data[i]
             if np.isclose(coeff, 1):
                 coeff_tex = ""
             else:
-                coeff_tex = irrational_to_tex_string(a*factored_data[i], limit=limit, max_pow=max_pow, abs_tol=1e-5)
+                coeff_tex = irrational_to_tex_string(
+                    a * factored_data[i], limit=limit, max_pow=max_pow, abs_tol=1e-5
+                )
             polynomial_tex = ""
             for j, exp in enumerate(exponents[i]):
-                if exp == 0: continue # constant contribution
+                if exp == 0:
+                    continue  # constant contribution
                 if exp == 1:
                     polynomial_tex += f" * ({variables[j].name})"
                 else:

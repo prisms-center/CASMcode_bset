@@ -9,10 +9,9 @@ from ._cpp_str import (
     variable_cpp_str,
 )
 from ._methods import (
-    add_variables_needed,
+    ClexulatorWriter,
     make_orbit_bfuncs,
     make_site_bfuncs,
-    write_clexulator,
 )
 from ._write_v1_basic import (
     WriterV1Basic,

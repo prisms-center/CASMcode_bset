@@ -18,6 +18,21 @@ def almost_int(value, abs_tol=1e-5) -> bool:
 
 
 def signof(value, abs_tol=1e-5) -> float:
+    """Return the sign of a floating point value (or zero)
+
+    Parameters
+    ----------
+    value: float
+        The value to check.
+    abs_tol: float = 1e-5
+        The absolute tolerance to check for zero.
+
+    Returns
+    -------
+    signof: float
+        One of -1.0, 0.0, or 1.0.
+
+    """
     if value < -abs_tol:
         return -1.0
     elif value > abs_tol:
@@ -125,12 +140,10 @@ def factor_by_mode(x, abs_tol=1e-5):
 
     Returns
     -------
-    (mode, x_factored):
-
-        mode: float
-            The most commonly occurring value in `x`.
-        x_factored: np.ndarray[np.float]
-            The input array, `x`, divided by the mode.
+    mode: float
+        The most commonly occurring value in `x`.
+    x_factored: np.ndarray[np.float]
+        The input array, `x`, divided by the mode.
     """
     counts = []
     for _x in x:

@@ -103,7 +103,7 @@ def make_equivalents_generators(
             the primitive unit cell.
 
         indices: list[int]
-            Indices of factor group operations corresponding to `ops`.
+            Indices of prim factor group operations corresponding to `ops`.
 
         site_reps: list[libcasm.xtal.IntegralSiteCoordinateRep]
             Symmetry group representation for transforming IntegralSiteCoordinate

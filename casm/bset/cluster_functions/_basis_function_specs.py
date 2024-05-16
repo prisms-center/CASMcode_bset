@@ -2,37 +2,6 @@ from typing import Optional
 
 from casm.bset.parsing import to_dict
 
-site_basis_functions = "chebychev"
-site_basis_functions = "occupation"
-site_basis_functions = [
-    {
-        "asymmetric_unit_index": 0,
-        "composition": {"A": 0.25, "B": 0.75},
-    },
-    {
-        "asymmetric_unit_index": 0,
-        "composition": {"A": 0.75, "B": 0.25},
-    },
-]
-site_basis_functions = [
-    {
-        "asymmetric_unit_index": 0,
-        "basis": [
-            [1, 1, 1],
-            [0, 1, 0],
-            [0, 0, 1],
-        ],
-    },
-    {
-        "asymmetric_unit_index": 0,
-        "basis": [
-            [1, 1, 1],
-            [0, 0, 1],
-            [0, 1, 0],
-        ],
-    },
-]
-
 
 class BasisFunctionSpecs:
     R"""Basis function specifications

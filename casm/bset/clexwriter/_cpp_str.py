@@ -51,7 +51,7 @@ def occ_func_cpp_str(
     prim_neighbor_list: PrimNeighborList,
     occupant_index_argname: str,
 ) -> str:
-    """Get C++ expression to evaluate an occupation site basis variable
+    """Return a C++ expression to evaluate an occupation site basis variable
 
     Parameters
     ----------
@@ -89,6 +89,22 @@ def variable_cpp_str(
     var: Variable,
     prim_neighbor_list: PrimNeighborList,
 ) -> str:
+    """Return a C++ expression to access an evaluated variable
+
+    Parameters
+    ----------
+    var: casm.bset.polynomial_functions.Variable
+        The variable to be accessed.
+    prim_neighbor_list: PrimNeighborList
+        The PrimNeighborList used when constructing the functions.
+
+    Returns
+    -------
+    cpp_str: str
+        A C++ expression for a function that accesses the evaluated value of the
+        variable.
+
+    """
     nlist_sublat_indices = prim_neighbor_list.sublattice_indices()
     if var.key == "occ":
         # occ DoF / site basis function
@@ -115,6 +131,25 @@ def monomial_cpp_str(
     prim_neighbor_list: PrimNeighborList,
     cpp_fmt: CppFormatProperties,
 ) -> str:
+    """Return a C++ expression to evaluate a monomial
+
+    Parameters
+    ----------
+    variables: list[casm.bset.polynomial_functions.Variable]
+        The variables associated with the PolynomialFunction including this monomial.
+    coeff: float
+        The monomial coefficient.
+    prim_neighbor_list: PrimNeighborList
+        The PrimNeighborList used when constructing the functions.
+    cpp_fmt: CppFormatProperties
+        C++ string formatting properties.
+
+    Returns
+    -------
+    cpp_str: str
+        A C++ expression to evaluate the monomial and multiply by the coefficient.
+
+    """
     if (monomial_exponents == np.zeros(monomial_exponents.shape)).all():
         return "1"
 
@@ -145,6 +180,27 @@ def polynomial_sum_cpp_str(
     prim_neighbor_list: PrimNeighborList,
     cpp_fmt: CppFormatProperties,
 ) -> str:
+    """Return a C++ expression to evaluate a polynomial expression
+
+    Parameters
+    ----------
+    functions: list[PolynomialFunction]
+        The symmetrically equivalent cluster functions (i.e. that have the same
+        expansion coefficient) associated with a single unit cell that need to be
+        evaluated.
+    normalization: float
+        The normalization constant.
+    prim_neighbor_list: PrimNeighborList
+        The PrimNeighborList used when constructing the functions.
+    cpp_fmt: CppFormatProperties
+        C++ string formatting properties.
+
+    Returns
+    -------
+    cpp_str: str
+        A C++ expression to evaluate the sum of polynomial functions.
+
+    """
     if len(functions) == 0:
         return "0."
 
@@ -208,6 +264,29 @@ def orbit_bfunc_cpp_str(
     prim_neighbor_list: PrimNeighborList,
     cpp_fmt: CppFormatProperties,
 ) -> str:
+    """Return a C++ expression to evaluate a single orbit basis function
+
+    Parameters
+    ----------
+    orbit_functions: list[PolynomialFunction]
+        The symmetrically equivalent cluster functions (i.e. that have the same
+        expansion coefficient) associated with a single unit cell that need to be
+        evaluated.
+    orbit_size: int
+        The number of clusters in the orbit, per unit cell. Used for normalization.
+    prim_neighbor_list: PrimNeighborList
+        The PrimNeighborList used when constructing the functions.
+    cpp_fmt: CppFormatProperties
+        C++ string formatting properties.
+
+    Returns
+    -------
+    cpp_str: str
+        A C++ expression to evaluate the sum of polynomial functions involved in the
+        calculation of the contribution to the correlations from one unit cell (for a
+        periodic cluster expansion) or for one local-cluster correlation value.
+
+    """
     return polynomial_sum_cpp_str(
         functions=orbit_functions,
         normalization=float(orbit_size),
@@ -222,6 +301,28 @@ def site_bfunc_cpp_str(
     prim_neighbor_list: PrimNeighborList,
     cpp_fmt: CppFormatProperties,
 ) -> Optional[str]:
+    """Return a C++ expression to evaluate a single point correlation function
+
+    Parameters
+    ----------
+    point_functions: list[PolynomialFunction]
+        The symmetrically equivalent cluster functions (i.e. that have the same
+        expansion coefficient) that include the site at which the point correlations are
+        evaluated.
+    orbit_size: int
+        The number of clusters in the orbit, per unit cell. Used for normalization.
+    prim_neighbor_list: PrimNeighborList
+        The PrimNeighborList used when constructing the functions.
+    cpp_fmt: CppFormatProperties
+        C++ string formatting properties.
+
+    Returns
+    -------
+    cpp_str: str
+        A C++ expression to evaluate a single point correlation function (for either
+        periodic or local-cluster expansions).
+
+    """
     if len(point_functions) == 0:
         return None
     return polynomial_sum_cpp_str(
@@ -239,6 +340,30 @@ def occ_delta_site_bfunc_cpp_str(
     prim_neighbor_list: PrimNeighborList,
     cpp_fmt: CppFormatProperties,
 ) -> Optional[str]:
+    """Return a C++ expression to evaluate the change in a single point correlation \
+    function due to a change in occupation
+
+    Parameters
+    ----------
+    neighbor_list_index: int
+        The index in the prim neighbor list of the site with changing occupation.
+    point_functions: list[PolynomialFunction]
+        The symmetrically equivalent cluster functions (i.e. that have the same
+        expansion coefficient) that include the site at which the point correlations are
+        evaluated.
+    orbit_size: int
+        The number of clusters in the orbit, per unit cell. Used for normalization.
+    prim_neighbor_list: PrimNeighborList
+        The PrimNeighborList used when constructing the functions.
+    cpp_fmt: CppFormatProperties
+        C++ string formatting properties.
+
+    Returns
+    -------
+    cpp_str: str
+        A C++ expression to evaluate the change in a single point correlation function
+        due to a change in occupation (for either periodic or local-cluster expansions).
+"""
     if len(point_functions) == 0:
         return None
 

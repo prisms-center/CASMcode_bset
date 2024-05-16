@@ -77,6 +77,33 @@ def to_dict(
 
 
 def required_from_dict(required_type: typing.Any, data: dict, option: str, **kwargs):
+    """Parse required value using `required_type.from_dict` or raise
+
+    Notes
+    -----
+
+    - Raises if `option` key not in `data` dictionary
+    - If `required_type` has a `from_dict` method, that is used and `kwargs` are passed
+      through. Otherwise, `dict.get` is used and the value passed to the
+      `required_type` constructor.
+
+    Parameters
+    ----------
+    required_type: typing.Any
+        The type of the value to be parsed.
+    data: dict
+        The dictionary containing the value.
+    option: str
+        The key in the dictionary containing the value.
+    **kwargs:
+        Keyword arguments to be passed through to the `from_dict` method of
+        `required_type`, if it exists.
+
+    Returns
+    -------
+    value: required_type
+        A value of the required type.
+    """
     if option not in data:
         raise Exception(
             f"Error parsing dict: missing required '{option}'"
@@ -98,6 +125,26 @@ def required_from_dict(required_type: typing.Any, data: dict, option: str, **kwa
 
 
 def required_int_array_from_dict(data: dict, option: str):
+    """Parse required numpy.ndarray of integer type or raise
+
+    Notes
+    -----
+
+    - Raises if `option` key not in `data` dictionary
+
+    Parameters
+    ----------
+    data: dict
+        The dictionary containing the value.
+    option: str
+        The key in the dictionary containing the value.
+
+    Returns
+    -------
+    value: numpy.ndarray[numpy.int64]
+        A integer-valued numpy array.
+    """
+
     if option not in data:
         raise Exception(
             f"Error parsing dict: missing required '{option}'"
@@ -115,6 +162,25 @@ def required_int_array_from_dict(data: dict, option: str):
 
 
 def required_array_from_dict(data: dict, option: str):
+    """Parse required numpy.ndarray or raise
+
+    Notes
+    -----
+
+    - Raises if `option` key not in `data` dictionary
+
+    Parameters
+    ----------
+    data: dict
+        The dictionary containing the value.
+    option: str
+        The key in the dictionary containing the value.
+
+    Returns
+    -------
+    value: numpy.ndarray
+        A numpy array.
+    """
     if option not in data:
         raise Exception(
             f"Error parsing dict: missing required '{option}'" f"of array-like type"
@@ -136,6 +202,36 @@ def optional_from_dict(
     default_value: typing.Any = None,
     **kwargs,
 ):
+    """Parse optional value using `required_type.from_dict` or raise
+
+    Notes
+    -----
+
+    - Returns `default_value` if `option` key not in `data` dictionary
+    - If `required_type` has a `from_dict` method, that is used and `kwargs` are passed
+      through. Otherwise, `dict.get` is used and the value passed to the
+      `required_type` constructor.
+
+    Parameters
+    ----------
+    required_type: typing.Any
+        The type of the value to be parsed.
+    data: dict
+        The dictionary containing the value.
+    option: str
+        The key in the dictionary containing the value.
+    default_value:
+        The default value to return if `option` key does not exist in `data` dictionary.
+    **kwargs:
+        Keyword arguments to be passed through to the `from_dict` method of
+        `required_type`, if it exists.
+
+    Returns
+    -------
+    value: required_type
+        A value of the required type.
+    """
+
     value = data.get(option)
     if value is not None:
         members = [x[0] for x in inspect.getmembers(required_type)]

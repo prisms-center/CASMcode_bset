@@ -1,4 +1,4 @@
-from .clexwriter import write_clexulator
-from .cluster_functions import (
+from ._methods import (
     make_cluster_functions,
+    write_clexulator,
 )

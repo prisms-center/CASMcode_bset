@@ -1,6 +1,7 @@
-from typing import Optional
+from typing import Any, Optional
 
 import libcasm.casmglobal as casmglobal
+import libcasm.configuration as casmconfig
 import numpy as np
 
 from casm.bset.misc import almost_equal, almost_int, signof
@@ -9,12 +10,15 @@ from casm.bset.misc import almost_equal, almost_int, signof
 def make_composition_gram_matrix(
     occ_probs: np.ndarray,
 ) -> np.ndarray:
-    """
+    R"""Make the Gram matrix used to construct site basis functions about an average \
+    composition specified for each sublattice.
 
     Notes
     -----
 
-    - Method implemented originally by John C. Thomas in CASM v1
+    See the method description
+    `here <casm.bset.cluster_functions.make_orthonormal_discrete_functions>`_ for the
+    value of the Gram matrix returned by this method.
 
     Parameters
     ----------
@@ -29,12 +33,7 @@ def make_composition_gram_matrix(
         :math:`\pmb{B}^{\top} \pmb{G} \pmb{B} = \pmb{I}`. This Gram
         matrix is constructed so that it should yield orthonormality of the Chebychev
         polynomials when the occupation probabilities are equal, and orthonormality of
-        the occupation basis when only one probability is non-zero. It's value is:
-
-        .. math::
-
-            G_{i,i} = p_i + \sum_{j \neq i} (p_i - p_j)^{2}
-            G_{i,j] = \sum_{j \neq i} -(p_i - p_j)^{2}
+        the occupation basis when only one probability is non-zero.
 
     """
     p = np.array(occ_probs)
@@ -58,7 +57,7 @@ def make_composition_gram_matrix(
 
 def make_orthonormal_discrete_functions(
     occ_probs: np.ndarray,
-    abs_tol: 1e-10,
+    abs_tol: float = 1e-10,
 ):
     R"""Construct orthonormal discrete functions
 
@@ -214,6 +213,398 @@ def make_orthonormal_discrete_functions(
     return phi.transpose()
 
 
+def _is_chebychev_site_functions(site_basis_functions_specs: Any):
+    if not isinstance(site_basis_functions_specs, str):
+        return False
+    return site_basis_functions_specs.lower() == "chebychev"
+
+
+def make_chebychev_site_functions(
+    prim: casmconfig.Prim,
+    abs_tol: float = 1e-10,
+):
+    """Make discrete occupation site functions using the "chebychev" basis, which
+    expands about the random alloy.
+
+    Parameters
+    ----------
+    prim: libcasm.configation.Prim
+        The prim, with symmetry information.
+
+    abs_tol: float = 1e-10
+        A absolute tolerance for comparing values.
+
+    Returns
+    -------
+    occ_site_functions: list[dict]
+        List of occupation site basis functions. For each sublattice with discrete
+        site basis functions includes:
+
+        - `"sublattice_index"`: int, index of the sublattice
+        - `"value"`: list[list[float]], list of the site basis function values, as
+          ``value = functions[function_index][occupant_index]``.
+
+    """
+    occ_dofs = prim.xtal_prim.occ_dofs()
+    occ_site_functions = []
+    for i_sublat, site_occ_dofs in enumerate(occ_dofs):
+        n_allowed_occs = len(site_occ_dofs)
+        if n_allowed_occs > 1:
+            occ_probs = np.array([1.0 / n_allowed_occs] * n_allowed_occs)
+            occ_site_functions.append(
+                {
+                    "sublattice_index": i_sublat,
+                    "value": make_orthonormal_discrete_functions(occ_probs, abs_tol),
+                }
+            )
+
+    return occ_site_functions
+
+
+def _is_occupation_site_functions(site_basis_functions_specs: Any):
+    if not isinstance(site_basis_functions_specs, str):
+        return False
+    return site_basis_functions_specs.lower() == "chebychev"
+
+
+def make_occupation_site_functions(
+    prim: casmconfig.Prim,
+    abs_tol: float = 1e-10,
+):
+    """Make discrete occupation site functions using the "occupation" basis, which \
+    expands about the default configuration with each sublattice occupied by the first \
+    occupant listed in the prim.
+
+    Parameters
+    ----------
+    prim: libcasm.configation.Prim
+        The prim, with symmetry information.
+
+    abs_tol: float = 1e-10
+        A absolute tolerance for comparing values.
+
+    Returns
+    -------
+    occ_site_functions: list[dict]
+        List of occupation site basis functions. For each sublattice with discrete
+        site basis functions includes:
+
+        - `"sublattice_index"`: int, index of the sublattice
+        - `"value"`: list[list[float]], list of the site basis function values, as
+          ``value = functions[function_index][occupant_index]``.
+
+    """
+    occ_dofs = prim.xtal_prim.occ_dofs()
+    occ_site_functions = []
+    for i_sublat, site_occ_dofs in enumerate(occ_dofs):
+        n_allowed_occs = len(site_occ_dofs)
+        if n_allowed_occs > 1:
+            occ_probs = np.zeros((n_allowed_occs,))
+            occ_probs[0] = 1.0
+            occ_site_functions.append(
+                {
+                    "sublattice_index": i_sublat,
+                    "value": make_orthonormal_discrete_functions(occ_probs, abs_tol),
+                }
+            )
+
+    return occ_site_functions
+
+
+def _is_composition_site_functions(site_basis_functions_specs: Any):
+    if not isinstance(site_basis_functions_specs, list):
+        return False
+    for site in site_basis_functions_specs:
+        if not isinstance(site, dict):
+            return False
+        if "sublat_indices" not in site:
+            return False
+        if "composition" not in site:
+            return False
+    return True
+
+
+def make_composition_site_functions(
+    site_basis_functions_specs: list[dict],
+    prim: casmconfig.Prim,
+    abs_tol: float = 1e-10,
+):
+    """Construct site basis functions about an average composition specified for \
+    each sublattice.
+
+    Parameters
+    ----------
+    site_basis_functions_specs: list[dict]
+        The average composition on each sublattice with >1 allowed occupant. Example:
+
+        .. code-block:: Python
+
+            [
+              { // composition on sublattices 0 and 1, as listed
+              in prim
+                "sublat_indices": [0, 1],
+                "composition": {"A": 0.25, "B": 0.75}
+              },
+              { // composition on sublattices 2 and 3, as listed
+              in prim
+                "sublat_indices": [2, 3],
+                "composition": {"A": 0.75, "B": 0.25}
+              }
+            ]
+
+    prim: libcasm.configation.Prim
+        The prim, with symmetry information.
+
+    abs_tol: float = 1e-10
+        A absolute tolerance for comparing values.
+
+    Returns
+    -------
+    occ_site_functions: list[dict]
+        List of occupation site basis functions. For each sublattice with discrete
+        site basis functions includes:
+
+        - `"sublattice_index"`: int, index of the sublattice
+        - `"value"`: list[list[float]], list of the site basis function values, as
+          ``value = functions[function_index][occupant_index]``.
+    """
+    occ_site_functions = []
+    for i_sublat, site_occ_dof in enumerate(prim.xtal_prim.occ_dofs()):
+        if len(site_occ_dof) < 2:
+            continue
+        occ_site_functions.append(
+            {
+                "sublattice": i_sublat,
+            }
+        )
+
+    occ_dofs = prim.xtal_prim.occ_dofs()
+
+    found_sublat_indices = set()
+    _occ_site_functions = {}
+    """dict[int,numpy.ndarray]: Sublattice index -> site functions"""
+
+    for site in site_basis_functions_specs:
+        for i_sublat in site["sublat_indices"]:
+            found_sublat_indices.add(i_sublat)
+            site_occ_dofs = occ_dofs[i_sublat]
+            n_allowed_occs = len(site_occ_dofs)
+            occ_probs = np.zeros((n_allowed_occs,))
+            if len(site["composition"]) != n_allowed_occs:
+                raise Exception(
+                    "Error in make_composition_site_functions: "
+                    f"for sublattice {i_sublat} "
+                    f"the number of allowed occupants ({n_allowed_occs}) "
+                    f"does not match the number of compositions provided."
+                )
+            for name, value in site["composition"].items():
+                if name not in site_occ_dofs:
+                    raise Exception(
+                        "Error in make_composition_site_functions: "
+                        f"For sublattice {i_sublat}, {name} is not an allowed occupant."
+                    )
+                occ_probs[site_occ_dofs.index(name)] = value
+            if not almost_equal(np.sum(occ_probs), 1.0, abs_tol=casmglobal.TOL):
+                raise Exception(
+                    "Error in make_composition_site_functions: "
+                    f"For sublattice {i_sublat}, composition does not sum to 1.0."
+                )
+            phi = make_orthonormal_discrete_functions(occ_probs, abs_tol)
+            _occ_site_functions[i_sublat] = phi
+
+    # check that all sublattices with >1 occupant were specified
+    for i_sublat, site_occ_dofs in enumerate(occ_dofs):
+        if len(site_occ_dofs) > 1 and i_sublat not in found_sublat_indices:
+            raise Exception(
+                "Error in make_composition_site_functions: "
+                f"No compositions provided for sublattice {i_sublat}."
+            )
+
+    indices = list(found_sublat_indices)
+    indices.sort()
+    return [{"sublattice_index": i, "value": _occ_site_functions[i]} for i in indices]
+
+
+def _is_direct_site_functions(site_basis_functions_specs: Any):
+    if not isinstance(site_basis_functions_specs, list):
+        return False
+    for site in site_basis_functions_specs:
+        if not isinstance(site, dict):
+            return False
+        if "sublat_indices" not in site:
+            return False
+        if "value" not in site:
+            return False
+    return True
+
+
+def make_direct_site_functions(
+    site_basis_functions_specs: list[dict],
+    prim: casmconfig.Prim,
+    abs_tol: float = 1e-10,
+):
+    """Construct site basis functions as directly specified for each sublattice.
+
+    Parameters
+    ----------
+    site_basis_functions_specs: list[dict]
+        The site basis function values, as ``value[function_index][occupant_index]``,
+        on each sublattice with >1 allowed occupant. Example:
+
+        .. code-block:: Python
+
+            [
+              {
+                "sublat_indices": [0, 1],
+                "value": [
+                  [1., 1., 1.],
+                  [0., 1., 0.],
+                  [0., 0., 1.],
+                ]
+              },
+              {
+                "sublat_indices": [2, 3],
+                "value": [
+                  [1., 0., 0.],
+                  [0., 1., 0.],
+                  [1., 1., 1.],
+                ]
+              }
+            ]
+
+    prim: libcasm.configation.Prim
+        The prim, with symmetry information.
+
+    abs_tol: float = 1e-10
+        A absolute tolerance for comparing values.
+
+    Returns
+    -------
+    occ_site_functions: list[dict]
+        List of occupation site basis functions. For each sublattice with discrete
+        site basis functions includes:
+
+        - `"sublattice_index"`: int, index of the sublattice
+        - `"value"`: list[list[float]], list of the site basis function values, as
+          ``value = functions[function_index][occupant_index]``.
+    """
+    occ_site_functions = []
+    for i_sublat, site_occ_dof in enumerate(prim.xtal_prim.occ_dofs()):
+        if len(site_occ_dof) < 2:
+            continue
+        occ_site_functions.append(
+            {
+                "sublattice": i_sublat,
+            }
+        )
+
+    occ_dofs = prim.xtal_prim.occ_dofs()
+
+    found_sublat_indices = set()
+    _occ_site_functions = {}
+    """dict[int,numpy.ndarray]: Sublattice index -> site functions"""
+
+    for site in site_basis_functions_specs:
+        for i_sublat in site["sublat_indices"]:
+            found_sublat_indices.add(i_sublat)
+            site_occ_dofs = occ_dofs[i_sublat]
+            n_allowed_occs = len(site_occ_dofs)
+            occ_probs = np.zeros((n_allowed_occs,))
+            if len(site["composition"]) != n_allowed_occs:
+                raise Exception(
+                    "Error in make_composition_site_functions: "
+                    f"for sublattice {i_sublat} "
+                    f"the number of allowed occupants ({n_allowed_occs}) "
+                    f"does not match the number of compositions provided."
+                )
+            for name, value in site["composition"].items():
+                if name not in site_occ_dofs:
+                    raise Exception(
+                        "Error in make_composition_site_functions: "
+                        f"For sublattice {i_sublat}, {name} is not an allowed occupant."
+                    )
+                occ_probs[site_occ_dofs.index(name)] = value
+            if not almost_equal(np.sum(occ_probs), 1.0, abs_tol=casmglobal.TOL):
+                raise Exception(
+                    "Error in make_composition_site_functions: "
+                    f"For sublattice {i_sublat}, composition does not sum to 1.0."
+                )
+            phi = make_orthonormal_discrete_functions(occ_probs, abs_tol)
+            _occ_site_functions[i_sublat] = phi
+
+    # check that all sublattices with >1 occupant were specified
+    for i_sublat, site_occ_dofs in enumerate(occ_dofs):
+        if len(site_occ_dofs) > 1 and i_sublat not in found_sublat_indices:
+            raise Exception(
+                "Error in make_composition_site_functions: "
+                f"No compositions provided for sublattice {i_sublat}."
+            )
+
+    indices = list(found_sublat_indices)
+    indices.sort()
+    return [{"sublattice_index": i, "value": _occ_site_functions[i]} for i in indices]
+
+
+def make_occ_site_functions(
+    prim: casmconfig.Prim,
+    dof_specs: dict,
+    abs_tol: float = 1e-10,
+) -> list[dict]:
+    """Make discrete occupation site functions from `dof_specs` input
+
+    Parameters
+    ----------
+    prim: libcasm.configation.Prim
+        The prim, with symmetry information.
+
+    dof_specs: dict = {}
+        Provides DoF-particular specifications for constructing basis functions,
+        as described in the section
+        :ref:`DoF Specifications <sec-dof-specifications>`. Expected to have an "occ"
+        key with site basis functions specifications.
+
+    abs_tol: float = 1e-10
+        A absolute tolerance for comparing values.
+
+    Returns
+    -------
+    occ_site_functions: list[dict]
+        List of occupation site basis functions. For each sublattice with discrete
+        site basis functions, must include:
+
+        - `"sublattice_index"`: int, index of the sublattice
+        - `"value"`: list[list[float]], list of the site basis function values, as
+          ``value = functions[function_index][occupant_index]``.
+
+    """
+    if "occ" not in dof_specs:
+        return []
+    occ_dof_specs = dof_specs["occ"]
+    if "site_basis_functions" not in occ_dof_specs:
+        raise Exception(
+            "Error in make_occ_site_functions: No site_basis_functions in dof_specs/occ"
+        )
+    x = occ_dof_specs["site_basis_functions"]
+
+    if _is_chebychev_site_functions(x):
+        return make_chebychev_site_functions(prim=prim, abs_tol=abs_tol)
+    elif _is_occupation_site_functions(x):
+        return make_occupation_site_functions(prim=prim, abs_tol=abs_tol)
+    elif _is_composition_site_functions(x):
+        return make_composition_site_functions(
+            site_basis_functions_specs=x, prim=prim, abs_tol=abs_tol
+        )
+    elif _is_direct_site_functions(x):
+        return make_direct_site_functions(
+            site_basis_functions_specs=x, prim=prim, abs_tol=abs_tol
+        )
+
+    raise Exception(
+        "Error in make_occ_site_functions: "
+        "Invalid dof_specs/occ/site_basis_functions value"
+    )
+
+
 def get_occ_site_functions(
     occ_site_functions: list[dict],
     sublattice_index: int,
@@ -228,7 +619,7 @@ def get_occ_site_functions(
         site basis functions, must include:
 
         - `"sublattice_index"`: int, index of the sublattice
-        - `"functions"`: list[list[float]], list of the site basis function values, as
+        - `"value"`: list[list[float]], list of the site basis function values, as
           ``value = functions[function_index][occupant_index]``.
 
     sublattice_index: int
@@ -249,7 +640,7 @@ def get_occ_site_functions(
     """
     for site_funcs in occ_site_functions:
         if site_funcs["sublattice_index"] == sublattice_index:
-            site_functions = np.array(site_funcs["functions"])
+            site_functions = np.array(site_funcs["value"])
             if sublattice_index is None:
                 return site_functions
             elif site_function_index < 0:

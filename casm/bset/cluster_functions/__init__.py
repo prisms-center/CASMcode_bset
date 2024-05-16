@@ -6,11 +6,15 @@ from ._clex_basis_specs import (
 )
 from ._cluster_functions import (
     ClusterFunctionsBuilder,
-    make_cluster_functions,
     make_point_functions,
 )
 from ._discrete_functions import (
+    make_chebychev_site_functions,
     make_composition_gram_matrix,
+    make_composition_site_functions,
+    make_direct_site_functions,
+    make_occ_site_functions,
+    make_occupation_site_functions,
     make_orthonormal_discrete_functions,
 )
 from ._matrix_rep import (
@@ -23,5 +27,6 @@ from ._matrix_rep import (
     make_equivalence_map_matrix_rep,
     make_equivalence_map_site_rep,
     make_global_dof_matrix_rep,
+    make_global_variables,
 )
 from ._misc import make_equivalents_generators, make_symop_inverse, orbits_to_dict
