@@ -26,8 +26,19 @@ def test_Hstrain_disp_fcc_1(session_shared_datadir):
     )
     print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
-        xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
+    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+        prim=xtal_prim,
+        clex_basis_specs={
+            "cluster_specs": {
+                "orbit_branch_specs": {
+                    "2": {"max_length": 1.01},
+                    "3": {"max_length": 1.01},
+                },
+            },
+            "basis_function_specs": {
+                "global_max_poly_order": 4,
+            },
+        },
     )
 
     assert len(clusters) == 4
@@ -55,7 +66,7 @@ def test_Hstrain_disp_fcc_1(session_shared_datadir):
     with open(
         session_shared_datadir / "expected_Hstrain_disp_functions_fcc_1.json"
     ) as f:
-        assert_expected_cluster_functions_detailed(functions, json.load(f))
+        assert_expected_cluster_functions_detailed(functions, clusters, json.load(f))
 
     # print_expected_cluster_functions(functions)
     # assert False
@@ -76,8 +87,19 @@ def test_Hstrain_disp_hcp_1(session_shared_datadir):
     )
     print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
-        xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
+    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+        prim=xtal_prim,
+        clex_basis_specs={
+            "cluster_specs": {
+                "orbit_branch_specs": {
+                    "2": {"max_length": 1.01},
+                    "3": {"max_length": 1.01},
+                },
+            },
+            "basis_function_specs": {
+                "global_max_poly_order": 4,
+            },
+        },
     )
 
     # print_expected_cluster_functions_detailed(
@@ -89,7 +111,7 @@ def test_Hstrain_disp_hcp_1(session_shared_datadir):
     with open(
         session_shared_datadir / "expected_Hstrain_disp_functions_hcp_1.json"
     ) as f:
-        assert_expected_cluster_functions_detailed(functions, json.load(f))
+        assert_expected_cluster_functions_detailed(functions, clusters, json.load(f))
 
     # print_expected_cluster_functions(functions)
     # assert False
@@ -105,8 +127,18 @@ def test_Hstrain_disp_lowsym_1(lowsym_Hstrain_disp_prim, session_shared_datadir)
     xtal_prim = lowsym_Hstrain_disp_prim
     print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
-        xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01], global_max_poly_order=3
+    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+        prim=xtal_prim,
+        clex_basis_specs={
+            "cluster_specs": {
+                "orbit_branch_specs": {
+                    "2": {"max_length": 1.01},
+                },
+            },
+            "basis_function_specs": {
+                "global_max_poly_order": 3,
+            },
+        },
     )
 
     # print_expected_cluster_functions_detailed(
@@ -118,7 +150,7 @@ def test_Hstrain_disp_lowsym_1(lowsym_Hstrain_disp_prim, session_shared_datadir)
     with open(
         session_shared_datadir / "expected_Hstrain_disp_functions_lowsym_1.json"
     ) as f:
-        assert_expected_cluster_functions_detailed(functions, json.load(f))
+        assert_expected_cluster_functions_detailed(functions, clusters, json.load(f))
 
     # print_expected_cluster_functions(functions)
     # assert False
