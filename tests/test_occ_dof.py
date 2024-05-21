@@ -1,23 +1,9 @@
-from typing import Optional
-import os
 import json
-import pathlib
-import numpy as np
 
-import libcasm.xtal as xtal
-import libcasm.xtal.prims as xtal_prims
 import libcasm.clusterography as casmclust
 import libcasm.configuration as casmconfig
 import libcasm.occ_events as occ_events
-from casm.bset import (
-    make_cluster_functions,
-)
-from casm.bset.cluster_functions import (
-    ClexBasisSpecs,
-    BasisFunctionSpecs,
-    make_neighborhood,
-    make_occevent_cluster_specs,
-)
+import libcasm.xtal.prims as xtal_prims
 
 # from utils.expected_disp_functions import (
 #     expected_occ_functions_fcc_1,
@@ -26,7 +12,16 @@ from casm.bset.cluster_functions import (
 # )
 from utils.helpers import (
     assert_expected_cluster_functions_detailed,
-    print_expected_cluster_functions_detailed,
+)
+
+from casm.bset import (
+    build_cluster_functions,
+)
+from casm.bset.cluster_functions import (
+    BasisFunctionSpecs,
+    ClexBasisSpecs,
+    make_neighborhood,
+    make_occevent_cluster_specs,
 )
 
 
@@ -37,7 +32,7 @@ def test_occ_fcc_1a(session_shared_datadir):
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
             "cluster_specs": {
@@ -51,6 +46,7 @@ def test_occ_fcc_1a(session_shared_datadir):
             },
         },
     )
+    functions, clusters = (builder.functions, builder.clusters)
 
     # print_expected_cluster_functions_detailed(
     #     functions,
@@ -69,7 +65,7 @@ def test_occ_fcc_1b(session_shared_datadir):
     )
 
     prim = casmconfig.Prim(xtal_prim)
-    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=prim,
         clex_basis_specs=ClexBasisSpecs(
             cluster_specs=casmclust.ClusterSpecs(
@@ -82,6 +78,7 @@ def test_occ_fcc_1b(session_shared_datadir):
             ),
         ),
     )
+    functions, clusters = (builder.functions, builder.clusters)
 
     # print_expected_cluster_functions_detailed(
     #     functions,
@@ -131,13 +128,7 @@ def test_occ_fcc_local_1(session_shared_datadir):
     expected_neighborhood_size = 26
     assert len(make_neighborhood(clusters=orbits)) == expected_neighborhood_size
 
-    (
-        functions,
-        clusters,
-        prim_neighbor_list,
-        equivalent_functions,
-        equivalent_clusters,
-    ) = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=prim,
         clex_basis_specs=ClexBasisSpecs(
             cluster_specs=cluster_specs,
@@ -145,6 +136,11 @@ def test_occ_fcc_local_1(session_shared_datadir):
                 dof_specs={"occ": {"site_basis_functions": "occupation"}},
             ),
         ),
+    )
+    functions, clusters = (builder.functions, builder.clusters)
+    equivalent_functions, equivalent_clusters = (
+        builder.equivalent_functions,
+        builder.equivalent_clusters,
     )
 
     expected_n_clex = 6
@@ -188,7 +184,7 @@ def test_occ_hcp_1(session_shared_datadir):
         occ_dof=["A", "B", "C"],
     )
 
-    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
             "cluster_specs": {
@@ -202,6 +198,7 @@ def test_occ_hcp_1(session_shared_datadir):
             },
         },
     )
+    functions, clusters = (builder.functions, builder.clusters)
 
     # print_expected_cluster_functions_detailed(
     #     functions,
@@ -216,7 +213,7 @@ def test_occ_hcp_1(session_shared_datadir):
 def test_occ_lowsym_1(lowsym_occ_prim, session_shared_datadir):
     xtal_prim = lowsym_occ_prim
 
-    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
             "cluster_specs": {
@@ -230,6 +227,7 @@ def test_occ_lowsym_1(lowsym_occ_prim, session_shared_datadir):
             },
         },
     )
+    functions, clusters = (builder.functions, builder.clusters)
 
     # print_expected_cluster_functions_detailed(
     #     functions,

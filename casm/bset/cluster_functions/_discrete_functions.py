@@ -1,4 +1,4 @@
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import libcasm.casmglobal as casmglobal
 import libcasm.configuration as casmconfig
@@ -69,7 +69,7 @@ def make_orthonormal_discrete_functions(
       :math:`\pmb{\varphi}`, with the properties:
 
       - Row :math:`i` corresponds to the :math:`i`-th site basis function
-      - Element :math:`\varphi_ij` is the value of the :math:`i`-th function when the
+      - Element :math:`\varphi_{ij}` is the value of the :math:`i`-th function when the
         site occupation index is the :math:`j`-th possible value.
       - The first row is all ones.
       - In the random alloy at a site composition equal to the input occupation
@@ -547,7 +547,7 @@ def make_direct_site_functions(
 
 def make_occ_site_functions(
     prim: casmconfig.Prim,
-    dof_specs: dict,
+    occ_site_basis_functions_specs: Union[str, list[dict]],
     abs_tol: float = 1e-10,
 ) -> list[dict]:
     """Make discrete occupation site functions from `dof_specs` input
@@ -557,11 +557,75 @@ def make_occ_site_functions(
     prim: libcasm.configation.Prim
         The prim, with symmetry information.
 
-    dof_specs: dict = {}
-        Provides DoF-particular specifications for constructing basis functions,
-        as described in the section
-        :ref:`DoF Specifications <sec-dof-specifications>`. Expected to have an "occ"
-        key with site basis functions specifications.
+    occ_site_basis_functions_specs: Union[str, list[dict]]
+        Provides instructions for constructing occupation site basis functions. As
+        described in detail in the section
+        :ref:`DoF Specifications <sec-dof-specifications>`, the options are:
+
+        - "chebychev": Chebychev site basis functions give an expansion (with
+          correlation values all equal to `0`) about the idealized random alloy where
+          the probability of any of the allowed occupants on a particular site is the
+          same.
+        - "occupation": The "occupation" site basis functions give an expansion (with
+          correlation values all equal to `0`) about the default configuration where
+          each site is occupied by the first allowed occupant in the prim
+          :func:`~libcasm.xtal.Prim.occ_dof` list.
+        - `list[dict]`: A list of dictionaries in one of the following formats:
+
+          - Composition-centered basis functions, which give an expansion (with
+            correlation values all equal to `0`) for the idealized random configuration
+            with a particular composition for each asymmetric unit. Expected format
+            for the dictionaries is:
+
+            .. code-block:: Python
+
+                {
+                    "sublat_indices": [0, 1],
+                    "composition": {"A": 0.25, "B": 0.75},
+                }
+
+            Only one sublattice in each asymmetric unit with >1 allowed occupant is
+            required to be given. The specified composition is used to construct
+            discrete basis functions on one site and then symmetry is used to
+            construct an equivalent basis on other sites in the asymmetric unit. For
+            anisotropic occupants there may be multiple ways consistent with the prim
+            factor group to construct the site basis functions on other sites (i.e.
+            the choice of which spin state or molecular orientation of an occupant gets
+            site basis function values of -1 or +1 may be arbitrary as long as it is
+            done consistently). The particular choice made is based on the order in
+            which symmetry operations are sorted in the prim factor group and should
+            be consistent for a particular choice of prim. An exception will be raised
+            if sublattices in different asymmetric units are incorrectly grouped, or if
+            no site is given for an asymmetric unit with >1 allowed occupant.
+
+          - Directly set basis functions values.
+
+            .. warning::
+
+                With this method it is possible to incorrectly use site basis functions
+                that are not consistent with the symmetry of the prim. It should be
+                considered a feature for developers and advanced users who understand
+                how to check the results.
+
+            The expected format for the dictionaries is:
+
+            .. code-block:: Python
+
+                {
+                    "sublat_indices": [0, 1],
+                    "value":  [
+                        [0., 1., 0.],
+                        [0., 0., 1.],
+                        [1., 1., 1.],
+                    ]
+                }
+
+            where site basis function values are specified using
+            `value[function_index][occupant_index]`, the `function_index` being the
+            site basis function index on the site, and the `occupant_index` being the
+            index of the occupant in the prim :func:`~libcasm.xtal.Prim.occ_dof` list
+            for the site.
+
 
     abs_tol: float = 1e-10
         A absolute tolerance for comparing values.
@@ -577,14 +641,7 @@ def make_occ_site_functions(
           ``value = functions[function_index][occupant_index]``.
 
     """
-    if "occ" not in dof_specs:
-        return []
-    occ_dof_specs = dof_specs["occ"]
-    if "site_basis_functions" not in occ_dof_specs:
-        raise Exception(
-            "Error in make_occ_site_functions: No site_basis_functions in dof_specs/occ"
-        )
-    x = occ_dof_specs["site_basis_functions"]
+    x = occ_site_basis_functions_specs
 
     if _is_chebychev_site_functions(x):
         return make_chebychev_site_functions(prim=prim, abs_tol=abs_tol)

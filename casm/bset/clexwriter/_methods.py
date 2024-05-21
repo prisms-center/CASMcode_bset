@@ -19,7 +19,6 @@ from casm.bset.clexwriter import (
 from casm.bset.cluster_functions import (
     ClexBasisSpecs,
     ClusterFunctionsBuilder,
-    make_occ_site_functions,
     make_point_functions,
 )
 from casm.bset.polynomial_functions import (
@@ -476,10 +475,13 @@ class ClexulatorWriter:
 
         phenomenal = cluster_specs.phenomenal()
         is_periodic = phenomenal is None
-        occ_site_functions = make_occ_site_functions(
-            prim=prim,
-            dof_specs=bfunc_specs.dof_specs,
-        )
+
+        occ_site_basis_functions_specs = None
+        if "occ" in bfunc_specs.dof_specs:
+            if "site_basis_functions" in bfunc_specs.dof_specs["occ"]:
+                occ_site_basis_functions_specs = bfunc_specs.dof_specs["occ"][
+                    "site_basis_functions"
+                ]
 
         builder = ClusterFunctionsBuilder(
             prim=prim,
@@ -490,7 +492,7 @@ class ClexulatorWriter:
             cutoff_radius=cluster_specs.cutoff_radius(),
             global_max_poly_order=bfunc_specs.global_max_poly_order,
             orbit_branch_max_poly_order=orbit_branch_max_poly_order,
-            occ_site_functions=occ_site_functions,
+            occ_site_basis_functions_specs=occ_site_basis_functions_specs,
             prim_neighbor_list=prim_neighbor_list,
         )
 
@@ -507,7 +509,7 @@ class ClexulatorWriter:
             bset_name=self.bset_name,
             is_periodic=is_periodic,
             prim_neighbor_list=builder.prim_neighbor_list,
-            occ_site_functions=occ_site_functions,
+            occ_site_functions=builder.occ_site_functions,
             linear_function_indices=self.linear_function_indices,
             cpp_fmt=self.cpp_fmt,
         )

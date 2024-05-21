@@ -103,7 +103,7 @@ A common choice for occupation variables in a binary alloy cluster expansion are
     \end{bmatrix},
 
 where the constant function :math:`\varphi_1(s_j)=1` that allows cluster expansion
-is explicitly included and :math:`varphi_2(s_j)` is a site basis function
+is explicitly included and :math:`\varphi_2(s_j)` is a site basis function
 with values equal to the spin occupation variables (:math:`\varphi_2(A)=-1`, :math:`\varphi_2(B)=1`).
 
 .. rubric:: Example, "occupation" site basis variables
@@ -127,7 +127,8 @@ For a binary alloy, the "occupation" site basis variables take the form :math:`\
 Occupation site basis functions - specification
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. rubric:: Chebychev occupation site basis functions
+Chebychev occupation site basis functions
+"""""""""""""""""""""""""""""""""""""""""
 
 Chebychev site basis functions give an expansion (with correlation values all equal to `0`) about the idealized random alloy where the probability of any of the allowed occupants on a particular site is the same. This choice of occupation site basis functions can be specified with:
 
@@ -163,7 +164,8 @@ For a ternary alloy, the Chebychev site basis functions used by CASM have the va
 
 
 
-.. rubric:: Occupation site basis functions
+Occupation site basis functions
+"""""""""""""""""""""""""""""""
 
 The "occupation" site basis functions give an expansion (with correlation values all equal to `0`) about the default configuration where each site is occupied by the first allowed occupant in the prim :func:`~libcasm.xtal.Prim.occ_dof` list. This choice of occupation site basis functions can be specified with:
 
@@ -198,9 +200,10 @@ For a ternary alloy, the "occupation" site basis functions used by CASM have the
     \end{bmatrix}.
 
 
-.. rubric:: Composition-centered site basis functions
+Composition-centered site basis functions
+"""""""""""""""""""""""""""""""""""""""""
 
-The composition-centered site basis functions give an expansion (with correlation values all equal to `0`) for the idealized random configuration with a particular composition on each sublattice. This can be specified with an array of dict, with the attributes:
+The composition-centered site basis functions give an expansion (with correlation values all equal to `0`) for the idealized random configuration with a particular composition on each sublattice. The formulation is described in the documentation for the function :func:`~casm.bset.cluster_functions.make_orthonormal_discrete_functions`. The sublattice compositions can be specified using an array of dict, with the attributes:
 
 - "composition": dict[str, float], Species the sublattice composition, using the
   the occupant names as keys (matching the prim occupants dictionary,
@@ -232,10 +235,24 @@ Example:
     )
 
 
+Only one sublattice in each asymmetric unit with >1 allowed occupant is required to be given. The specified composition is used to construct discrete basis functions on one site and then symmetry is used to construct an equivalent basis on other sites in the asymmetric unit.
 
-.. rubric:: Directly-set site basis functions
+For anisotropic occupants there may be multiple ways consistent with the prim factor group to construct the site basis functions on other sites (i.e. the choice of which spin state or molecular orientation of an occupant gets site basis function values of -1 or +1 may be arbitrary as long as it is done consistently). The particular choice made is based on the order in which symmetry operations are sorted in the prim factor group and should be consistent for a particular choice of prim.
 
-The site basis functions can also be directly specified on each sublattice with an array of dict, with the attributes:
+An exception will be raised if sublattices in different asymmetric units are incorrectly grouped, or if no site is given for an asymmetric unit with >1 allowed occupant.
+
+
+Directly-set site basis functions
+"""""""""""""""""""""""""""""""""
+
+.. warning::
+
+    With this method it is possible to incorrectly use site basis functions
+    that are not consistent with the symmetry of the prim. It should be
+    considered a feature for developers and advanced users who understand
+    how to check the results.
+
+The site basis functions can be directly specified on each sublattice using an array of dict, with the attributes:
 
 - "value": list[list[float], Species the site basis function values, :math:`\varphi_{ms}`,
   where the row index, :math:`m`, corresponds to a function index, and the column, :math:`s`,
@@ -278,6 +295,10 @@ Example:
 Magnetic spin site basis functions
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+.. tip::
+
+    DoF specs as described in this section are planned but not yet implemented.
+
 For magnetic spin DoF ("flavor_magspin"), the `dof_specs` parameter is used to
 specify the maximum order of spherical harmonic site basis functions.
 
@@ -316,7 +337,8 @@ Examples
 Occupation DoF
 ^^^^^^^^^^^^^^
 
-.. rubric:: Example: Chebychev site basis functions
+Example: Chebychev site basis functions
+"""""""""""""""""""""""""""""""""""""""
 
 .. code-block:: Python
 
@@ -330,7 +352,8 @@ Occupation DoF
 
 
 
-.. rubric:: Example: Occupation site basis functions
+Example: Occupation site basis functions
+""""""""""""""""""""""""""""""""""""""""
 
 .. code-block:: Python
 
@@ -343,57 +366,8 @@ Occupation DoF
     )
 
 
-.. rubric:: Example: Directly set site basis function values
-
-To directly specify the site basis function values, use an array of dict, with attributes:
-
-- "value": list[list[float], Species the site basis function values, :math:`\varphi_{ms}`,
-  where the row index, :math:`m`, corresponds to a function index, and the column, :math:`s`,
-  is the site occupation index. One row must be the vector of ones.
-
-- "sublat_indices": list[int], Specifies the sublattices for which the site basis
-  function values apply.
-
-.. code-block:: Python
-
-    basis_function_specs = BasisFunctionSpecs(
-        dof_specs={
-            "occ": {
-                "site_basis_functions": [
-                    {
-                        "sublat_indices": [0, 1],
-                        "value": [
-                            [1., 1., 1.],
-                            [0., 1., 0.],
-                            [0., 0., 1.],
-                        ]
-                    },
-                    {
-                        "sublat_indices": [2, 3],
-                        "value": [
-                            [0., 1., 0.],
-                            [0., 0., 1.],
-                            [1., 1., 1.],
-                        ]
-                    }
-                ]
-            }
-        },
-    )
-
-
-.. rubric:: Example: Composition-centered site basis functions
-
-To specify site basis functions that give correlations with value :math:`\vec{0}` at
-a particular set of sublattice compositions, use an array of dict, with attributes:
-
-- "composition": dict[str, float], Species the sublattice composition, using the
-  the occupant names as keys (matching the prim occupants dictionary,
-  :func:`~libcasm.xtal.Prim.occupants`), and sublattice composition as values. The
-  values on a sublattice must sum to 1.0.
-
-- "sublat_indices": list[int], Specifies the sublattices for which the composition
-  values apply.
+Example: Composition-centered site basis functions
+""""""""""""""""""""""""""""""""""""""""""""""""""
 
 .. code-block:: Python
 
@@ -415,10 +389,50 @@ a particular set of sublattice compositions, use an array of dict, with attribut
     )
 
 
+Example: Directly set site basis function values
+""""""""""""""""""""""""""""""""""""""""""""""""
+
+.. warning::
+
+    With this method it is possible to incorrectly use site basis functions
+    that are not consistent with the symmetry of the prim. It should be
+    considered a feature for developers and advanced users who understand
+    how to check the results.
+
+.. code-block:: Python
+
+    basis_function_specs = BasisFunctionSpecs(
+        dof_specs={
+            "occ": {
+                "site_basis_functions": [
+                    {
+                        "sublat_indices": [0, 1],
+                        "value": [
+                            [1., 1., 1.],
+                            [0., 1., 0.],
+                            [0., 0., 1.],
+                        ]
+                    },
+                    {
+                        "sublat_indices": [2, 3],
+                        "value": [
+                            [0., 1., 0.],
+                            [0., 0., 1.],
+                            [1., 1., 1.],
+                        ]
+                    }
+                ]
+            }
+        },
+    )
+
+
+
 Strain DoF
 ^^^^^^^^^^
 
-.. rubric:: Example: Hencky strain DoF
+Example: Hencky strain DoF
+""""""""""""""""""""""""""
 
 With maximum polynomial order 5:
 
@@ -432,7 +446,8 @@ With maximum polynomial order 5:
 Strain and occupation DoF
 ^^^^^^^^^^^^^^^^^^^^^^^^^
 
-.. rubric:: Example: Coupled strain and occupation DoF (1)
+Example: Coupled strain and occupation DoF (1)
+""""""""""""""""""""""""""""""""""""""""""""""
 
 With:
 
@@ -453,7 +468,8 @@ With:
     )
 
 
-.. rubric:: Example: Coupled strain and occupation DoF (2)
+Example: Coupled strain and occupation DoF (2)
+""""""""""""""""""""""""""""""""""""""""""""""
 
 With:
 
@@ -461,7 +477,7 @@ With:
 - global maximum polynomial order 5, which includes both strain and discrete DoF variables
   for the cluster functions.
 - point- and pair-cluster branch maximum polynomial order 7,
-- null-cluster maximum polynomial order 8.
+- null-cluster (strain-only) maximum polynomial order 8.
 
 .. code-block:: Python
 
@@ -474,7 +490,7 @@ With:
         },
         global_max_poly_order=5,
         orbit_branch_max_poly_order={
-            "0": 10,
+            "0": 8,
             "1": 7,
             "2": 7,
         }

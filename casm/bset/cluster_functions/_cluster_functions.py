@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Optional
+from typing import Callable, Iterable, Optional, Union
 
 import libcasm.clusterography as casmclust
 import libcasm.configuration as casmconfig
@@ -13,6 +13,7 @@ from libcasm.clexulator import (
 
 from casm.bset.cluster_functions._discrete_functions import (
     get_occ_site_functions,
+    make_occ_site_functions,
 )
 from casm.bset.cluster_functions._matrix_rep import (
     OrbitMatrixRepBuilder,
@@ -339,14 +340,14 @@ class ClusterFunctionsBuilder:
         self,
         prim: casmconfig.Prim,
         generating_group: sym_info.SymGroup,
-        dofs: Optional[Iterable[str]] = None,
         clusters: Optional[Iterable[casmclust.Cluster]] = None,
         max_length: Optional[list[float]] = None,
         phenomenal: Optional[casmclust.Cluster] = None,
         cutoff_radius: Optional[list[float]] = None,
+        dofs: Optional[Iterable[str]] = None,
         global_max_poly_order: Optional[int] = None,
         orbit_branch_max_poly_order: Optional[dict[int, int]] = None,
-        occ_site_functions: Optional[list[dict]] = None,
+        occ_site_basis_functions_specs: Union[str, list[dict], None] = None,
         prim_neighbor_list: Optional[PrimNeighborList] = None,
         make_equivalents: bool = True,
         make_all_local_basis_sets: bool = True,
@@ -363,9 +364,6 @@ class ClusterFunctionsBuilder:
             The Prim, with symmetry information
         generating_group: libcasm.sym_info.SymGroup
             The symmetry group used to generate clusters and functions
-        dofs: Optional[Iterable[str]] = None
-            An iterable of string of dof type names that should be used to construct
-            basis functions. The default value is all DoF types included in the prim.
         clusters: Optional[Iterable[libcasm.clusterography.Cluster]] = None
             An iterable of :class:`~libcasm.clusterography.Cluster` containing the
             a single cluster from each orbit to generate functions for. If not provided,
@@ -380,30 +378,6 @@ class ClusterFunctionsBuilder:
             - For null and point clusters, there are no site-to-site distances so
               ``max_length[0]`` and ``max_length[1]`` are always ignored.
 
-        global_max_poly_order: Optional[int] = None
-            The maximum order of polynomials of continuous DoF to generate, for any
-            orbit not specified more specifically by `orbit_branch_max_poly_order`.
-        orbit_branch_max_poly_order: Optional[dict[int, int]] = None
-            Specifies for continuous DoF the maximum polynomial order to generate by
-            cluster size, according to
-            ``orbit_branch_max_poly_order[cluster_size] = max_poly_order``. By default,
-            for a given cluster orbit, polynomials of order up to the cluster size are
-            created. Higher order polynomials are requested either according to cluster
-            size using `orbit_branch_max_poly_order` or globally using
-            `global_max_poly_order`. The most specific level specified is used.
-        occ_site_functions: Optional[list[dict]] = None
-            List of occupation site basis functions. For each sublattice with discrete
-            site basis functions, must include:
-
-            - `"sublattice_index"`: int, index of the sublattice
-            - `"value"`: list[list[float]], list of the site basis function values,
-              as ``value[function_index][occupant_index]``.
-
-            The occupation site basis functions are typically generated using
-            :func:`~casm.bset.cluster_functions.make_occ_site_functions` with input
-            as described in the section
-            :ref:`DoF Specifications <sec-dof-specifications>`.
-
         phenomenal: Optional[libcasm.clusterography.Cluster] = None
             For local cluster functions, specifies the sites about which
             local-clusters orbits are generated. The phenomenal cluster must be chosen
@@ -415,6 +389,44 @@ class ClusterFunctionsBuilder:
             distance of sites from any phenomenal cluster site to include in the local
             environment, by number of sites in the cluster. The null cluster value
             (element 0) is arbitrary.
+        dofs: Optional[Iterable[str]] = None
+            An iterable of string of dof type names that should be used to construct
+            basis functions. The default value is all DoF types included in the prim.
+        global_max_poly_order: Optional[int] = None
+            The maximum order of polynomials of continuous DoF to generate, for any
+            orbit not specified more specifically by `orbit_branch_max_poly_order`.
+        orbit_branch_max_poly_order: Optional[dict[int, int]] = None
+            Specifies for continuous DoF the maximum polynomial order to generate by
+            cluster size, according to
+            ``orbit_branch_max_poly_order[cluster_size] = max_poly_order``. By default,
+            for a given cluster orbit, polynomials of order up to the cluster size are
+            created. Higher order polynomials are requested either according to cluster
+            size using `orbit_branch_max_poly_order` or globally using
+            `global_max_poly_order`. The most specific level specified is used.
+        occ_site_basis_functions_specs: Union[str, list[dict], None] = None
+            Provides instructions for constructing occupation site basis functions.
+            The accepted options are "chebychev", "occupation", or a `list[dict]`
+            a specifying sublattice-specific choice of site basis functions. This
+            parameter corresponds to the value of
+
+            .. code-block:: Python
+
+                "dof_specs": {
+                    "occ": {
+                        "site_basis_functions": ...
+                    }
+                }
+
+            as described in detail in the section
+            :ref:`DoF Specifications <sec-dof-specifications>` and is required for
+            functions of occupation DoF.
+        prim_neighbor_list: Optional[libcasm.clexulator.PrimNeighborList] = None
+            The :class:`PrimNeighborList` is used to uniquely index sites with local
+            variables included in the cluster functions, relative to a reference unit
+            cell. If not provided, a PrimNeighborList is constructed using default
+            parameters that include all sites with degrees of freedom (DoF) and the
+            default shape used by CASM projects. In most cases, the default should be
+            used.
         make_equivalents: bool = True
             If True, make all equivalent clusters and functions. Otherwise, only
             construct and return the prototype clusters and functions on the prototype
@@ -427,13 +439,6 @@ class ClusterFunctionsBuilder:
             Allows specifying a custom function to construct variable names. The default
             function used is :func:`make_variable_name`. Custom functions should have
             the same signature as :func:`make_variable_name`.
-        prim_neighbor_list: Optional[libcasm.clexulator.PrimNeighborList] = None
-            The :class:`PrimNeighborList` is used to uniquely index sites with local
-            variables included in the cluster functions, relative to a reference unit
-            cell. If not provided, a PrimNeighborList is constructed using default
-            parameters that include all sites with degrees of freedom (DoF) and the
-            default shape used by CASM projects. In most cases, this default should be
-            used.
         verbose: bool = False
             Print progress statements
 
@@ -443,8 +448,6 @@ class ClusterFunctionsBuilder:
             max_length = []
         if orbit_branch_max_poly_order is None:
             orbit_branch_max_poly_order = {}
-        if occ_site_functions is None:
-            occ_site_functions = []
         if cutoff_radius is None:
             cutoff_radius = []
 
@@ -547,7 +550,35 @@ class ClusterFunctionsBuilder:
         The most specific level specified is used.
         """
 
-        self._occ_site_functions = occ_site_functions
+        self._occ_site_basis_functions_specs = occ_site_basis_functions_specs
+        """Union[str, list[dict], None]: Instructions for constructing occupation \
+        site basis functions.
+            
+        The accepted options are "chebychev", "occupation", or a `list[dict]`
+        a specifying sublattice-specific choice of site basis functions. 
+        
+        This parameter corresponds to the value of
+
+        .. code-block:: Python
+
+            "dof_specs": {
+                "occ": {
+                    "site_basis_functions": ...
+                }
+            }
+
+        as described in detail in the section
+        :ref:`DoF Specifications <sec-dof-specifications>` and is required for
+        functions of occupation DoF."""
+
+        occ_site_functions = []
+        if occ_site_basis_functions_specs is not None:
+            occ_site_functions = make_occ_site_functions(
+                prim=prim,
+                occ_site_basis_functions_specs=occ_site_basis_functions_specs,
+            )
+
+        self.occ_site_functions = occ_site_functions
         """list[dict]: List of occupation site basis functions.
         
         For each sublattice with discrete site basis functions, must include:
@@ -617,18 +648,11 @@ class ClusterFunctionsBuilder:
         """
 
         self.orbit_matrix_rep_builders = orbit_matrix_rep_builders
-        """list[casm.bset.cluster_functions.OrbitMatrixRepBuilder]: For each orbit, \
-        the OrbitMatrixRepBuilder contains matrix representations of symmetry \
-        operations for generating symmetry-adapted polynomial cluster functions on the \
-        orbit prototype, coupling all local and global DoFs. 
-                
-        Also includes:
-
-        - Matrix representations for generating equivalent functions on other \
-          equivalent clusters in the same orbit.
-        - Matrix representations for constructing local cluster functions for the \
-          symmetrically equivalent orbits about symmetrically equivalent phenomenal \
-          clusters (local cluster functions only).
+        """list[casm.bset.cluster_functions.OrbitMatrixRepBuilder]: For each orbit,
+        the OrbitMatrixRepBuilder contains matrix representations of symmetry
+        operations for generating symmetry-adapted polynomial cluster functions on the
+        orbit prototype, coupling all local and global DoFs, and matrix representations
+        for constructing cluster functions on symmetrically equivalent clusters.
         """
 
         self.constraints = constraints
@@ -684,7 +708,7 @@ class ClusterFunctionsBuilder:
         """list[list[list[PolynomialFunction]]]: The generated cluster functions
 
         Polynomial functions, where ``functions[i_orbit][i_equiv][i_func]``, is the 
-        `i_func`-th function on the cluster given by `orbits[i_orbit][i_equiv]`.
+        `i_func`-th function on the cluster given by `clusters[i_orbit][i_equiv]`.
         """
 
         self.clusters = orbit_clusters
@@ -807,13 +831,13 @@ class ClusterFunctionsBuilder:
             cluster=cluster,
             phenomenal=self._phenomenal,
             make_variable_name_f=self._make_variable_name_f,
-            occ_site_functions=self._occ_site_functions,
+            occ_site_functions=self.occ_site_functions,
         )
         constraints = make_constraints(
             prototype_cluster=cluster,
             prototype_variables=builder.prototype_variables,
             prototype_variable_subsets=builder.prototype_variable_subsets,
-            occ_site_functions=self._occ_site_functions,
+            occ_site_functions=self.occ_site_functions,
             local_discrete_dof=self.local_discrete_dof,
         )
 

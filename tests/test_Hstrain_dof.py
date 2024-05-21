@@ -3,9 +3,6 @@ import json
 import libcasm.configuration as casmconfig
 import libcasm.xtal as xtal
 import libcasm.xtal.prims as xtal_prims
-from casm.bset import (
-    make_cluster_functions,
-)
 from utils.expected_Hstrain_functions import (
     expected_Hstrain_functions_fcc_1,
     expected_Hstrain_functions_hcp_1,
@@ -16,6 +13,9 @@ from utils.helpers import (
     assert_expected_functions,
 )
 
+from casm.bset import (
+    build_cluster_functions,
+)
 from casm.bset.cluster_functions import (
     make_global_dof_matrix_rep,
 )
@@ -60,7 +60,7 @@ def test_Hstrain_fcc_1(session_shared_datadir):
     assert_expected_functions(basis_set, expected)
 
     # test make_cluster_functions with only global DoF
-    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
             "cluster_specs": {},
@@ -69,6 +69,7 @@ def test_Hstrain_fcc_1(session_shared_datadir):
             },
         },
     )
+    functions, clusters = (builder.functions, builder.clusters)
 
     # print_expected_cluster_functions_detailed(
     #     functions,
@@ -93,7 +94,7 @@ def test_Hstrain_fcc_2(session_shared_datadir):
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
     # test make_cluster_functions with only global DoF
-    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
             "cluster_specs": {
@@ -108,6 +109,8 @@ def test_Hstrain_fcc_2(session_shared_datadir):
             },
         },
     )
+    functions, clusters = (builder.functions, builder.clusters)
+
     assert len(clusters) == 4
     assert len(clusters[0]) == 1
     assert len(clusters[1]) == 1
@@ -149,7 +152,7 @@ def test_Hstrain_fcc_3(session_shared_datadir):
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
     # test make_cluster_functions with only global DoF
-    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
             "cluster_specs": {
@@ -164,6 +167,8 @@ def test_Hstrain_fcc_3(session_shared_datadir):
             },
         },
     )
+    functions, clusters = (builder.functions, builder.clusters)
+
     assert len(clusters) == 4
     assert len(clusters[0]) == 1
     assert len(clusters[1]) == 1
@@ -229,7 +234,7 @@ def test_Hstrain_hcp_1(session_shared_datadir):
     assert_expected_functions(basis_set, expected)
 
     # test make_cluster_functions with only global DoF
-    functions, clusters, prim_neighbor_lists, _4, _5 = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
             "cluster_specs": {},
@@ -239,6 +244,8 @@ def test_Hstrain_hcp_1(session_shared_datadir):
             },
         },
     )
+    functions, clusters = (builder.functions, builder.clusters)
+
     assert len(clusters) == 1
     assert len(clusters[0]) == 1  # null cluster
 
@@ -292,7 +299,7 @@ def test_Hstrain_lowsym_1(lowsym_Hstrain_prim, session_shared_datadir):
     assert_expected_functions(basis_set, expected)
 
     # test make_cluster_functions with only global DoF
-    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
             "cluster_specs": {},
@@ -302,6 +309,8 @@ def test_Hstrain_lowsym_1(lowsym_Hstrain_prim, session_shared_datadir):
             },
         },
     )
+    functions, clusters = (builder.functions, builder.clusters)
+
     assert len(clusters) == 1
     assert len(clusters[0]) == 1  # null cluster
 

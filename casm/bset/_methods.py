@@ -2,7 +2,6 @@
 import pathlib
 from typing import Optional, Union
 
-import libcasm.clusterography as casmclust
 import libcasm.configuration as casmconfig
 import libcasm.xtal as xtal
 from libcasm.clexulator import (
@@ -17,27 +16,17 @@ from casm.bset.clexwriter import (
 from casm.bset.cluster_functions import (
     ClexBasisSpecs,
     ClusterFunctionsBuilder,
-    make_occ_site_functions,
-)
-from casm.bset.polynomial_functions import (
-    PolynomialFunction,
 )
 
 
-def make_cluster_functions(
+def build_cluster_functions(
     prim: Union[xtal.Prim, casmconfig.Prim, dict, str, pathlib.Path],
     clex_basis_specs: Union[ClexBasisSpecs, dict, str, pathlib.Path],
     prim_neighbor_list: Optional[PrimNeighborList] = None,
     make_equivalents: bool = True,
     make_all_local_basis_sets: bool = True,
     verbose: bool = False,
-) -> tuple[
-    list[list[list[PolynomialFunction]]],
-    list[list[casmclust.Cluster]],
-    PrimNeighborList,
-    list[list[list[list[PolynomialFunction]]]] | None,
-    list[list[list[casmclust.Cluster]]] | None,
-]:
+) -> ClusterFunctionsBuilder:
     """Constructs cluster expansion basis functions
 
     Parameters
@@ -73,40 +62,9 @@ def make_cluster_functions(
 
     Returns
     -------
-    functions: list[list[list[\
-    `PolynomialFunction <casm.bset.polynomial_functions.PolynomialFunction>`_]]]
-        Polynomial functions, where ``functions[i_orbit][i_equiv][i_func]``,
-        is the `i_func`-th function on the cluster given by
-        `clusters[i_orbit][i_equiv]`.
-
-    clusters: list[list[`Cluster <libcasm.clusterography.Cluster>`_]]
-        Clusters associated with the generatd `functions`. The cluster
-        ``clusters[i_orbit][i_equiv]`` is the `i_equiv`-th symmetrically equivalent
-        cluster in the `i_orbit`-th orbit. The order of sites in the returned
-        clusters is not arbitrary, it is consistent with the way variables are
-        defined in the returned `functions`.
-
-    prim_neighbor_list: `PrimNeighborList <libcasm.clexulator.PrimNeighborList>`_
-        The neighbor list corresponding to the `neighbor_list_index` of the
-        :class:`Variable` used in the :class:`PolynomialFunction` returned in
-        `functions`.
-
-    equivalent_functions: Optional[list[list[list[list[\
-    `PolynomialFunction <casm.bset.polynomial_functions.PolynomialFunction>`_]]]]]
-        The generated cluster functions about all equivalent phenomenal clusters
-        (if a local cluster expansion). The function
-        ``equivalent_functions[i_clex][i_orbit][i_equiv][i_func]``, is the
-        `i_func`-th function on the `i_equiv`-th cluster in the `i_orbit`-th orbit
-        about the `i_clex`-th equivalent phenomenal cluster.
-
-    equivalent_clusters: Optional[list[list[list[\
-    `Cluster <libcasm.clusterography.Cluster>`_]]]]
-        Clusters for the `equivalent_functions` are constructed. The
-        cluster ``equivalent_clusters[i_clex][i_orbit][i_equiv]`` is the
-        `i_equiv`-th symmetrically equivalent cluster in the `i_orbit`-th orbit
-        about the `i_clex`-th equivalent phenomenal cluster. The order of sites in
-        the returned clusters is not arbitrary, it is consistent with the way
-        variables are defined in the returned `functions`.
+    builder: casm.bset.cluster_functions.ClusterFunctionsBuilder
+        The ClusterFunctionsBuilder data structure holds the generated cluster
+        functions and associated clusters.
 
     """
     prim = _helpers.as_Prim(prim)
@@ -121,12 +79,15 @@ def make_cluster_functions(
         int(key): value
         for key, value in bfunc_specs.orbit_branch_max_poly_order.items()
     }
-    occ_site_functions = make_occ_site_functions(
-        prim=prim,
-        dof_specs=bfunc_specs.dof_specs,
-    )
 
-    builder = ClusterFunctionsBuilder(
+    occ_site_basis_functions_specs = None
+    if "occ" in bfunc_specs.dof_specs:
+        if "site_basis_functions" in bfunc_specs.dof_specs["occ"]:
+            occ_site_basis_functions_specs = bfunc_specs.dof_specs["occ"][
+                "site_basis_functions"
+            ]
+
+    return ClusterFunctionsBuilder(
         prim=prim,
         dofs=bfunc_specs.dofs,
         generating_group=cluster_specs.generating_group(),
@@ -134,19 +95,11 @@ def make_cluster_functions(
         phenomenal=cluster_specs.phenomenal(),
         global_max_poly_order=bfunc_specs.global_max_poly_order,
         orbit_branch_max_poly_order=orbit_branch_max_poly_order,
-        occ_site_functions=occ_site_functions,
+        occ_site_basis_functions_specs=occ_site_basis_functions_specs,
         prim_neighbor_list=prim_neighbor_list,
         make_equivalents=make_equivalents,
         make_all_local_basis_sets=make_all_local_basis_sets,
         verbose=verbose,
-    )
-
-    return (
-        builder.functions,
-        builder.clusters,
-        builder.prim_neighbor_list,
-        builder.equivalent_functions,
-        builder.equivalent_clusters,
     )
 
 

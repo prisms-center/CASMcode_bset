@@ -180,6 +180,7 @@ html_theme_options = {
         },
         {"rel": "apple-touch-icon", "sizes": "180x180", "href": "apple-touch-icon.png"},
     ],
+    "show_toc_level": 3
     # "primary_sidebar_end": ["primary_sidebar_end"]
 }
 # Add any paths that contain custom static files (such as style sheets) here,

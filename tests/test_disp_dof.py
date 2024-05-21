@@ -13,7 +13,7 @@ from utils.helpers import (
 )
 
 from casm.bset import (
-    make_cluster_functions,
+    build_cluster_functions,
 )
 
 
@@ -25,7 +25,7 @@ def test_disp_fcc_1(session_shared_datadir):
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
             "cluster_specs": {
@@ -39,6 +39,7 @@ def test_disp_fcc_1(session_shared_datadir):
             },
         },
     )
+    functions, clusters = (builder.functions, builder.clusters)
 
     assert len(clusters) == 4
     assert len(clusters[0]) == 1
@@ -80,7 +81,7 @@ def test_disp_hcp_1(session_shared_datadir):
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
             "cluster_specs": {
@@ -94,6 +95,7 @@ def test_disp_hcp_1(session_shared_datadir):
             },
         },
     )
+    functions, clusters = (builder.functions, builder.clusters)
 
     assert len(clusters) == 7
     assert clusters[0][0].size() == 0  # null
@@ -149,7 +151,7 @@ def test_disp_lowsym_1(lowsym_disp_prim, session_shared_datadir):
     xtal_prim = lowsym_disp_prim
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+    builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
             "cluster_specs": {
@@ -163,6 +165,7 @@ def test_disp_lowsym_1(lowsym_disp_prim, session_shared_datadir):
             },
         },
     )
+    functions, clusters = (builder.functions, builder.clusters)
 
     assert len(clusters) == 24
     assert len(functions) == 24
