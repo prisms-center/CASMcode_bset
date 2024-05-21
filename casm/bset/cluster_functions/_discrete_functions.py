@@ -245,7 +245,7 @@ def make_chebychev_site_functions(
           ``value = functions[function_index][occupant_index]``.
 
     """
-    occ_dofs = prim.xtal_prim.occ_dofs()
+    occ_dofs = prim.xtal_prim.occ_dof()
     occ_site_functions = []
     for i_sublat, site_occ_dofs in enumerate(occ_dofs):
         n_allowed_occs = len(site_occ_dofs)
@@ -264,7 +264,7 @@ def make_chebychev_site_functions(
 def _is_occupation_site_functions(site_basis_functions_specs: Any):
     if not isinstance(site_basis_functions_specs, str):
         return False
-    return site_basis_functions_specs.lower() == "chebychev"
+    return site_basis_functions_specs.lower() == "occupation"
 
 
 def make_occupation_site_functions(
@@ -294,7 +294,7 @@ def make_occupation_site_functions(
           ``value = functions[function_index][occupant_index]``.
 
     """
-    occ_dofs = prim.xtal_prim.occ_dofs()
+    occ_dofs = prim.xtal_prim.occ_dof()
     occ_site_functions = []
     for i_sublat, site_occ_dofs in enumerate(occ_dofs):
         n_allowed_occs = len(site_occ_dofs)
@@ -369,7 +369,7 @@ def make_composition_site_functions(
           ``value = functions[function_index][occupant_index]``.
     """
     occ_site_functions = []
-    for i_sublat, site_occ_dof in enumerate(prim.xtal_prim.occ_dofs()):
+    for i_sublat, site_occ_dof in enumerate(prim.xtal_prim.occ_dof()):
         if len(site_occ_dof) < 2:
             continue
         occ_site_functions.append(
@@ -378,7 +378,7 @@ def make_composition_site_functions(
             }
         )
 
-    occ_dofs = prim.xtal_prim.occ_dofs()
+    occ_dofs = prim.xtal_prim.occ_dof()
 
     found_sublat_indices = set()
     _occ_site_functions = {}
@@ -489,7 +489,7 @@ def make_direct_site_functions(
           ``value = functions[function_index][occupant_index]``.
     """
     occ_site_functions = []
-    for i_sublat, site_occ_dof in enumerate(prim.xtal_prim.occ_dofs()):
+    for i_sublat, site_occ_dof in enumerate(prim.xtal_prim.occ_dof()):
         if len(site_occ_dof) < 2:
             continue
         occ_site_functions.append(
@@ -498,7 +498,7 @@ def make_direct_site_functions(
             }
         )
 
-    occ_dofs = prim.xtal_prim.occ_dofs()
+    occ_dofs = prim.xtal_prim.occ_dof()
 
     found_sublat_indices = set()
     _occ_site_functions = {}
@@ -608,7 +608,7 @@ def make_occ_site_functions(
 def get_occ_site_functions(
     occ_site_functions: list[dict],
     sublattice_index: int,
-    site_function_index: Optional[int],
+    site_function_index: Optional[int] = None,
 ):
     """Get a specified occupation site function
 
@@ -630,18 +630,18 @@ def get_occ_site_functions(
 
     Returns
     -------
-    phi: Optional[np.ndarray]
+    phi: np.ndarray
         If `site_function_index` is None, returns the `shape=(n_occupants, n_occupants)`
         array with rows representing site functions and columns representing occupant
-        index, if it exists for the specified sublattice; else returns None. If
-        `site_function_index` is not None, returns the `shape=(n_occupants,)` array
-        representing the `site_function_index`-th site function, with indices
+        index, if it exists for the specified sublattice; else returns a `shape=(0,0)`
+        array. If `site_function_index` is not None, returns the `shape=(n_occupants,)`
+        array representing the `site_function_index`-th site function, with indices
         representing occupant index, on the specified sublattice.
     """
     for site_funcs in occ_site_functions:
         if site_funcs["sublattice_index"] == sublattice_index:
             site_functions = np.array(site_funcs["value"])
-            if sublattice_index is None:
+            if site_function_index is None:
                 return site_functions
             elif site_function_index < 0:
                 raise Exception(
@@ -655,4 +655,4 @@ def get_occ_site_functions(
                     "Error in get_occ_site_functions: "
                     f"invalid site_function_index={site_function_index}"
                 )
-    return None
+    return np.zeros((0, 0))

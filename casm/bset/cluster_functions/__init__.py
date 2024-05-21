@@ -29,4 +29,10 @@ from ._matrix_rep import (
     make_global_dof_matrix_rep,
     make_global_variables,
 )
-from ._misc import make_equivalents_generators, make_symop_inverse, orbits_to_dict
+from ._misc import (
+    make_equivalents_generators,
+    make_neighborhood,
+    make_occevent_cluster_specs,
+    make_symop_inverse,
+    orbits_to_dict,
+)

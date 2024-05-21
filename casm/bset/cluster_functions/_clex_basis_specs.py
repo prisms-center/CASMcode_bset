@@ -84,11 +84,22 @@ class ClexBasisSpecs:
         clex_basis_specs : ClexBasisSpecs
             The created ClexBasisSpecs
         """
+        if "cluster_specs" not in data:
+            raise Exception("Error in ClexBasisSpecs.from_dict: no cluster_specs")
+        if "params" in data["cluster_specs"]:
+            # v1 format:
+            cluster_specs_data = data["cluster_specs"]
+            cluster_specs_key = "params"
+        else:
+            # v2 format:
+            cluster_specs_data = data
+            cluster_specs_key = "cluster_specs"
+
         return ClexBasisSpecs(
             cluster_specs=required_from_dict(
                 ClusterSpecs,
-                data,
-                "cluster_specs",
+                cluster_specs_data,
+                cluster_specs_key,
                 xtal_prim=prim.xtal_prim,
                 prim_factor_group=prim.factor_group,
                 integral_site_coordinate_symgroup_rep=prim.integral_site_coordinate_symgroup_rep,

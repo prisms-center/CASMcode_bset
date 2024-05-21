@@ -11,9 +11,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [2],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 1,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1]
           ],
@@ -27,14 +27,14 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 0,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 0,
               "site_basis_function_index": 1
             }
@@ -50,9 +50,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [2],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 2,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1]
           ],
@@ -66,14 +66,14 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             }
@@ -89,9 +89,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [2],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 3,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1]
           ],
@@ -105,14 +105,14 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             }
@@ -128,9 +128,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [4, 4],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 4,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1]
           ],
@@ -145,28 +145,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 0,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 0,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             }
@@ -182,9 +182,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [4, 4],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 5,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1]
           ],
@@ -199,28 +199,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 6,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 6,
               "site_basis_function_index": 1
             }
@@ -236,9 +236,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [4, 4],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 6,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1]
           ],
@@ -253,28 +253,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 1
             }
@@ -290,9 +290,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [4, 4],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 7,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1]
           ],
@@ -307,28 +307,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             }
@@ -344,9 +344,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [4, 4],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 8,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1]
           ],
@@ -361,28 +361,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 1
             }
@@ -398,9 +398,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [4, 4],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 9,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1]
           ],
@@ -415,28 +415,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 1
             }
@@ -452,9 +452,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [4, 4],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 10,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1]
           ],
@@ -469,28 +469,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 17,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 17,
               "site_basis_function_index": 1
             }
@@ -506,9 +506,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [4, 4],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 11,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1]
           ],
@@ -523,28 +523,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 8,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 8,
               "site_basis_function_index": 1
             }
@@ -560,9 +560,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [4, 4],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 12,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1]
           ],
@@ -577,28 +577,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 99,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 99,
               "site_basis_function_index": 1
             }
@@ -614,9 +614,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [4, 4],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 13,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1]
           ],
@@ -631,28 +631,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 75,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 75,
               "site_basis_function_index": 1
             }
@@ -668,9 +668,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [4, 4],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 14,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1]
           ],
@@ -685,28 +685,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 1
             }
@@ -722,9 +722,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [4, 4],
-          "i_orbit": 15,
           "i_equiv": 0,
           "i_func": 0,
+          "i_orbit": 15,
           "monomial_exponents": [
             [0, 1, 0, 1]
           ],
@@ -739,28 +739,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 1
             }
@@ -776,9 +776,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6, 6],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 16,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1, 0, 1]
           ],
@@ -794,42 +794,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{0}(s_2)",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{1}(s_2)",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 1
             }
@@ -845,9 +845,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6, 6],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 17,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1, 0, 1]
           ],
@@ -863,42 +863,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{0}(s_2)",
               "neighborhood_site_index": 99,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{1}(s_2)",
               "neighborhood_site_index": 99,
               "site_basis_function_index": 1
             }
@@ -914,9 +914,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6, 6],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 18,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1, 0, 1]
           ],
@@ -932,42 +932,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{0}(s_2)",
               "neighborhood_site_index": 75,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{1}(s_2)",
               "neighborhood_site_index": 75,
               "site_basis_function_index": 1
             }
@@ -983,9 +983,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6, 6],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 19,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1, 0, 1]
           ],
@@ -1001,42 +1001,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{0}(s_2)",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{1}(s_2)",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 1
             }
@@ -1052,9 +1052,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6, 6],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 20,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1, 0, 1]
           ],
@@ -1070,42 +1070,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 17,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 17,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{0}(s_2)",
               "neighborhood_site_index": 99,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{1}(s_2)",
               "neighborhood_site_index": 99,
               "site_basis_function_index": 1
             }
@@ -1121,9 +1121,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6, 6],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 21,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1, 0, 1]
           ],
@@ -1139,42 +1139,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 8,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 8,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{0}(s_2)",
               "neighborhood_site_index": 75,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{1}(s_2)",
               "neighborhood_site_index": 75,
               "site_basis_function_index": 1
             }
@@ -1190,9 +1190,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6, 6],
+          "i_equiv": 0,
+          "i_func": 0,
           "i_orbit": 22,
-          "i_equiv": 0,
-          "i_func": 0,
           "monomial_exponents": [
             [0, 1, 0, 1, 0, 1]
           ],
@@ -1208,42 +1208,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{0}(s_2)",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{1}(s_2)",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 1
             }
@@ -1259,9 +1259,9 @@
           ],
           "coeff_data": [1.0],
           "coeff_shape": [6, 6, 6],
-          "i_orbit": 23,
           "i_equiv": 0,
           "i_func": 0,
+          "i_orbit": 23,
           "monomial_exponents": [
             [0, 1, 0, 1, 0, 1]
           ],
@@ -1277,42 +1277,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{0}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "x(s_0)",
+              "name": "\\phi_{1}(s_0)",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{0}(s_1)",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "x(s_1)",
+              "name": "\\phi_{1}(s_1)",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{0}(s_2)",
               "neighborhood_site_index": 17,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "x(s_2)",
+              "name": "\\phi_{1}(s_2)",
               "neighborhood_site_index": 17,
               "site_basis_function_index": 1
             }

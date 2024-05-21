@@ -1,6 +1,23 @@
+from typing import Optional
+import os
 import json
+import pathlib
+import numpy as np
 
+import libcasm.xtal as xtal
 import libcasm.xtal.prims as xtal_prims
+import libcasm.clusterography as casmclust
+import libcasm.configuration as casmconfig
+import libcasm.occ_events as occ_events
+from casm.bset import (
+    make_cluster_functions,
+)
+from casm.bset.cluster_functions import (
+    ClexBasisSpecs,
+    BasisFunctionSpecs,
+    make_neighborhood,
+    make_occevent_cluster_specs,
+)
 
 # from utils.expected_disp_functions import (
 #     expected_occ_functions_fcc_1,
@@ -9,45 +26,31 @@ import libcasm.xtal.prims as xtal_prims
 # )
 from utils.helpers import (
     assert_expected_cluster_functions_detailed,
-)
-
-from casm.bset import (
-    make_cluster_functions,
+    print_expected_cluster_functions_detailed,
 )
 
 
-def test_occ_fcc_1(session_shared_datadir):
+def test_occ_fcc_1a(session_shared_datadir):
     xtal_prim = xtal_prims.FCC(
         r=0.5,
         occ_dof=["A", "B", "C"],
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
-        xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
+    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+        prim=xtal_prim,
+        clex_basis_specs={
+            "cluster_specs": {
+                "orbit_branch_specs": {
+                    "2": {"max_length": 1.01},
+                    "3": {"max_length": 1.01},
+                },
+            },
+            "basis_function_specs": {
+                "dof_specs": {"occ": {"site_basis_functions": "occupation"}}
+            },
+        },
     )
-
-    # print_expected_cluster_functions(functions)
-
-    assert len(clusters) == 4
-    assert len(clusters[0]) == 1
-    assert len(clusters[1]) == 1
-    assert len(clusters[2]) == 6
-    assert len(clusters[3]) == 8
-
-    # functions: list[list[list[PolynomialFunction]]]
-    #     Polynomial functions, where ``functions[i_orbit][i_equiv][i_func]``,
-    #     is the `i_func`-th function on the cluster given by
-    #     `clusters[i_orbit][i_equiv]`.
-    assert len(functions) == 4
-    assert len(functions[0]) == 1
-    assert len(functions[0][0]) == 0
-    assert len(functions[1]) == 1
-    assert len(functions[1][0]) == 2  # 1
-    assert len(functions[2]) == 6
-    assert len(functions[2][0]) == 3  # 1
-    assert len(functions[3]) == 8
-    assert len(functions[3][0]) == 4  # 1
 
     # print_expected_cluster_functions_detailed(
     #     functions,
@@ -56,7 +59,127 @@ def test_occ_fcc_1(session_shared_datadir):
     #     / "expected_occ_functions_fcc_1.json",
     # )
     with open(session_shared_datadir / "expected_occ_functions_fcc_1.json") as f:
-        assert_expected_cluster_functions_detailed(functions, json.load(f))
+        assert_expected_cluster_functions_detailed(functions, clusters, json.load(f))
+
+
+def test_occ_fcc_1b(session_shared_datadir):
+    xtal_prim = xtal_prims.FCC(
+        r=0.5,
+        occ_dof=["A", "B", "C"],
+    )
+
+    prim = casmconfig.Prim(xtal_prim)
+    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+        prim=prim,
+        clex_basis_specs=ClexBasisSpecs(
+            cluster_specs=casmclust.ClusterSpecs(
+                xtal_prim=prim.xtal_prim,
+                generating_group=prim.factor_group,
+                max_length=[0.0, 0.0, 1.01, 1.01],
+            ),
+            basis_function_specs=BasisFunctionSpecs(
+                dof_specs={"occ": {"site_basis_functions": "occupation"}},
+            ),
+        ),
+    )
+
+    # print_expected_cluster_functions_detailed(
+    #     functions,
+    #     file=pathlib.Path(os.path.realpath(__file__)).parent
+    #     / "data"
+    #     / "expected_occ_functions_fcc_1.json",
+    # )
+    with open(session_shared_datadir / "expected_occ_functions_fcc_1.json") as f:
+        assert_expected_cluster_functions_detailed(functions, clusters, json.load(f))
+
+
+def test_occ_fcc_local_1(session_shared_datadir):
+    xtal_prim = xtal_prims.FCC(
+        a=1.0,
+        occ_dof=["A", "B", "Va"],
+    )
+    prim = casmconfig.Prim(xtal_prim)
+    # print(xtal.pretty_json(xtal_prim.to_dict()))
+
+    occ_system = occ_events.OccSystem(xtal_prim=prim.xtal_prim)
+
+    occevent = occ_events.OccEvent.from_dict(
+        data={
+            "trajectories": [
+                [
+                    {"coordinate": [0, 0, 0, 0], "occupant_index": 0},
+                    {"coordinate": [0, 1, 0, 0], "occupant_index": 0},
+                ],
+                [
+                    {"coordinate": [0, 1, 0, 0], "occupant_index": 2},
+                    {"coordinate": [0, 0, 0, 0], "occupant_index": 2},
+                ],
+            ]
+        },
+        system=occ_system,
+    )
+
+    cluster_specs = make_occevent_cluster_specs(
+        prim=prim,
+        phenomenal_occ_event=occevent,
+        max_length=[0.0, 0.0, 1.01],
+        cutoff_radius=[0.0, 1.01, 1.01],
+    )
+    assert cluster_specs.generating_group().head_group is prim.factor_group
+    orbits = cluster_specs.make_orbits()
+
+    expected_neighborhood_size = 26
+    assert len(make_neighborhood(clusters=orbits)) == expected_neighborhood_size
+
+    (
+        functions,
+        clusters,
+        prim_neighbor_list,
+        equivalent_functions,
+        equivalent_clusters,
+    ) = make_cluster_functions(
+        prim=prim,
+        clex_basis_specs=ClexBasisSpecs(
+            cluster_specs=cluster_specs,
+            basis_function_specs=BasisFunctionSpecs(
+                dof_specs={"occ": {"site_basis_functions": "occupation"}},
+            ),
+        ),
+    )
+
+    expected_n_clex = 6
+    assert len(equivalent_functions) == expected_n_clex
+    assert len(equivalent_clusters) == expected_n_clex
+
+    assert len(make_neighborhood(clusters=clusters)) == expected_neighborhood_size
+    for _clusters in equivalent_clusters:
+        assert len(make_neighborhood(clusters=_clusters)) == expected_neighborhood_size
+
+    # print_expected_cluster_functions_detailed(
+    #     functions,
+    #     file=pathlib.Path(os.path.realpath(__file__)).parent
+    #     / "data"
+    #     / "expected_occ_functions_fcc_local_1_prototype.json",
+    # )
+    with open(
+        session_shared_datadir / "expected_occ_functions_fcc_local_1_prototype.json"
+    ) as f:
+        assert_expected_cluster_functions_detailed(functions, clusters, json.load(f))
+    for i_clex, _functions in enumerate(equivalent_functions):
+        _clusters = equivalent_clusters[i_clex]
+        # print_expected_cluster_functions_detailed(
+        #     _functions,
+        #     file=pathlib.Path(os.path.realpath(__file__)).parent
+        #     / "data"
+        #     / f"expected_occ_functions_fcc_local_1_equiv_{i_clex}.json",
+        # )
+        with open(
+            session_shared_datadir
+            / f"expected_occ_functions_fcc_local_1_equiv_{i_clex}.json"
+        ) as f:
+            assert_expected_cluster_functions_detailed(
+                _functions, _clusters, json.load(f)
+            )
 
 
 def test_occ_hcp_1(session_shared_datadir):
@@ -64,45 +187,21 @@ def test_occ_hcp_1(session_shared_datadir):
         r=0.5,
         occ_dof=["A", "B", "C"],
     )
-    # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
-        xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
+    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+        prim=xtal_prim,
+        clex_basis_specs={
+            "cluster_specs": {
+                "orbit_branch_specs": {
+                    "2": {"max_length": 1.01},
+                    "3": {"max_length": 1.01},
+                },
+            },
+            "basis_function_specs": {
+                "dof_specs": {"occ": {"site_basis_functions": "chebychev"}}
+            },
+        },
     )
-
-    # print_expected_cluster_functions(functions)
-
-    assert len(clusters) == 7
-    assert clusters[0][0].size() == 0  # null
-    assert len(clusters[0]) == 1
-    assert clusters[1][0].size() == 1  # point
-    assert len(clusters[1]) == 2
-    assert clusters[2][0].size() == 2  # pair (out of basal plane)
-    assert len(clusters[2]) == 6
-    assert clusters[3][0].size() == 2  # pair (in basal plane)
-    assert len(clusters[3]) == 6
-    assert clusters[4][0].size() == 3  # triplet (in basal plane)
-    assert len(clusters[4]) == 2
-    assert clusters[5][0].size() == 3  # triplet (in basal plane)
-    assert len(clusters[5]) == 2
-    assert clusters[6][0].size() == 3  # triplet (out of basal plane)
-    assert len(clusters[6]) == 12
-
-    assert len(functions) == 7
-    assert len(functions[0]) == 1
-    assert len(functions[0][0]) == 0
-    assert len(functions[1]) == 2
-    assert len(functions[1][0]) == 2
-    assert len(functions[2]) == 6
-    assert len(functions[2][0]) == 3
-    assert len(functions[3]) == 6
-    assert len(functions[3][0]) == 3
-    assert len(functions[4]) == 2
-    assert len(functions[4][0]) == 4
-    assert len(functions[5]) == 2
-    assert len(functions[5][0]) == 4
-    assert len(functions[6]) == 12
-    assert len(functions[6][0]) == 6
 
     # print_expected_cluster_functions_detailed(
     #     functions,
@@ -111,46 +210,26 @@ def test_occ_hcp_1(session_shared_datadir):
     #     / "expected_occ_functions_hcp_1.json",
     # )
     with open(session_shared_datadir / "expected_occ_functions_hcp_1.json") as f:
-        assert_expected_cluster_functions_detailed(functions, json.load(f))
+        assert_expected_cluster_functions_detailed(functions, clusters, json.load(f))
 
 
 def test_occ_lowsym_1(lowsym_occ_prim, session_shared_datadir):
     xtal_prim = lowsym_occ_prim
-    # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
-        xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
+    functions, clusters, prim_neighbor_list, _4, _5 = make_cluster_functions(
+        prim=xtal_prim,
+        clex_basis_specs={
+            "cluster_specs": {
+                "orbit_branch_specs": {
+                    "2": {"max_length": 1.01},
+                    "3": {"max_length": 1.01},
+                },
+            },
+            "basis_function_specs": {
+                "dof_specs": {"occ": {"site_basis_functions": "chebychev"}}
+            },
+        },
     )
-
-    # print_expected_cluster_functions(functions)
-
-    assert len(clusters) == 24
-    assert len(functions) == 24
-
-    assert len(functions[0][0]) == 0
-    assert len(functions[1][0]) == 1
-    assert len(functions[2][0]) == 1
-    assert len(functions[3][0]) == 1
-    assert len(functions[4][0]) == 1
-    assert len(functions[5][0]) == 1
-    assert len(functions[6][0]) == 1
-    assert len(functions[7][0]) == 1
-    assert len(functions[8][0]) == 1
-    assert len(functions[9][0]) == 1
-    assert len(functions[10][0]) == 1
-    assert len(functions[11][0]) == 1
-    assert len(functions[12][0]) == 1
-    assert len(functions[13][0]) == 1
-    assert len(functions[14][0]) == 1
-    assert len(functions[15][0]) == 1
-    assert len(functions[16][0]) == 1
-    assert len(functions[17][0]) == 1
-    assert len(functions[18][0]) == 1
-    assert len(functions[19][0]) == 1
-    assert len(functions[20][0]) == 1
-    assert len(functions[21][0]) == 1
-    assert len(functions[22][0]) == 1
-    assert len(functions[23][0]) == 1
 
     # print_expected_cluster_functions_detailed(
     #     functions,
@@ -159,4 +238,4 @@ def test_occ_lowsym_1(lowsym_occ_prim, session_shared_datadir):
     #     / "expected_occ_functions_lowsym_1.json",
     # )
     with open(session_shared_datadir / "expected_occ_functions_lowsym_1.json") as f:
-        assert_expected_cluster_functions_detailed(functions, json.load(f))
+        assert_expected_cluster_functions_detailed(functions, clusters, json.load(f))

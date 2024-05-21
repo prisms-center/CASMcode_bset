@@ -2,6 +2,7 @@
 import pathlib
 from typing import Optional, Union
 
+import libcasm.clusterography as casmclust
 import libcasm.configuration as casmconfig
 import libcasm.xtal as xtal
 from libcasm.clexulator import (
@@ -16,6 +17,10 @@ from casm.bset.clexwriter import (
 from casm.bset.cluster_functions import (
     ClexBasisSpecs,
     ClusterFunctionsBuilder,
+    make_occ_site_functions,
+)
+from casm.bset.polynomial_functions import (
+    PolynomialFunction,
 )
 
 
@@ -26,7 +31,13 @@ def make_cluster_functions(
     make_equivalents: bool = True,
     make_all_local_basis_sets: bool = True,
     verbose: bool = False,
-):
+) -> tuple[
+    list[list[list[PolynomialFunction]]],
+    list[list[casmclust.Cluster]],
+    PrimNeighborList,
+    list[list[list[list[PolynomialFunction]]]] | None,
+    list[list[list[casmclust.Cluster]]] | None,
+]:
     """Constructs cluster expansion basis functions
 
     Parameters
@@ -110,16 +121,17 @@ def make_cluster_functions(
         int(key): value
         for key, value in bfunc_specs.orbit_branch_max_poly_order.items()
     }
-    occ_site_functions = []  # TODO
+    occ_site_functions = make_occ_site_functions(
+        prim=prim,
+        dof_specs=bfunc_specs.dof_specs,
+    )
 
     builder = ClusterFunctionsBuilder(
         prim=prim,
         dofs=bfunc_specs.dofs,
         generating_group=cluster_specs.generating_group(),
         clusters=clusters,
-        max_length=cluster_specs.max_length(),
         phenomenal=cluster_specs.phenomenal(),
-        cutoff_radius=cluster_specs.cutoff_radius(),
         global_max_poly_order=bfunc_specs.global_max_poly_order,
         orbit_branch_max_poly_order=orbit_branch_max_poly_order,
         occ_site_functions=occ_site_functions,
@@ -148,7 +160,7 @@ def write_clexulator(
     version: str = "v1.basic",
     linear_function_indices: Optional[set[int]] = None,
     cpp_fmt: Optional[CppFormatProperties] = None,
-):
+) -> None:
     """Write a CASM Clexulator
 
     Notes

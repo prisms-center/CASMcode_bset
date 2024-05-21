@@ -118,7 +118,7 @@ def print_expected_cluster_functions_detailed(
                 d["i_orbit"] = i_orbit
                 d["i_equiv"] = i_equiv
                 d["i_func"] = i_func
-                orbit_data.append(d)
+                equiv_data.append(d)
             orbit_data.append(equiv_data)
         data["functions"].append(orbit_data)
 
@@ -131,6 +131,7 @@ def print_expected_cluster_functions_detailed(
 
 def assert_expected_cluster_functions_detailed(
     functions,
+    clusters,
     expected,
 ):
     exact_keys = [
@@ -146,8 +147,10 @@ def assert_expected_cluster_functions_detailed(
 
     assert "functions" in expected
     assert len(expected["functions"]) == len(functions)
+    assert len(expected["functions"]) == len(clusters)
     for i_orbit, orbit_expected in enumerate(expected["functions"]):
         assert len(functions[i_orbit]) == len(orbit_expected)
+        assert len(clusters[i_orbit]) == len(orbit_expected)
         for i_equiv, equiv_expected in enumerate(orbit_expected):
             assert len(functions[i_orbit][i_equiv]) == len(equiv_expected)
             for i_func, func_expected in enumerate(equiv_expected):

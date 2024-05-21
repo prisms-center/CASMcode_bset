@@ -262,7 +262,7 @@ def make_constraints(
         b = None
         for i_var in subset:
             var = prototype_variables[i_var]
-            b = prototype_cluster[var.cluster_site_index].sublattice_index()
+            b = prototype_cluster[var.cluster_site_index].sublattice()
             site_function_index = var.site_basis_function_index
             phi = get_occ_site_functions(
                 occ_site_functions=occ_site_functions,
@@ -307,8 +307,8 @@ class ClusterFunctionsBuilder:
        representations constructed by
        :class:`~casm.bset.cluster_functions.OrbitMatrixRepBuilder`.
 
-       - For functions of discrete DoF, the polynomial functions include a single
-         occupation site basis function on each site in a cluster.
+       - For functions of discrete degrees of freedom (DoF), the polynomial functions
+         include a single occupation site basis function on each site in a cluster.
        - For functions that include continuous DoF, by default, polynomials of order up
          to the cluster size are created. Higher order polynomials are requested either
          according to cluster size using the `orbit_branch_max_poly_order` parameter or
@@ -399,6 +399,11 @@ class ClusterFunctionsBuilder:
             - `"value"`: list[list[float]], list of the site basis function values,
               as ``value[function_index][occupant_index]``.
 
+            The occupation site basis functions are typically generated using
+            :func:`~casm.bset.cluster_functions.make_occ_site_functions` with input
+            as described in the section
+            :ref:`DoF Specifications <sec-dof-specifications>`.
+
         phenomenal: Optional[libcasm.clusterography.Cluster] = None
             For local cluster functions, specifies the sites about which
             local-clusters orbits are generated. The phenomenal cluster must be chosen
@@ -474,22 +479,16 @@ class ClusterFunctionsBuilder:
         functions."""
 
         self.global_dof = global_dof
-        """list[str]: List of global continuous dof type names that should be used to \
-        construct basis functions.
-        """
+        """list[str]: List of global continuous DoF included in functions. """
 
         self.local_continuous_dof = local_continuous_dof
-        """list[str]: List of local continuous dof type names that should be used to \
-        construct basis functions.
-        """
+        """list[str]: List of local continuous DoF included in functions."""
 
         self.local_discrete_dof = local_discrete_dof
-        """list[str]:  List of local discrete dof type names that should be used to \
-        construct basis functions.
-        """
+        """list[str]: List of local discrete DoF included in functions."""
 
         self.only_discrete = only_discrete
-        """bool: True if only discrete DoF are included in the cluster functions."""
+        """bool: True if only discrete DoF are included in functions."""
 
         self._clusters = clusters
         """list[libcasm.clusterography.Cluster]: A list of clusters with a single \
@@ -649,9 +648,6 @@ class ClusterFunctionsBuilder:
         if make_equivalents:
             orbit_basis_sets = []
             orbit_clusters = []
-            if self._phenomenal is not None and make_all_local_basis_sets:
-                equivalent_orbit_basis_sets = []
-                equivalent_orbit_clusters = []
 
             ## Transform cluster functions
             # from prototype clusters to equivalent clusters
@@ -659,9 +655,9 @@ class ClusterFunctionsBuilder:
                 self.orbit_matrix_rep_builders
             ):
                 _1, _2 = self._build_orbit_basis_sets(
-                    i_orbit,
-                    orbit_matrix_rep_builder,
-                    self.prototype_basis_sets[i_orbit],
+                    i_orbit=i_orbit,
+                    orbit_matrix_rep_builder=orbit_matrix_rep_builder,
+                    prototype_basis_set=self.prototype_basis_sets[i_orbit],
                 )
                 orbit_basis_sets.append(_1)
                 orbit_clusters.append(_2)
@@ -671,18 +667,18 @@ class ClusterFunctionsBuilder:
                 # to the local basis sets around equivalent phenomenal clusters
                 if self._phenomenal is not None and make_all_local_basis_sets:
                     _3, _4 = self._build_equivalent_orbit_basis_sets(
-                        i_orbit,
-                        orbit_matrix_rep_builder,
-                        _1,
-                        _2,
+                        i_orbit=i_orbit,
+                        orbit_matrix_rep_builder=orbit_matrix_rep_builder,
+                        orbit_basis_sets=_1,
+                        orbit_clusters=_2,
                     )
                     n_clex = len(_3)
                     if equivalent_orbit_basis_sets is None:
-                        equivalent_orbit_basis_sets = [[] * n_clex]
-                        equivalent_orbit_clusters = [[] * n_clex]
+                        equivalent_orbit_basis_sets = [list() for _ in range(n_clex)]
+                        equivalent_orbit_clusters = [list() for _ in range(n_clex)]
                     for i_clex in range(n_clex):
-                        equivalent_orbit_basis_sets.append(_3[i_clex])
-                        equivalent_orbit_clusters.append(_4[i_clex])
+                        equivalent_orbit_basis_sets[i_clex].append(_3[i_clex])
+                        equivalent_orbit_clusters[i_clex].append(_4[i_clex])
 
         self.functions = orbit_basis_sets
         """list[list[list[PolynomialFunction]]]: The generated cluster functions
@@ -704,7 +700,7 @@ class ClusterFunctionsBuilder:
         in :py:data:`~ClusterFunctionsBuilder.functions`.
         """
 
-        self.equivalent_functions = equivalent_orbit_clusters
+        self.equivalent_functions = equivalent_orbit_basis_sets
         """Optional[list[list[list[list[\
         casm.bset.polynomial_functions.PolynomialFunction]]]]]: \
         The generated cluster functions about all equivalent phenomenal clusters (if \
@@ -717,7 +713,7 @@ class ClusterFunctionsBuilder:
         the `i_clex`-th equivalent phenomenal cluster.
         """
 
-        self.equivalent_clusters = equivalent_orbit_basis_sets
+        self.equivalent_clusters = equivalent_orbit_clusters
         """Optional[list[list[list[libcasm.clusterography.Cluster]]]]: Orbit of \
         clusters for which cluster functions have been constructed about all \
         equivalent phenomenal clusters (if a local cluster expansion).
@@ -855,7 +851,7 @@ class ClusterFunctionsBuilder:
                 max_poly_order=self._max_poly_order(cluster),
                 constraints=constraints,
                 orthonormalize_in_place=False,
-                verbose=self.verbose,
+                verbose=self._verbose,
             )
 
         orbit_matrix_rep_builder = builder
@@ -1052,7 +1048,7 @@ class ClusterFunctionsBuilder:
                 builder.phenomenal_generating_inv_matrix_rep[i_clex]
             ):
                 # add equivalent cluster to orbit of clusters
-                site_rep = builder.phenomenal_generating_site_rep[i_clex][i_clust]
+                site_rep = builder.phenomenal_generating_site_rep[i_clex]
                 equiv_cluster = site_rep * orbit_clusters[i_clust]
                 _equiv_orbit_clusters.append(equiv_cluster)
 

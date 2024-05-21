@@ -1,5 +1,6 @@
 import libcasm.clusterography as casmclust
 import libcasm.configuration as casmconfig
+import libcasm.occ_events._occ_events as _occ_events
 import libcasm.sym_info as sym_info
 import libcasm.xtal as xtal
 
@@ -180,7 +181,7 @@ def make_equivalents_generators(
     generating_indices = []
     for i_factor_grp in i_factor_grp_equiv_on_phenomenal:
         i_cluster_grp = phenomenal_cluster_grp.head_group_index.index(i_factor_grp)
-        cluster_grp_op = phenomenal_cluster_grp.element[i_cluster_grp]
+        cluster_grp_op = phenomenal_cluster_grp.elements[i_cluster_grp]
 
         for i_equiv in range(len(equivalence_map)):
             to_equiv_op = equivalence_map[i_equiv][0]
@@ -200,3 +201,82 @@ def make_equivalents_generators(
     )
 
     return (generating_ops, generating_indices, generating_site_reps)
+
+
+def make_neighborhood(
+    clusters: list[list[casmclust.Cluster]],
+):
+    """Return a list of unique sites from orbits of clusters
+
+    Parameters
+    ----------
+    clusters: list[list[libcasm.clusterography.Cluster]]
+        Clusters, arranged in orbits.
+
+    Returns
+    -------
+    neighborhood: list[libcasm.xtal.IntegralSiteCoordinate]
+        The neighborhood of sites in clusters. Excludes
+    """
+    neighborhood = []
+    for i_orbit, orbit in enumerate(clusters):
+        for equiv in orbit:
+            for site in equiv:
+                if site not in neighborhood:
+                    neighborhood.append(site)
+    return neighborhood
+
+
+def make_occevent_cluster_specs(
+    prim: casmconfig.Prim,
+    phenomenal_occ_event: _occ_events.OccEvent,
+    max_length: list[float],
+    cutoff_radius: list[float],
+    custom_generators: list[casmclust.ClusterOrbitGenerator] = [],
+) -> casmclust.ClusterSpecs:
+    """Construct ClusterSpecs for local-cluster orbits around an OccEvent
+
+    Parameters
+    ----------
+    prim: libcasm.configuration.Prim
+        The prim, with symmetry information
+    phenomenal_occ_event: ~libcasm.occ_events.OccEvent
+        The orbit generating group is the subgroup of the prim factor
+        group that leaves `phenomenal_occ_event` invariant.
+    max_length: list[float]
+        The maximum site-to-site distance to allow in clusters, by number
+        of sites in the cluster. Example: `[0.0, 0.0, 5.0, 4.0]` specifies
+        that pair clusters up to distance 5.0 and triplet clusters up to
+        distance 4.0 should be included. The null cluster and point
+        cluster values (elements 0 and 1) are arbitrary.
+    cutoff_radius: list[float]
+        For local clusters, the maximum distance of sites from any
+        phenomenal cluster site to include in the local environment, by
+        number of sites in the cluster. The null cluster value
+        (element 0) is arbitrary.
+    custom_generators: list[~libcasm.clusterography.ClusterOrbitGenerator]=[]
+          Specifies clusters that should be uses to construct orbits
+          regardless of the max_length or cutoff_radius parameters
+
+    Returns
+    -------
+    cluster_specs: ~libcasm.clusterography.ClusterSpecs
+        The resulting ClusterSpecs
+    """
+    symgroup_rep = _occ_events.make_occevent_symgroup_rep(
+        prim.factor_group.elements, prim.xtal_prim
+    )
+    occevent_group = _occ_events.make_occevent_group(
+        occ_event=phenomenal_occ_event,
+        group=prim.factor_group,
+        lattice=prim.xtal_prim.lattice(),
+        occevent_symgroup_rep=symgroup_rep,
+    )
+    return casmclust.ClusterSpecs(
+        xtal_prim=prim.xtal_prim,
+        generating_group=occevent_group,
+        max_length=max_length,
+        phenomenal=phenomenal_occ_event.cluster(),
+        cutoff_radius=cutoff_radius,
+        custom_generators=custom_generators,
+    )
