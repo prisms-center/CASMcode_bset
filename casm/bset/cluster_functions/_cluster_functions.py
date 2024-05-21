@@ -824,7 +824,8 @@ class ClusterFunctionsBuilder:
             prototype_basis_set = []
 
         elif builder.n_local_variables == 0 and cluster.size() != 0:
-            # if no local variables, only generate functions on the null cluster
+            # if no local variables and not the null cluster, no functions
+            # (only generate pure global DoF functions on the null cluster)
             if self._verbose:
                 print("No local variables")
             prototype_basis_set = []
@@ -853,6 +854,16 @@ class ClusterFunctionsBuilder:
                 orthonormalize_in_place=False,
                 verbose=self._verbose,
             )
+
+            if self._verbose:
+                print("Prototype cluster basis set:")
+                if len(prototype_basis_set) == 0:
+                    print("Empty")
+                for i_func, func in enumerate(prototype_basis_set):
+                    print(f"~~~ order: {func.order()}, function_index: {i_func} ~~~")
+                    func._basic_print()
+                    print()
+                print()
 
         orbit_matrix_rep_builder = builder
         return (prototype_basis_set, orbit_matrix_rep_builder, constraints)
