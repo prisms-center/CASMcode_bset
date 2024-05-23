@@ -838,6 +838,7 @@ def make_cluster_matrix_rep(
 
 def make_occ_site_functions_matrix_rep(
     indicator_matrix_rep: list[list[np.ndarray]],
+    integral_site_coordinate_symgroup_rep: list[xtal.IntegralSiteCoordinateRep],
     occ_site_functions: list[dict],
 ) -> list[list[np.ndarray]]:
     """Returns the symmetry group representation that describes how occupation site \
@@ -851,6 +852,9 @@ def make_occ_site_functions_matrix_rep(
         occupation indicator variables on the sublattice_index-th sublattice, by the
         prim_factor_group_index-th operation, to the indicator variables on the
         sublattice that the operation maps the occupants to.
+    integral_site_coordinate_symgroup_rep: list[xtal.IntegralSiteCoordinateRep]
+        Representation of the prim factor group for transforming
+        :class:`libcasm.xtal.IntegralSiteCoordinate`.
     key: str
         The DoF key (i.e. "occ").
     occ_site_functions: list[dict]
@@ -870,6 +874,8 @@ def make_occ_site_functions_matrix_rep(
         operation, to the occupation site basis functions on the sublattice that the
         operation maps the occupants to.
     """
+    site_rep = integral_site_coordinate_symgroup_rep
+
     phi = []
     phi_inv = []
     for sublattice_index, indicator_rep in enumerate(indicator_matrix_rep[0]):
@@ -884,8 +890,14 @@ def make_occ_site_functions_matrix_rep(
     for prim_factor_group_index, indicator_op_rep in enumerate(indicator_matrix_rep):
         site_functions_op_rep = []
         for sublattice_index, indicator_rep in enumerate(indicator_op_rep):
+            if indicator_rep.shape[0] < 2:
+                site_functions_op_rep.append(indicator_rep)
+                continue
             b = sublattice_index
-            site_function_rep = phi[b] @ indicator_rep @ phi_inv[b]
+            site = xtal.IntegralSiteCoordinate(b, [0, 0, 0])
+            site_final = site_rep[prim_factor_group_index] * site
+            b_final = site_final.sublattice()
+            site_function_rep = phi[b_final] @ indicator_rep @ phi_inv[b]
             site_functions_op_rep.append(site_function_rep)
         occ_site_functions_matrix_rep.append(site_functions_op_rep)
 
@@ -1020,6 +1032,7 @@ class ClusterMatrixRepBuilder:
             # for the indicator variables
             local_dof_matrix_rep = make_occ_site_functions_matrix_rep(
                 indicator_matrix_rep=prim.local_dof_matrix_rep(key),
+                integral_site_coordinate_symgroup_rep=prim.integral_site_coordinate_symgroup_rep,
                 occ_site_functions=occ_site_functions,
             )
         else:
@@ -1064,6 +1077,17 @@ class ClusterMatrixRepBuilder:
         )
 
         ## Generated data ##
+        self.dof_matrix_rep = local_dof_matrix_rep
+        """list[np.ndarray]: The matrix representations for transforming site \
+        variables by prim factor group operations.
+        
+        The array ``M = dof_matrix_rep[i_factor_group][i_sublat_init]`` specifies that 
+        the site variables transform according to
+        ``x_final = M @ x_init``, where `x_init` are the site variables on an initial 
+        site on the `i_sublat_init`-th sublattice and `x_final` are the site variables
+        on the final site under the application of the `i_factor_group`-th prim factor
+        group operation."""
+
         self.cluster_group = cluster_group
         """libcasm.sym_info.SymGroup: The subgroup of the generating group that leaves \
         `cluster` invariant.
@@ -1756,8 +1780,6 @@ class OrbitMatrixRepBuilder:
         local_phenomenal_generating_matrix_rep = []
         local_phenomenal_generating_inv_matrix_rep = []
         for key in local_dof:
-            _local_dof_matrix_rep = prim.local_dof_matrix_rep(key)
-
             ## Build local DoF prototype cluster matrix rep (with permutation)
             _local_prototype = ClusterMatrixRepBuilder(
                 prim=prim,
@@ -1774,7 +1796,7 @@ class OrbitMatrixRepBuilder:
             ## Build local DoF equivalence map matrix reps (no permutation)
             # noinspection PyTupleAssignmentBalance
             _1, _2, _3 = make_equivalence_map_matrix_rep(
-                local_dof_matrix_rep=_local_dof_matrix_rep,
+                local_dof_matrix_rep=_local_prototype.dof_matrix_rep,
                 prototype_cluster=_local_prototype.cluster,
                 symgroup=generating_group,
                 equivalence_map_indices=equivalence_map_indices,
@@ -1790,7 +1812,7 @@ class OrbitMatrixRepBuilder:
                 # noinspection PyTupleAssignmentBalance
                 _4, _5, _6 = make_phenomenal_generating_matrix_rep(
                     generating_group=generating_group,
-                    local_dof_matrix_rep=_local_dof_matrix_rep,
+                    local_dof_matrix_rep=_local_prototype.dof_matrix_rep,
                     equivalence_map_clusters=_3,
                     phenomenal_generating_indices=phenomenal_generating_indices,
                     phenomenal_generating_site_rep=phenomenal_generating_site_rep,

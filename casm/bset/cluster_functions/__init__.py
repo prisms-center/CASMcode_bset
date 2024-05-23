@@ -9,6 +9,7 @@ from ._cluster_functions import (
     make_point_functions,
 )
 from ._discrete_functions import (
+    get_occ_site_functions,
     make_chebychev_site_functions,
     make_composition_gram_matrix,
     make_composition_site_functions,

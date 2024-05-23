@@ -45,8 +45,11 @@ The occupation and magnetic spin DoF types require specific parameterization usi
     }
 
 
-Occupation site basis functions - formulation
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Occupation site basis functions
+-------------------------------
+
+Formulation
+^^^^^^^^^^^
 
 For occupation DoF ("occ"), the `dof_specs` parameter is used to specify the value
 of the discrete site basis functions. The following is a summary of the formulation
@@ -123,9 +126,68 @@ For a binary alloy, the "occupation" site basis variables take the form :math:`\
     0 & 0 & 1
     \end{bmatrix}.
 
+Symmetry
+^^^^^^^^
 
-Occupation site basis functions - specification
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+The indicator variables transform under symmetry according to
+
+.. math::
+    :label: indicator_transformation
+
+    \left(\vec{p}_{\nu}\right)' = \pmb{M}_{b^{\ast}}(\hat{s}) \vec{p}_{\nu^{\ast}},
+
+
+where:
+
+- :math:`\hat{s}` is a space group operation
+- :math:`\vec{p}_{\nu^{\ast}}` is the vector of indicator variables on site :math:`\nu^{\ast}`, which is on sublattice :math:`b^{\ast}`, before transformation by :math:`\hat{s}`,
+- :math:`\left(\vec{p}_{\nu}\right)'` is the vector of indicator variables on site :math:`\nu`, which is on sublattice :math:`b`, after transformation by :math:`\hat{s}`,
+- :math:`\pmb{M}_{b^{\ast}}(\hat{s})` is the matrix representation of :math:`\hat{s}` used to transform indicator variables occupying sites on sublattice :math:`b^{\ast}`.
+
+The matrix representations :math:`\pmb{M}_{b^{\ast}}(\hat{s})` for transforming indicator variables by factor group operations is determined when constructing a :class:`libcasm.configuration.Prim` by transforming each allowed occupant on :math:`b^{\ast}` and finding the permutation (if it exists) that results in the allowed occupants on :math:`b`. These matrix representations can be accessed using :py:meth:`Prim.local_dof_matrix_rep <libcasm.configuration.Prim.local_dof_matrix_rep>` with
+
+.. code-block:: Python
+
+    M = prim.local_dof_matrix_rep("occ")[i_factor_group][i_sublat]
+
+where `i_factor_group` is the index of the factor group operation that differs from :math:`\hat{s}` by only a translation (i.e. index in ``prim.factor_group.elements``), and `i_sublat` is the index of sublattice :math:`b^{\ast}` (i.e. column index in ``prim.xtal_prim.coordinate_frac()``).
+
+Notes:
+
+- :math:`\pmb{M}_{b^{\ast}}(\hat{s})` is a row permutation matrix. It permutes the rows of the column vector :math:`\vec{p}_{b^{\ast}}` consistent with the order the transformed occupants are listed  as allowed occupants on the final site.
+- The transpose of a permutation matrix is equal to its inverse.
+- The inverse of a row permutation matrix is the column permutation matrix which permutes columns in the same cycle that the row permutation matrix permutes rows.
+- Therefore, :math:`\pmb{M}_{b^{\ast}}(\hat{s})^{\top}` is a column permutation matrix which can permute the columns of :math:`\pmb{\varphi}_{b^{\ast}}` (which correspond to occupation index) to give symmetrically consistent site basis functions on :math:`b` according to :math:`\pmb{\varphi}_{b} = \pmb{\varphi}_{b^{\ast}} \pmb{M}_{b^{\ast}}(\hat{s})^{\top}`.
+
+Matrix representations, :math:`\pmb{\tilde{M}}_{b^{\ast}}(\hat{s})`, for transforming site basis functions, :math:`\vec{\varphi}`, can be determined in terms of :math:`\pmb{M}_{b^{\ast}}(\hat{s})`. First, write :math:`\vec{\varphi}` before and after transformation in terms of :math:`\vec{p}` as
+
+.. math::
+
+    \begin{align}
+    \vec{p}_{\nu^{\ast}} &= \pmb{B}_{\nu^{\ast}} \vec{\varphi}_{\nu^{\ast}}, \\
+    \left(\vec{p}_{\nu}\right)' &= \pmb{B}_{\nu} \left(\vec{\varphi}_{\nu}\right)'.
+    \end{align}
+
+Then substitute into Eq. :eq:`indicator_transformation` to obtain
+
+.. math::
+
+    \pmb{B}_{\nu} \left(\vec{\varphi}_{\nu}\right)' = \pmb{M}_{b^{\ast}}(\hat{s}) \pmb{B}_{\nu^{\ast}} \vec{\varphi}_{\nu^{\ast}}.
+
+Finally, left multiply by :math:`\pmb{B}_{\nu}^{-1}` and use :math:`\pmb{B} = \left( \pmb{\varphi} \right)^{-1}` to obtain
+
+.. math::
+    :label: occ_site_func_transformation
+
+    \begin{align}
+    \left(\vec{\varphi}_{\nu}\right)' &= \pmb{\tilde{M}}_{b^{\ast}}(\hat{s}) \vec{\varphi}_{\nu^{\ast}}, \\
+    \pmb{\tilde{M}}_{b^{\ast}}(\hat{s}) &= \pmb{\varphi}_{\nu} \pmb{M}_{b^{\ast}}(\hat{s}) \pmb{\varphi}_{\nu^{\ast}}^{-1}.
+    \end{align}
+
+
+
+Specification
+^^^^^^^^^^^^^
 
 Chebychev occupation site basis functions
 """""""""""""""""""""""""""""""""""""""""
@@ -167,7 +229,7 @@ For a ternary alloy, the Chebychev site basis functions used by CASM have the va
 Occupation site basis functions
 """""""""""""""""""""""""""""""
 
-The "occupation" site basis functions give an expansion (with correlation values all equal to `0`) about the default configuration where each site is occupied by the first allowed occupant in the prim :func:`~libcasm.xtal.Prim.occ_dof` list. This choice of occupation site basis functions can be specified with:
+The "occupation" site basis functions give an expansion (with correlation values all equal to `0`) about the default configuration where each site is occupied by the first allowed occupant in the :py:meth:`Prim.occ_dof <libcasm.xtal.Prim.occ_dof>` list. This choice of occupation site basis functions can be specified with:
 
 .. code-block:: Python
 

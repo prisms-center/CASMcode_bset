@@ -2,6 +2,7 @@ from typing import Any, Optional, Union
 
 import libcasm.casmglobal as casmglobal
 import libcasm.configuration as casmconfig
+import libcasm.xtal as xtal
 import numpy as np
 
 from casm.bset.misc import almost_equal, almost_int, signof
@@ -132,7 +133,7 @@ def make_orthonormal_discrete_functions(
     phi: np.ndarray[np.float64[m, m]]
         The orthonormal discrete function matrix, :math:`\pmb{\varphi}`, a
         :math:`m \times m` matrix, with :math:`m` being the number of occupants allowed
-        on the site and element :math:`\varphi_ij` being the value of the
+        on the site and element :math:`\varphi_{ij}` being the value of the
         :math:`i`-th function when the site occupation index is the :math:`j`-th
         possible value.
 
@@ -154,7 +155,8 @@ def make_orthonormal_discrete_functions(
             "gram_matrix is not positive definite"
         )
 
-    phi = V @ np.diag(np.sqrt(1.0 / S)) @ V.T
+    # phi_columns is indexed phi_columns[occupant_index, function_index]
+    phi_columns = V @ np.diag(np.sqrt(1.0 / S)) @ V.T
 
     c_max = max(c)
     #  step 2: Make seed basis.
@@ -176,11 +178,11 @@ def make_orthonormal_discrete_functions(
         curr_i = 0
         tseed = np.zeros((n_occupants, n_occupants))
         c_max_index = np.where(c == c_max)[0]
-        for i in range(phi.shape[0]):
+        for i in range(phi_columns.shape[0]):
             tseed[i, 0] = 1.0
             if i == c_max_index:
                 continue
-            for j in range(i, phi.shape[1]):
+            for j in range(i, phi_columns.shape[1]):
                 if curr_i + 1 == j:
                     tseed[i, j] = 1.0
             curr_i += 1
@@ -190,27 +192,27 @@ def make_orthonormal_discrete_functions(
     # QR decomposition of (phi.inverse() * tseed)
     # Eigen::MatrixXd Q = (phi.inverse() * tseed).householderQr().householderQ();
 
-    Q, R = np.linalg.qr(np.linalg.inv(phi) @ tseed)
+    Q, R = np.linalg.qr(np.linalg.inv(phi_columns) @ tseed)
 
     # Rotate 'phi'
-    phi = phi @ Q
+    phi_columns = phi_columns @ Q
 
     # Sign convention
-    for i in range(phi.shape[1]):
+    for i in range(phi_columns.shape[1]):
         sign_change = 1
         max_abs = 0.0
-        for j in range(phi.shape[0]):
-            if np.abs(phi[j, i]) > (max_abs - abs_tol):
-                max_abs = np.abs(phi[j, i])
-                sign_change = signof(phi[j, i], abs_tol=abs_tol)
-        phi[:, i] *= sign_change
+        for j in range(phi_columns.shape[0]):
+            if np.abs(phi_columns[j, i]) > (max_abs - abs_tol):
+                max_abs = np.abs(phi_columns[j, i])
+                sign_change = signof(phi_columns[j, i], abs_tol=abs_tol)
+        phi_columns[:, i] *= sign_change
 
-    for i in range(phi.shape[0]):
-        for j in range(phi.shape[1]):
-            if almost_int(phi[i, j], abs_tol=abs_tol):
-                phi[i, j] = round(phi[i, j])
+    for i in range(phi_columns.shape[0]):
+        for j in range(phi_columns.shape[1]):
+            if almost_int(phi_columns[i, j], abs_tol=abs_tol):
+                phi_columns[i, j] = round(phi_columns[i, j])
 
-    return phi.transpose()
+    return phi_columns.transpose()
 
 
 def _is_chebychev_site_functions(site_basis_functions_specs: Any):
@@ -245,18 +247,35 @@ def make_chebychev_site_functions(
           ``value = functions[function_index][occupant_index]``.
 
     """
+    all_indices = xtal.asymmetric_unit_indices(prim.xtal_prim)
     occ_dofs = prim.xtal_prim.occ_dof()
+    site_rep = prim.integral_site_coordinate_symgroup_rep
+    indicator_matrix_rep = prim.local_dof_matrix_rep("occ")
+
+    phi = {}
+    for unit_indices in all_indices:
+        b_init = unit_indices[0]
+
+        n_allowed_occs = len(occ_dofs[b_init])
+        if n_allowed_occs < 2:
+            continue
+
+        occ_probs = np.array([1.0 / n_allowed_occs] * n_allowed_occs)
+        phi[b_init] = make_orthonormal_discrete_functions(occ_probs, abs_tol)
+
+        site_init = xtal.IntegralSiteCoordinate(sublattice=b_init, unitcell=[0, 0, 0])
+
+        for i_factor_group, site_rep_op in enumerate(site_rep):
+            site_final = site_rep_op * site_init
+            b_final = site_final.sublattice()
+            M_init = indicator_matrix_rep[i_factor_group][b_init]
+
+            if b_final not in phi:
+                phi[b_final] = phi[b_init] @ M_init.T
+
     occ_site_functions = []
-    for i_sublat, site_occ_dofs in enumerate(occ_dofs):
-        n_allowed_occs = len(site_occ_dofs)
-        if n_allowed_occs > 1:
-            occ_probs = np.array([1.0 / n_allowed_occs] * n_allowed_occs)
-            occ_site_functions.append(
-                {
-                    "sublattice_index": i_sublat,
-                    "value": make_orthonormal_discrete_functions(occ_probs, abs_tol),
-                }
-            )
+    for key, value in phi.items():
+        occ_site_functions.append({"sublattice_index": key, "value": value})
 
     return occ_site_functions
 
@@ -294,19 +313,53 @@ def make_occupation_site_functions(
           ``value = functions[function_index][occupant_index]``.
 
     """
+    all_indices = xtal.asymmetric_unit_indices(prim.xtal_prim)
     occ_dofs = prim.xtal_prim.occ_dof()
+    site_rep = prim.integral_site_coordinate_symgroup_rep
+    indicator_matrix_rep = prim.local_dof_matrix_rep("occ")
+
+    phi = {}
+    for unit_indices in all_indices:
+        b_init = unit_indices[0]
+
+        n_allowed_occs = len(occ_dofs[b_init])
+        if n_allowed_occs < 2:
+            continue
+
+        occ_probs = np.zeros((n_allowed_occs,))
+        occ_probs[0] = 1.0
+        phi[b_init] = make_orthonormal_discrete_functions(occ_probs, abs_tol)
+
+        site_init = xtal.IntegralSiteCoordinate(sublattice=b_init, unitcell=[0, 0, 0])
+
+        for i_factor_group, site_rep_op in enumerate(site_rep):
+            site_final = site_rep_op * site_init
+            b_final = site_final.sublattice()
+            M_init = indicator_matrix_rep[i_factor_group][b_init]
+
+            # print(
+            #     f"~~~ b_init: {b_init}, b_final: {b_final}, "
+            #     f"i_factor_group: {i_factor_group} ~~~"
+            # )
+            # print("M_init:")
+            # print(M_init)
+            # print("phi_init:")
+            # print(phi[b_init])
+            # if b_final not in phi:
+            #     phi_final = phi[b_init] @ M_init.T
+            #     print("** phi_final: **")
+            #     print(phi_final)
+            # else:
+            #     print("phi_final:")
+            #     print(phi[b_init] @ M_init.T)
+            # print()
+
+            if b_final not in phi:
+                phi[b_final] = phi[b_init] @ M_init.T
+
     occ_site_functions = []
-    for i_sublat, site_occ_dofs in enumerate(occ_dofs):
-        n_allowed_occs = len(site_occ_dofs)
-        if n_allowed_occs > 1:
-            occ_probs = np.zeros((n_allowed_occs,))
-            occ_probs[0] = 1.0
-            occ_site_functions.append(
-                {
-                    "sublattice_index": i_sublat,
-                    "value": make_orthonormal_discrete_functions(occ_probs, abs_tol),
-                }
-            )
+    for key, value in phi.items():
+        occ_site_functions.append({"sublattice_index": key, "value": value})
 
     return occ_site_functions
 
@@ -368,61 +421,133 @@ def make_composition_site_functions(
         - `"value"`: list[list[float]], list of the site basis function values, as
           ``value = functions[function_index][occupant_index]``.
     """
-    occ_site_functions = []
-    for i_sublat, site_occ_dof in enumerate(prim.xtal_prim.occ_dof()):
-        if len(site_occ_dof) < 2:
-            continue
-        occ_site_functions.append(
-            {
-                "sublattice": i_sublat,
-            }
+
+    all_indices = xtal.asymmetric_unit_indices(prim.xtal_prim)
+    occ_dofs = prim.xtal_prim.occ_dof()
+    site_rep = prim.integral_site_coordinate_symgroup_rep
+    indicator_matrix_rep = prim.local_dof_matrix_rep("occ")
+
+    def get_composition(
+        site_basis_functions_specs: list[dict],
+        unit_indices: list[int],
+    ):
+        for _specs in site_basis_functions_specs:
+            for _b in unit_indices:
+                if _b in _specs["sublat_indices"]:
+                    return (_b, _specs["composition"])
+        return (None, None)
+
+    phi = {}
+    for unit_indices in all_indices:
+        b_init, composition = get_composition(
+            site_basis_functions_specs=site_basis_functions_specs,
+            unit_indices=unit_indices,
         )
 
-    occ_dofs = prim.xtal_prim.occ_dof()
-
-    found_sublat_indices = set()
-    _occ_site_functions = {}
-    """dict[int,numpy.ndarray]: Sublattice index -> site functions"""
-
-    for site in site_basis_functions_specs:
-        for i_sublat in site["sublat_indices"]:
-            found_sublat_indices.add(i_sublat)
-            site_occ_dofs = occ_dofs[i_sublat]
-            n_allowed_occs = len(site_occ_dofs)
-            occ_probs = np.zeros((n_allowed_occs,))
-            if len(site["composition"]) != n_allowed_occs:
-                raise Exception(
-                    "Error in make_composition_site_functions: "
-                    f"for sublattice {i_sublat} "
-                    f"the number of allowed occupants ({n_allowed_occs}) "
-                    f"does not match the number of compositions provided."
-                )
-            for name, value in site["composition"].items():
-                if name not in site_occ_dofs:
-                    raise Exception(
-                        "Error in make_composition_site_functions: "
-                        f"For sublattice {i_sublat}, {name} is not an allowed occupant."
-                    )
-                occ_probs[site_occ_dofs.index(name)] = value
-            if not almost_equal(np.sum(occ_probs), 1.0, abs_tol=casmglobal.TOL):
-                raise Exception(
-                    "Error in make_composition_site_functions: "
-                    f"For sublattice {i_sublat}, composition does not sum to 1.0."
-                )
-            phi = make_orthonormal_discrete_functions(occ_probs, abs_tol)
-            _occ_site_functions[i_sublat] = phi
-
-    # check that all sublattices with >1 occupant were specified
-    for i_sublat, site_occ_dofs in enumerate(occ_dofs):
-        if len(site_occ_dofs) > 1 and i_sublat not in found_sublat_indices:
+        if b_init is None:
             raise Exception(
                 "Error in make_composition_site_functions: "
-                f"No compositions provided for sublattice {i_sublat}."
+                f"No composition found for sublattices {unit_indices}."
             )
 
-    indices = list(found_sublat_indices)
-    indices.sort()
-    return [{"sublattice_index": i, "value": _occ_site_functions[i]} for i in indices]
+        n_allowed_occs = len(occ_dofs[b_init])
+        if n_allowed_occs < 2:
+            continue
+
+        occ_probs = np.zeros((n_allowed_occs,))
+        if len(composition) != n_allowed_occs:
+            raise Exception(
+                "Error in make_composition_site_functions: "
+                f"for sublattice {b_init} "
+                f"the number of allowed occupants ({n_allowed_occs}) "
+                f"does not match the number of compositions provided."
+            )
+        for name, value in composition.items():
+            if name not in occ_dofs[b_init]:
+                raise Exception(
+                    "Error in make_composition_site_functions: "
+                    f"For sublattice {b_init}, {name} is not an allowed occupant."
+                )
+            occ_probs[occ_dofs[b_init].index(name)] = value
+        if not almost_equal(np.sum(occ_probs), 1.0, abs_tol=casmglobal.TOL):
+            raise Exception(
+                "Error in make_composition_site_functions: "
+                f"For sublattice {b_init}, composition does not sum to 1.0."
+            )
+        phi[b_init] = make_orthonormal_discrete_functions(occ_probs, abs_tol)
+
+        site_init = xtal.IntegralSiteCoordinate(sublattice=b_init, unitcell=[0, 0, 0])
+
+        for i_factor_group, site_rep_op in enumerate(site_rep):
+            site_final = site_rep_op * site_init
+            b_final = site_final.sublattice()
+            M_init = indicator_matrix_rep[i_factor_group][b_init]
+
+            if b_final not in phi:
+                phi[b_final] = phi[b_init] @ M_init.T
+
+    occ_site_functions = []
+    for key, value in phi.items():
+        occ_site_functions.append({"sublattice_index": key, "value": value})
+
+    return occ_site_functions
+
+    # occ_site_functions = []
+    # for i_sublat, site_occ_dof in enumerate(prim.xtal_prim.occ_dof()):
+    #     if len(site_occ_dof) < 2:
+    #         continue
+    #     occ_site_functions.append(
+    #         {
+    #             "sublattice": i_sublat,
+    #         }
+    #     )
+    #
+    # occ_dofs = prim.xtal_prim.occ_dof()
+    #
+    # found_sublat_indices = set()
+    # _occ_site_functions = {}
+    # """dict[int,numpy.ndarray]: Sublattice index -> site functions"""
+    #
+    # for site in site_basis_functions_specs:
+    #     for i_sublat in site["sublat_indices"]:
+    #         found_sublat_indices.add(i_sublat)
+    #         site_occ_dofs = occ_dofs[i_sublat]
+    #         n_allowed_occs = len(site_occ_dofs)
+    #         occ_probs = np.zeros((n_allowed_occs,))
+    #         if len(site["composition"]) != n_allowed_occs:
+    #             raise Exception(
+    #                 "Error in make_composition_site_functions: "
+    #                 f"for sublattice {i_sublat} "
+    #                 f"the number of allowed occupants ({n_allowed_occs}) "
+    #                 f"does not match the number of compositions provided."
+    #             )
+    #         for name, value in site["composition"].items():
+    #             if name not in site_occ_dofs:
+    #                 raise Exception(
+    #                     "Error in make_composition_site_functions: "
+    #                     f"For sublattice {i_sublat}, {name} "
+    #                     "is not an allowed occupant."
+    #                 )
+    #             occ_probs[site_occ_dofs.index(name)] = value
+    #         if not almost_equal(np.sum(occ_probs), 1.0, abs_tol=casmglobal.TOL):
+    #             raise Exception(
+    #                 "Error in make_composition_site_functions: "
+    #                 f"For sublattice {i_sublat}, composition does not sum to 1.0."
+    #             )
+    #         phi = make_orthonormal_discrete_functions(occ_probs, abs_tol)
+    #         _occ_site_functions[i_sublat] = phi
+    #
+    # # check that all sublattices with >1 occupant were specified
+    # for i_sublat, site_occ_dofs in enumerate(occ_dofs):
+    #     if len(site_occ_dofs) > 1 and i_sublat not in found_sublat_indices:
+    #         raise Exception(
+    #             "Error in make_composition_site_functions: "
+    #             f"No compositions provided for sublattice {i_sublat}."
+    #         )
+    #
+    # indices = list(found_sublat_indices)
+    # indices.sort()
+    # return [{"sublattice_index": i, "value": _occ_site_functions[i]} for i in indices]
 
 
 def _is_direct_site_functions(site_basis_functions_specs: Any):
