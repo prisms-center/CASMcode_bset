@@ -6,7 +6,6 @@ import typing
 import libcasm.clexulator as casmclex
 import libcasm.configuration as casmconfig
 import libcasm.xtal as xtal
-
 from casm.bset.cluster_functions import (
     ClexBasisSpecs,
 )

@@ -1,9 +1,6 @@
 from typing import Optional
 
 import numpy as np
-from libcasm.clexulator import (
-    PrimNeighborList,
-)
 
 from casm.bset.misc import (
     almost_equal,
@@ -12,6 +9,9 @@ from casm.bset.misc import (
 from casm.bset.polynomial_functions import (
     PolynomialFunction,
     Variable,
+)
+from libcasm.clexulator import (
+    PrimNeighborList,
 )
 
 
@@ -212,8 +212,6 @@ def polynomial_sum_cpp_str(
         factored_coeff.append(_factored_coeff)
 
     common_prefix, factored_prefixes = factor_by_mode(np.array(prefix_coeff))
-    print("common_prefix:", common_prefix)
-    print("factored_prefixes:", factored_prefixes)
 
     cpp_str = ""
     if not is_one(common_prefix, atol=cpp_fmt.coeff_atol):

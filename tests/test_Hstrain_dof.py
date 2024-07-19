@@ -59,7 +59,7 @@ def test_Hstrain_fcc_1(session_shared_datadir):
     expected = expected_Hstrain_functions_fcc_1()
     assert_expected_functions(basis_set, expected)
 
-    # test make_cluster_functions with only global DoF
+    # test build_cluster_functions with only global DoF
     builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
@@ -93,7 +93,7 @@ def test_Hstrain_fcc_2(session_shared_datadir):
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    # test make_cluster_functions with only global DoF
+    # test build_cluster_functions with only global DoF
     builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
@@ -151,7 +151,7 @@ def test_Hstrain_fcc_3(session_shared_datadir):
     )
     # print(xtal.pretty_json(xtal_prim.to_dict()))
 
-    # test make_cluster_functions with only global DoF
+    # test build_cluster_functions with only global DoF
     builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
@@ -233,7 +233,7 @@ def test_Hstrain_hcp_1(session_shared_datadir):
     expected = expected_Hstrain_functions_hcp_1()
     assert_expected_functions(basis_set, expected)
 
-    # test make_cluster_functions with only global DoF
+    # test build_cluster_functions with only global DoF
     builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={
@@ -298,7 +298,7 @@ def test_Hstrain_lowsym_1(lowsym_Hstrain_prim, session_shared_datadir):
     expected = expected_Hstrain_functions_lowsym_1()
     assert_expected_functions(basis_set, expected)
 
-    # test make_cluster_functions with only global DoF
+    # test build_cluster_functions with only global DoF
     builder = build_cluster_functions(
         prim=xtal_prim,
         clex_basis_specs={

@@ -1,25 +1,35 @@
-from io import StringIO
+import os
 
 import libcasm.xtal.prims as xtal_prims
+import libcasm.configuration as casmconfig
 
 from casm.bset import (
-    make_cluster_functions,
+    build_cluster_functions,
+    make_clex_basis_specs,
     write_clexulator,
 )
 
 
-def test_v1_basic_occ_fcc_1(session_shared_datadir):
+def test_v1_basic_occ_fcc_1(session_shared_datadir, tmp_path):
     xtal_prim = xtal_prims.FCC(
         r=0.5,
         occ_dof=["A", "B", "C"],
         # local_dof=[xtal.DoFSetBasis("disp")],
         # global_dof=[xtal.DoFSetBasis("Hstrain")],
     )
-    # prim = casmconfig.Prim(xtal_prim)
+    prim = casmconfig.Prim(xtal_prim)
 
-    clusters, functions, prim_neighbor_list, params = make_cluster_functions(
-        xtal_prim=xtal_prim, max_length=[0.0, 0.0, 1.01, 1.01], global_max_poly_order=4
+    clex_basis_specs = make_clex_basis_specs(
+        prim=prim,
+        max_length=[0.0, 0.0, 1.01, 1.01],
+        global_max_poly_order=4,
     )
+
+    builder = build_cluster_functions(
+        prim=prim,
+        clex_basis_specs=clex_basis_specs,
+    )
+    clusters, functions = (builder.clusters, builder.functions)
 
     n_corr = 1  # include constant term
     for i_orbit, orbit in enumerate(functions):
@@ -62,7 +72,7 @@ def test_v1_basic_occ_fcc_1(session_shared_datadir):
         {
             "name": "occ_site_func",
             "rows": 2,
-            "cols": prim_neighbor_list.n_neighborhood_sites(),
+            "cols": builder.prim_neighbor_list.n_neighborhood_sites(),
             "is_independent": "true",
         },
         # {
@@ -85,21 +95,17 @@ def test_v1_basic_occ_fcc_1(session_shared_datadir):
         },
     ]
 
-    with StringIO() as f:
-        write_clexulator(
-            f,
-            version="v1.basic",
-            project_name="MyProject",
-            bset_name="default",
-            is_periodic=True,
-            clusters=clusters,
-            functions=functions,
-            prim_neighbor_list=prim_neighbor_list,
-            occ_site_functions=occ_site_functions,
-            continuous_dof=continuous_dof,
-            params=params,
-            linear_function_indices=None,
-        )
-        print(f.getvalue())
+    write_clexulator(
+        prim=prim,
+        clex_basis_specs=clex_basis_specs,
+        bset_dir=tmp_path,
+        project_name="TestProject",
+        bset_name="default",
+        version="v1.basic",
+    )
+
+    print("tmp_path:", tmp_path)
+    for x in os.listdir(tmp_path):
+        print(x)
 
     assert False

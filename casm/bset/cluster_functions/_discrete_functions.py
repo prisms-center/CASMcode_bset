@@ -1,10 +1,10 @@
 from typing import Any, Optional, Union
 
+import numpy as np
+
 import libcasm.casmglobal as casmglobal
 import libcasm.configuration as casmconfig
 import libcasm.xtal as xtal
-import numpy as np
-
 from casm.bset.misc import almost_equal, almost_int, signof
 
 

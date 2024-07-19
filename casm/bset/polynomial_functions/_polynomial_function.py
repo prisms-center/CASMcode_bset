@@ -7,12 +7,12 @@ from typing import Optional, TypeVar, Union
 import numpy as np
 import opt_einsum
 import sparse
-from libcasm.counter import IntCounter
 
 from casm.bset.misc import (
     factor_by_mode,
     irrational_to_tex_string,
 )
+from libcasm.counter import IntCounter
 
 
 def is_canonical_coord(x: np.ndarray):

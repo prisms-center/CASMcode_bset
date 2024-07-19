@@ -1,11 +1,10 @@
 from typing import TypeVar
 
 import libcasm.configuration as casmconfig
-from libcasm.clusterography import ClusterSpecs
-
 from casm.bset.parsing import (
     required_from_dict,
 )
+from libcasm.clusterography import ClusterSpecs
 
 from ._basis_function_specs import (
     BasisFunctionSpecs,

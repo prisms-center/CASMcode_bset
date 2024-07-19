@@ -2,15 +2,14 @@ import copy
 from typing import Optional
 
 import libcasm.clusterography as casmclust
-from libcasm.clexulator import (
-    PrimNeighborList,
-)
-
 from casm.bset.clexwriter._cpp_str import (
     CppFormatProperties,
 )
 from casm.bset.polynomial_functions import (
     PolynomialFunction,
+)
+from libcasm.clexulator import (
+    PrimNeighborList,
 )
 
 from ._methods import (
@@ -162,6 +161,11 @@ class WriterV1Basic:
         If None, all functions will be included in the Clexulator. Otherwise, only the 
         specified functions will be included in the Clexulator. This
         is an experimental feature."""
+
+        ## set cpp_fmt
+        self.cpp_fmt = cpp_fmt
+        """libcasm.bset.clexwriter.CppFormatProperties: C++ string formatting \
+        properties."""
 
         ## set nlist_size
         self.nlist_size = prim_neighbor_list.n_neighborhood_sites()

@@ -1,10 +1,14 @@
 from typing import Callable, Optional
 
+import numpy as np
+import scipy
+
 import libcasm.configuration as casmconfig
 import libcasm.sym_info as casmsyminfo
 import libcasm.xtal as xtal
-import numpy as np
-import scipy
+from casm.bset.polynomial_functions import (
+    Variable,
+)
 from libcasm.clusterography import (
     Cluster,
     make_cluster_group,
@@ -19,10 +23,6 @@ from libcasm.clusterography import (
 )
 from libcasm.sym_info import (
     SymGroup,
-)
-
-from casm.bset.polynomial_functions import (
-    Variable,
 )
 
 from ._discrete_functions import (
@@ -890,13 +890,18 @@ def make_occ_site_functions_matrix_rep(
     for prim_factor_group_index, indicator_op_rep in enumerate(indicator_matrix_rep):
         site_functions_op_rep = []
         for sublattice_index, indicator_rep in enumerate(indicator_op_rep):
-            if indicator_rep.shape[0] < 2:
-                site_functions_op_rep.append(indicator_rep)
-                continue
             b = sublattice_index
             site = xtal.IntegralSiteCoordinate(b, [0, 0, 0])
             site_final = site_rep[prim_factor_group_index] * site
             b_final = site_final.sublattice()
+            if phi[b_final].shape != phi_inv[b].shape:
+                raise Exception(
+                    "Error in make_occ_site_functions_matrix_rep: "
+                    "phi[b_final].shape != phi_inv[b].shape"
+                )
+            if phi[b_final].shape == (0, 0):
+                site_functions_op_rep.append(np.zeros((0, 0)))
+                continue
             site_function_rep = phi[b_final] @ indicator_rep @ phi_inv[b]
             site_functions_op_rep.append(site_function_rep)
         occ_site_functions_matrix_rep.append(site_functions_op_rep)
@@ -1264,7 +1269,15 @@ class OrbitMatrixRepBuilder:
                 raise Exception(
                     "Error in OrbitMatrixRepBuilder: "
                     "the generating group must be the prim factor group "
-                    "or a direct subgroup of prim factor group."
+                    "or a direct subgroup of the prim factor group."
+                )
+
+        if phenomenal is not None:
+            if generating_group.head_group is None:
+                raise Exception(
+                    "Error in OrbitMatrixRepBuilder: "
+                    "for local orbits, the generating group must be a direct subgroup "
+                    "of the prim factor group."
                 )
 
         ### Constructor parameters ###
