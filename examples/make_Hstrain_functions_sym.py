@@ -1,8 +1,8 @@
+import numpy as np
+
 import libcasm.configuration as casmconfig
 import libcasm.xtal as xtal
 import libcasm.xtal.prims as xtal_prims
-import numpy as np
-
 from casm.bset import (
     PolynomialFunction,
     Variable,
@@ -13,14 +13,17 @@ from casm.bset import (
 Hstrain_dof = xtal.DoFSetBasis(
     dofname="Hstrain",
     axis_names=["e_1", "e_2", "e_3", "e_4", "e_5", "e_6"],
-    basis=np.array([
-        [1. / np.sqrt(3), 1. / np.sqrt(3), 1. / np.sqrt(3), 0.0, 0.0, 0.0],
-        [1. / np.sqrt(2), -1. / np.sqrt(2), 0.0, 0.0, 0.0, 0.0],
-        [-1. / np.sqrt(6), -1. / np.sqrt(6), 2. / np.sqrt(6), 0.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
-        [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
-    ]).transpose())
+    basis=np.array(
+        [
+            [1.0 / np.sqrt(3), 1.0 / np.sqrt(3), 1.0 / np.sqrt(3), 0.0, 0.0, 0.0],
+            [1.0 / np.sqrt(2), -1.0 / np.sqrt(2), 0.0, 0.0, 0.0, 0.0],
+            [-1.0 / np.sqrt(6), -1.0 / np.sqrt(6), 2.0 / np.sqrt(6), 0.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 1.0, 0.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 1.0, 0.0],
+            [0.0, 0.0, 0.0, 0.0, 0.0, 1.0],
+        ]
+    ).transpose(),
+)
 
 xtal_prim = xtal_prims.FCC(
     a=1.0,
@@ -37,9 +40,7 @@ matrix_rep = make_global_dof_matrix_rep(
     key="Hstrain",
 )
 
-variables = [
-    Variable(i) for i in Hstrain_dof.axis_names()
-]
+variables = [Variable(i) for i in Hstrain_dof.axis_names()]
 variable_subsets = [[0, 1, 2, 3, 4, 5]]
 basis_set = make_symmetry_adapted_polynomials(
     matrix_rep=matrix_rep,
@@ -60,8 +61,8 @@ print("Symmetry adapted polynomials functions:")
 for i, f in enumerate(basis_set):
     print(f"~~~ order: {f.order()}, function_index: {i} ~~~")
     f._basic_print()
-    
-    print('Latex formula:')
+
+    print("Latex formula:")
     f._latex_print(variables)
 
     if False:

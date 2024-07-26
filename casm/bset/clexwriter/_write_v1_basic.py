@@ -13,6 +13,7 @@ from libcasm.clexulator import (
 )
 
 from ._methods import (
+    make_neighborhoods,
     make_orbit_bfuncs,
     make_site_bfuncs,
 )
@@ -185,6 +186,46 @@ class WriterV1Basic:
             prototype_functions = orbit_functions[0]
             self.n_corr += len(prototype_functions)
 
+        ## set neighborhood info
+        _complete_neighborhood, _function_neighborhoods = make_neighborhoods(
+            is_periodic=is_periodic,
+            prim_neighbor_list=prim_neighbor_list,
+            clusters=clusters,
+            functions=functions,
+            linear_function_indices=linear_function_indices,
+        )
+
+        self.complete_neighborhood = _complete_neighborhood
+        """dict: The neighborhood needed to evaluate basis functions 
+        involving sites in the origin unit cell. 
+        
+        Contains:
+        
+        - ``"unitcells"``: list[list[int]], List of ``[i,j,k]`` unit
+          cell indices for the neighborhood.
+        - ``"sites"``: list[list[int]], List of ``[b,i,j,k]`` site
+          indices for the neighborhood.
+        
+        """
+
+        self.function_neighborhoods = _function_neighborhoods
+        """list[dict]: The neighborhood data for each orbit of basis functions. 
+        
+        Each dictionary contains:
+
+        - ``"linear_function_index"``: int, Linear function index
+        - ``"same_as"``: Optional[int], If not None, the linear function index of the
+          first orbit of functions in the same cluster orbit as this function, which
+          has the same neighborhood.
+        - ``"unitcells"``: list[list[int]], List of ``[i,j,k]`` unit
+          cell indices for the neighborhood of the orbit of basis function. This is
+          only populated for the first function in each cluster orbit.
+        - ``"sites"``: list[list[int]], List of ``[b,i,j,k]`` site
+          indices for the neighborhood of the orbit of basis function. This is
+          only populated for the first function in each cluster orbit.
+        
+        """
+
         ## set n_point_corr_sites
         self.n_point_corr_sites = None
         """int: Number of sites where point correlations can be evaluated.
@@ -272,7 +313,7 @@ class WriterV1Basic:
             "name": "corr",
             "rows": self.n_corr,
             "cols": 1,
-            "is_independent": False,
+            "is_independent": "false",
         }
         self.params.append(corr_param)
 
@@ -371,4 +412,6 @@ class WriterV1Basic:
             "nlist_weight_matrix": self.prim_neighbor_list.weight_matrix().tolist(),
             "nlist_sublattice_indices": self.prim_neighbor_list.sublattice_indices(),
             "nlist_total_n_sublattice": self.prim_neighbor_list.total_n_sublattice(),
+            "complete_neighborhood": self.complete_neighborhood,
+            "function_neighborhoods": self.function_neighborhoods,
         }

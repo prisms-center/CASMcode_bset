@@ -1,13 +1,13 @@
 import json
 
-import libcasm.configuration as casmconfig
-import libcasm.xtal as xtal
 import numpy as np
 from utils.helpers import (
     assert_expected_cluster_functions_detailed,
     make_discrete_magnetic_atom,
 )
 
+import libcasm.configuration as casmconfig
+import libcasm.xtal as xtal
 from casm.bset import (
     build_cluster_functions,
 )

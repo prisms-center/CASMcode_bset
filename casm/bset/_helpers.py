@@ -1,4 +1,5 @@
 """Convenience methods for parsing arguments to top-level methods"""
+
 import json
 import pathlib
 import typing
@@ -29,7 +30,7 @@ def as_Prim(
 
     """
     if isinstance(x, (str, pathlib.Path)):
-        with open(x, "w") as f:
+        with open(x, "r") as f:
             x = json.load(f)
     if isinstance(x, dict):
         x = casmconfig.Prim.from_dict(x)
@@ -62,7 +63,8 @@ def as_ClexBasisSpecs(
 
     """
     if isinstance(x, (str, pathlib.Path)):
-        with open(x, "w") as f:
+        print(x)
+        with open(x, "r") as f:
             x = json.load(f)
     if isinstance(x, dict):
         x = ClexBasisSpecs.from_dict(x, prim=prim)

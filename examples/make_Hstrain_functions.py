@@ -1,7 +1,6 @@
 import libcasm.configuration as casmconfig
 import libcasm.xtal as xtal
 import libcasm.xtal.prims as xtal_prims
-
 from casm.bset import (
     PolynomialFunction,
     Variable,
@@ -55,8 +54,8 @@ print("Symmetry adapted polynomials functions:")
 for i, f in enumerate(basis_set):
     print(f"~~~ order: {f.order()}, function_index: {i} ~~~")
     f._basic_print()
-    
-    print('Latex formula:')
+
+    print("Latex formula:")
     f._latex_print(variables)
 
     if False:

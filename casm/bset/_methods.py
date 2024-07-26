@@ -275,7 +275,7 @@ def write_clexulator(
     version: str = "v1.basic",
     linear_function_indices: Optional[set[int]] = None,
     cpp_fmt: Optional[CppFormatProperties] = None,
-) -> None:
+) -> tuple[pathlib.Path, Optional[list[pathlib.Path]], PrimNeighborList]:
     """Write a CASM Clexulator
 
     Notes
@@ -334,6 +334,14 @@ def write_clexulator(
     cpp_fmt: Optional[CppFormatProperties] = None
         C++ string formatting properties. If None, default constructor values are used.
 
+    Returns
+    -------
+    src_path: pathlib.Path
+        The path to the Clexulator source file
+    local_src_path: Optional[list[pathlib.Path]]
+        The paths to the local Clexulator source files
+    prim_neighbor_list: libcasm.clexulator.PrimNeighborList
+        The PrimNeighborList.
     """
     prim = _helpers.as_Prim(prim)
     clex_basis_specs = _helpers.as_ClexBasisSpecs(clex_basis_specs, prim=prim)
@@ -356,3 +364,5 @@ def write_clexulator(
         clex_basis_specs=clex_basis_specs,
         prim_neighbor_list=prim_neighbor_list,
     )
+
+    return (writer.src_path, writer.local_src_path, prim_neighbor_list)

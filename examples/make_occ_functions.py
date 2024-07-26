@@ -1,16 +1,16 @@
+import numpy as np
+
 import libcasm.configuration as casmconfig
 import libcasm.xtal as xtal
 import libcasm.xtal.prims as xtal_prims
-import numpy as np
-from libcasm.clusterography import (
-    Cluster,
-)
-
 from casm.bset import (
     ExponentSumConstraint,
     PeriodicOrbitMatrixRepBuilder,
     PolynomialFunction,
     make_symmetry_adapted_polynomials,
+)
+from libcasm.clusterography import (
+    Cluster,
 )
 
 xtal_prim = xtal_prims.FCC(

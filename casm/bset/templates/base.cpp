@@ -13,7 +13,6 @@ class {{ clexulator_name }}
 {% block clexulator_public_decl %}{% endblock %}
  private:
 {% block clexulator_private_decl %}{% endblock %}
-
 };
 
 {% block clexulator_public_def %}{% endblock %}

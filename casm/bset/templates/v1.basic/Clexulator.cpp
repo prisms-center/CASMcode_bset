@@ -41,9 +41,21 @@ typedef BasicClexParamPack param_pack_type;
 {{ clexulator_name }}::~{{ clexulator_name }}() {
   //nothing here
 }
+
 {% endblock %}
 
 
 {% block clexulator_private_def %}
 {% include "v1.basic/clexulator_private_def.cpp" %}
+{% endblock %}
+
+{% block global_def %}
+extern "C" {
+
+/// \brief Returns a clexulator::BaseClexulator* owning a {{ clexulator_name }}
+CASM::clexulator::BaseClexulator *make_{{ clexulator_name }}() {
+  return new CASM::clexulator::{{ clexulator_name }}();
+}
+
+}
 {% endblock %}

@@ -1,10 +1,5 @@
 import json
 
-import libcasm.clusterography as casmclust
-import libcasm.configuration as casmconfig
-import libcasm.occ_events as occ_events
-import libcasm.xtal.prims as xtal_prims
-
 # from utils.expected_disp_functions import (
 #     expected_occ_functions_fcc_1,
 #     expected_occ_functions_hcp_1,
@@ -14,6 +9,10 @@ from utils.helpers import (
     assert_expected_cluster_functions_detailed,
 )
 
+import libcasm.clusterography as casmclust
+import libcasm.configuration as casmconfig
+import libcasm.occ_events as occ_events
+import libcasm.xtal.prims as xtal_prims
 from casm.bset import (
     build_cluster_functions,
 )
@@ -26,6 +25,7 @@ from casm.bset.cluster_functions import (
 
 
 def test_occ_fcc_1a(session_shared_datadir):
+    """build_functions with libcasm.xtal.Prim / dict bspecs"""
     xtal_prim = xtal_prims.FCC(
         r=0.5,
         occ_dof=["A", "B", "C"],
@@ -59,6 +59,7 @@ def test_occ_fcc_1a(session_shared_datadir):
 
 
 def test_occ_fcc_1b(session_shared_datadir):
+    """build_functions with libcasm.configuration.Prim / ClexBasisSpecs"""
     xtal_prim = xtal_prims.FCC(
         r=0.5,
         occ_dof=["A", "B", "C"],

@@ -270,7 +270,7 @@ class Variable:
         """
 
         self.name = name
-        """str: Name used for identification and printing.
+        R"""str: Name used for identification and printing.
         
         For example:
          

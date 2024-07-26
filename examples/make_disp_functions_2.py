@@ -1,6 +1,5 @@
 import libcasm.xtal as xtal
 import libcasm.xtal.prims as xtal_prims
-
 from casm.bset import (
     build_cluster_functions,
 )

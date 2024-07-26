@@ -1,7 +1,5 @@
 import json
 
-import libcasm.xtal as xtal
-import libcasm.xtal.prims as xtal_prims
 from utils.expected_disp_functions import (
     expected_disp_functions_fcc_1,
     expected_disp_functions_hcp_1,
@@ -12,6 +10,8 @@ from utils.helpers import (
     assert_expected_cluster_functions_detailed,
 )
 
+import libcasm.xtal as xtal
+import libcasm.xtal.prims as xtal_prims
 from casm.bset import (
     build_cluster_functions,
 )

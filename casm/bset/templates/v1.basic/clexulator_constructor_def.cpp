@@ -105,5 +105,44 @@
 
   // Total number of sublattices in prim
   m_n_sublattices = {{ nlist_total_n_sublattice }};
+
+{% if complete_neighborhood.unitcells|length > 0 %}
+  // Neighborhood of all basis functions
+  m_neighborhood = std::set<xtal::UnitCell> {
+  {% for neighbor in complete_neighborhood.unitcells %}
+    xtal::UnitCell({{ neighbor[0] }}, {{ neighbor[1] }}, {{ neighbor[2] }}),
+  {% endfor %}
+  };
+
+{% endif %}
+  // Neighborhood by linear function index
+  m_orbit_neighborhood.resize(corr_size());
+  m_orbit_site_neighborhood.resize(corr_size());
+
+{% for f in function_neighborhoods %}
+  {% set function_index = f.linear_function_index %}
+  {% if (f.same_as) and function_neighborhoods[f.same_as].sites|length > 0 %}
+  m_orbit_neighborhood[{{function_index}}] = m_orbit_neighborhood[{{f.same_as}}];
+  m_orbit_site_neighborhood[{{function_index}}] = m_orbit_site_neighborhood[{{f.same_as}}];
+
+  {% else %}
+    {% if f.unitcells|length > 0 %}
+  m_orbit_neighborhood[{{function_index}}] = std::set<xtal::UnitCell> {
+      {% for neighbor in f.unitcells %}
+    xtal::UnitCell({{ neighbor[0] }}, {{ neighbor[1] }}, {{ neighbor[2] }}),
+      {% endfor %}
+  };
+
+    {% endif %}
+    {% if f.sites|length > 0 %}
+  m_orbit_site_neighborhood[{{function_index}}] = std::set<xtal::UnitCellCoord> {
+      {% for neighbor in f.sites %}
+    xtal::UnitCellCoord({{ neighbor[0] }}, {{ neighbor[1] }}, {{ neighbor[2] }}, {{ neighbor[3] }}),
+      {% endfor %}
+  };
+
+    {% endif %}
+  {% endif %}
+{% endfor %}
 }
 

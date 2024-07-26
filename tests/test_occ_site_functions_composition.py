@@ -1,11 +1,11 @@
 import json
 
-import libcasm.xtal as xtal
 import numpy as np
 from utils.helpers import (
     assert_expected_cluster_functions_detailed,
 )
 
+import libcasm.xtal as xtal
 from casm.bset import (
     build_cluster_functions,
 )

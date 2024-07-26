@@ -1,8 +1,9 @@
 import pathlib
 from typing import Any, Optional
 
-import libcasm.xtal as xtal
 import numpy as np
+
+import libcasm.xtal as xtal
 
 
 def print_factor_group(prim):

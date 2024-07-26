@@ -70,7 +70,7 @@ def occ_func_cpp_str(
 
         .. code-block:: Python
 
-            # b: int, sublattice indiex
+            # b: int, sublattice index
             # m: int, site basis function index
             cpp_str = f"m_occ_func{b}_{m}[{occupant_index_argname}]"
 
@@ -82,7 +82,7 @@ def occ_func_cpp_str(
     i = var.neighborhood_site_index % len(nlist_sublat_indices)
     b = nlist_sublat_indices[i]
     m = var.site_basis_function_index
-    return f"m_occ_func{b}_{m}[{occupant_index_argname}]"
+    return f"m_occ_func_{b}_{m}[{occupant_index_argname}]"
 
 
 def variable_cpp_str(
@@ -121,7 +121,7 @@ def variable_cpp_str(
     else:
         # global continuous DoF
         c = var.component_index
-        return f"{var.key}_var_{c}<Scalar>()"
+        return f"{var.key}_var<Scalar>({c})"
 
 
 def monomial_cpp_str(
