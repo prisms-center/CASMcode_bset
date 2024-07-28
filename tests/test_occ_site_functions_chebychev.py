@@ -72,6 +72,10 @@ def test_chebychev_occ_fcc_1a(session_shared_datadir):
         )
         assert np.allclose(builder.occ_site_functions[b]["value"], expected)
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
@@ -154,6 +158,10 @@ def test_chebychev_occ_fcc_1b(session_shared_datadir):
 
     ## Compare to functions generated in test 1a ##
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
@@ -235,6 +243,10 @@ def test_chebychev_occ_fcc_2a(session_shared_datadir):
         )
         assert np.allclose(builder.occ_site_functions[b]["value"], expected)
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
@@ -357,6 +369,10 @@ def test_chebychev_occ_fcc_2b(session_shared_datadir):
         )
         assert np.allclose(builder.occ_site_functions[b]["value"], expected)
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
@@ -488,6 +504,10 @@ def test_chebychev_occ_fcc_3a(session_shared_datadir):
         )
         assert np.allclose(builder.occ_site_functions[b]["value"], expected)
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
@@ -665,6 +685,10 @@ def test_chebychev_occ_fcc_3b(session_shared_datadir):
         )
         assert np.allclose(builder.occ_site_functions[b]["value"], expected)
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent

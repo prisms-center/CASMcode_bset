@@ -755,8 +755,17 @@ class ClexulatorWriter:
             f.write(template.render(writer.variables()))
 
         basis_path = self.bset_dir / "basis.json"
+
         with open(basis_path, "w") as f:
-            f.write(xtal.pretty_json(builder.basis_dict()))
+            data = ClusterFunctionsBuilder.to_basis_dict(
+                prim=prim,
+                clex_basis_specs=clex_basis_specs,
+                clusters=builder.clusters,
+                functions=builder.functions,
+                occ_site_functions=builder.occ_site_functions,
+                coordinate_mode="frac",
+            )
+            f.write(xtal.pretty_json(data))
 
         ## if local clexulators
         if phenomenal is not None:

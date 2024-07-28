@@ -75,6 +75,10 @@ def test_occ_fcc_1a(session_shared_datadir):
         )
         assert np.allclose(builder.occ_site_functions[b]["value"], expected)
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
@@ -234,6 +238,10 @@ def test_occ_fcc_2a(session_shared_datadir):
         )
         assert np.allclose(builder.occ_site_functions[b]["value"], expected)
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
@@ -497,6 +505,10 @@ def test_occ_fcc_3a(session_shared_datadir):
         )
         assert np.allclose(builder.occ_site_functions[b]["value"], expected)
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
@@ -812,6 +824,10 @@ def test_occ_fcc_4a(session_shared_datadir):
             expected,
         )
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent

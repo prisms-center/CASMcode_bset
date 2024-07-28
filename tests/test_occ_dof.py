@@ -48,6 +48,10 @@ def test_occ_fcc_1a(session_shared_datadir):
     )
     functions, clusters = (builder.functions, builder.clusters)
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
@@ -81,6 +85,10 @@ def test_occ_fcc_1b(session_shared_datadir):
     )
     functions, clusters = (builder.functions, builder.clusters)
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
@@ -152,6 +160,10 @@ def test_occ_fcc_local_1(session_shared_datadir):
     for _clusters in equivalent_clusters:
         assert len(make_neighborhood(clusters=_clusters)) == expected_neighborhood_size
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
@@ -201,6 +213,10 @@ def test_occ_hcp_1(session_shared_datadir):
     )
     functions, clusters = (builder.functions, builder.clusters)
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
@@ -230,6 +246,10 @@ def test_occ_lowsym_1(lowsym_occ_prim, session_shared_datadir):
     )
     functions, clusters = (builder.functions, builder.clusters)
 
+    # import os
+    # import pathlib
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent

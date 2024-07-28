@@ -1,3 +1,4 @@
+import json
 import os
 
 import numpy as np
@@ -71,6 +72,18 @@ def test_v1_basic_occ_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    with open(tmp_path / "basis.json", "r") as f:
+        basis_data = json.load(f)
+    assert "prim" in basis_data
+    assert "bspecs" in basis_data
+    assert "orbits" in basis_data
+    assert len(basis_data["orbits"]) == 4
+    assert len(basis_data["orbits"][0]["cluster_functions"]) == 1
+    assert len(basis_data["orbits"][1]["cluster_functions"]) == 2
+    assert len(basis_data["orbits"][2]["cluster_functions"]) == 3
+    assert len(basis_data["orbits"][3]["cluster_functions"]) == 4
+    assert "site_functions" in basis_data
+    assert len(basis_data["site_functions"]) == 1
 
     clexulator = casmclex.make_clexulator(
         source=str(src_path),
@@ -337,6 +350,15 @@ def test_v1_basic_Hstrain_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    with open(tmp_path / "basis.json", "r") as f:
+        basis_data = json.load(f)
+    assert "prim" in basis_data
+    assert "bspecs" in basis_data
+    assert "orbits" in basis_data
+    assert len(basis_data["orbits"]) == 1
+    assert len(basis_data["orbits"][0]["cluster_functions"]) == 22
+    assert "site_functions" in basis_data
+    assert len(basis_data["site_functions"]) == 1
 
     clexulator = casmclex.make_clexulator(
         source=str(src_path),
@@ -430,6 +452,18 @@ def test_v1_basic_Hstrain_occ_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    with open(tmp_path / "basis.json", "r") as f:
+        basis_data = json.load(f)
+    assert "prim" in basis_data
+    assert "bspecs" in basis_data
+    assert "orbits" in basis_data
+    assert len(basis_data["orbits"]) == 4
+    assert len(basis_data["orbits"][0]["cluster_functions"]) == 11
+    assert len(basis_data["orbits"][1]["cluster_functions"]) == 10
+    assert len(basis_data["orbits"][2]["cluster_functions"]) == 12
+    assert len(basis_data["orbits"][3]["cluster_functions"]) == 4
+    assert "site_functions" in basis_data
+    assert len(basis_data["site_functions"]) == 1
 
     clexulator = casmclex.make_clexulator(
         source=str(src_path),
@@ -509,6 +543,18 @@ def test_v1_basic_disp_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    with open(tmp_path / "basis.json", "r") as f:
+        basis_data = json.load(f)
+    assert "prim" in basis_data
+    assert "bspecs" in basis_data
+    assert "orbits" in basis_data
+    assert len(basis_data["orbits"]) == 4
+    assert len(basis_data["orbits"][0]["cluster_functions"]) == 1
+    assert len(basis_data["orbits"][1]["cluster_functions"]) == 1
+    assert len(basis_data["orbits"][2]["cluster_functions"]) == 8
+    assert len(basis_data["orbits"][3]["cluster_functions"]) == 7
+    assert "site_functions" in basis_data
+    assert len(basis_data["site_functions"]) == 1
 
     clexulator = casmclex.make_clexulator(
         source=str(src_path),
@@ -596,6 +642,18 @@ def test_v1_basic_occ_disp_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    with open(tmp_path / "basis.json", "r") as f:
+        basis_data = json.load(f)
+    assert "prim" in basis_data
+    assert "bspecs" in basis_data
+    assert "orbits" in basis_data
+    assert len(basis_data["orbits"]) == 4
+    assert len(basis_data["orbits"][0]["cluster_functions"]) == 1
+    assert len(basis_data["orbits"][1]["cluster_functions"]) == 5
+    assert len(basis_data["orbits"][2]["cluster_functions"]) == 29
+    assert len(basis_data["orbits"][3]["cluster_functions"]) == 30
+    assert "site_functions" in basis_data
+    assert len(basis_data["site_functions"]) == 1
 
     clexulator = casmclex.make_clexulator(
         source=str(src_path),
@@ -684,6 +742,18 @@ def test_v1_basic_Hstrain_disp_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    with open(tmp_path / "basis.json", "r") as f:
+        basis_data = json.load(f)
+    assert "prim" in basis_data
+    assert "bspecs" in basis_data
+    assert "orbits" in basis_data
+    assert len(basis_data["orbits"]) == 4
+    assert len(basis_data["orbits"][0]["cluster_functions"]) == 11
+    assert len(basis_data["orbits"][1]["cluster_functions"]) == 4
+    assert len(basis_data["orbits"][2]["cluster_functions"]) == 20
+    assert len(basis_data["orbits"][3]["cluster_functions"]) == 7
+    assert "site_functions" in basis_data
+    assert len(basis_data["site_functions"]) == 1
 
     clexulator = casmclex.make_clexulator(
         source=str(src_path),
@@ -775,6 +845,18 @@ def test_v1_basic_Hstrain_occ_disp_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    with open(tmp_path / "basis.json", "r") as f:
+        basis_data = json.load(f)
+    assert "prim" in basis_data
+    assert "bspecs" in basis_data
+    assert "orbits" in basis_data
+    assert len(basis_data["orbits"]) == 4
+    assert len(basis_data["orbits"][0]["cluster_functions"]) == 11
+    assert len(basis_data["orbits"][1]["cluster_functions"]) == 16
+    assert len(basis_data["orbits"][2]["cluster_functions"]) == 60
+    assert len(basis_data["orbits"][3]["cluster_functions"]) == 30
+    assert "site_functions" in basis_data
+    assert len(basis_data["site_functions"]) == 1
 
     clexulator = casmclex.make_clexulator(
         source=str(src_path),

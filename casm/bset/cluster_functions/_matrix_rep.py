@@ -256,7 +256,10 @@ def make_variable_name(
 
     if cluster_site_index is not None:
         if key in local_discrete_dof:
-            return f"\\phi_{{{site_basis_function_index}}}(s_{cluster_site_index})"
+            return (
+                f"\\phi_{{{sublattice_index},{site_basis_function_index}}}"
+                f"(s_{cluster_site_index})"
+            )
         else:
             return f"{symbol}(s_{cluster_site_index})"
     else:
@@ -839,7 +842,7 @@ def make_cluster_matrix_rep(
 def make_occ_site_functions_matrix_rep(
     indicator_matrix_rep: list[list[np.ndarray]],
     integral_site_coordinate_symgroup_rep: list[xtal.IntegralSiteCoordinateRep],
-    occ_site_functions: list[dict],
+    occ_site_functions: Optional[list[dict]] = None,
 ) -> list[list[np.ndarray]]:
     """Returns the symmetry group representation that describes how occupation site \
     functions transform under symmetry.
@@ -857,7 +860,7 @@ def make_occ_site_functions_matrix_rep(
         :class:`libcasm.xtal.IntegralSiteCoordinate`.
     key: str
         The DoF key (i.e. "occ").
-    occ_site_functions: list[dict]
+    occ_site_functions: Optional[list[dict]] = None
         List of occupation site basis functions. For each sublattice with discrete
         site basis functions, must include:
 
@@ -1000,8 +1003,6 @@ class ClusterMatrixRepBuilder:
 
         if local_discrete_dof is None:
             local_discrete_dof = []
-        if occ_site_functions is None:
-            occ_site_functions = []
 
         ## Constructor parameters ##
         self.prim = prim
@@ -1032,6 +1033,12 @@ class ClusterMatrixRepBuilder:
             xtal_prim=prim.xtal_prim,
         )
         if key in local_discrete_dof:
+            if occ_site_functions is None:
+                raise Exception(
+                    "Error in ClusterMatrixRepBuilder: "
+                    "occ_site_functions is None for discrete DoF."
+                )
+
             # For discrete DoF, we need to construct the matrix rep for the
             # site basis functions actually being used from the matrix rep
             # for the indicator variables
@@ -1254,7 +1261,7 @@ class OrbitMatrixRepBuilder:
             Allows specifying a custom function to construct variable names. The default
             function used is :func:`make_variable_name`. Custom functions should have
             the same signature as :func:`make_variable_name`.
-        occ_site_functions: list[dict]
+        occ_site_functions: Optional[list[dict]] = None
             List of occupation site basis functions. For each sublattice with discrete
             site basis functions, must include:
 
@@ -1306,6 +1313,14 @@ class OrbitMatrixRepBuilder:
         self.phenomenal = phenomenal
         self.make_variable_name_f = make_variable_name_f
         self.occ_site_functions = occ_site_functions
+        """Optional[list[dict]]: List of occupation site basis functions. 
+        
+        For each sublattice with discrete site basis functions, must include:
+
+        - `"sublattice_index"`: int, index of the sublattice
+        - `"value"`: list[list[float]], list of the site basis function values,
+          as ``value[function_index][occupant_index]``.
+        """
 
         local_dof = local_continuous_dof + local_discrete_dof
         self.local_dof = local_dof

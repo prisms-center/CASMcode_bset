@@ -29,6 +29,10 @@ from libcasm.clexulator import (
     make_default_prim_neighbor_list,
 )
 
+from ._clex_basis_specs import (
+    ClexBasisSpecs,
+)
+
 
 def _get_dof_types(
     xtal_prim: xtal.Prim,
@@ -124,6 +128,231 @@ def _default_nlist_sublat_indices(
         if len(sublattice_local_dof) > 0:
             sublat_indices.add(b)
     return list(sublat_indices)
+
+
+def _make_orbits_data(
+    prim: casmconfig.Prim,
+    clex_basis_specs: ClexBasisSpecs,
+    clusters: list[list[casmclust.Cluster]],
+    functions: list[list[list[PolynomialFunction]]],
+    coordinate_mode: str,
+):
+    xtal_prim = prim.xtal_prim
+    cluster_specs = clex_basis_specs.cluster_specs
+    if xtal_prim != cluster_specs.xtal_prim():
+        raise Exception(
+            "Error in ClusterFunctionsBuilder.basis_dict: "
+            "Prim and cluster specs have different xtal_prim."
+        )
+    if len(clusters[0][0]) != 0:
+        raise Exception(
+            "Error in ClusterFunctionsBuilder.basis_dict: "
+            "This method requires a null cluster orbit."
+        )
+
+    def _brief_desc(op: xtal.SymOp) -> str:
+        sym_info = xtal.SymInfo(op, xtal_prim.lattice())
+        if coordinate_mode == "cart":
+            return sym_info.brief_cart()
+        elif coordinate_mode == "frac":
+            return sym_info.brief_frac()
+        else:
+            raise Exception(
+                "Error in ClusterFunctionsBuilder.basis_dict: "
+                f"Unknown coordinate_mode: {coordinate_mode}, "
+                "must be 'cart' or 'frac'."
+            )
+
+    is_periodic = cluster_specs.phenomenal() is None
+    generating_group_site_rep = casmclust.make_integral_site_coordinate_symgroup_rep(
+        group_elements=cluster_specs.generating_group().elements,
+        xtal_prim=prim.xtal_prim,
+    )
+
+    orbits_data = []
+    linear_function_index = 0
+    for i_orbit, orbit_functions in enumerate(functions):
+        orbit = clusters[i_orbit]
+        prototype = orbit[0]
+
+        if is_periodic:
+            cluster_group = casmclust.make_cluster_group(
+                cluster=prototype,
+                group=cluster_specs.generating_group(),
+                lattice=xtal_prim.lattice(),
+                integral_site_coordinate_symgroup_rep=generating_group_site_rep,
+            )
+        else:
+            cluster_group = casmclust.make_local_cluster_group(
+                cluster=prototype,
+                phenomenal_group=cluster_specs.generating_group(),
+                integral_site_coordinate_symgroup_rep=prim.integral_site_coordinate_symgroup_rep,
+            )
+
+        orbit_data = {
+            "linear_orbit_index": i_orbit,
+            "mult": len(orbit),
+            "prototype": orbit[0].to_dict(xtal_prim),
+        }
+        orbit_data["prototype"]["invariant_group"] = cluster_group.head_group_index
+        orbit_data["prototype"]["invariant_group_descriptions"] = [
+            _brief_desc(op) for op in cluster_group.elements
+        ]
+
+        cluster_functions = []
+        if len(prototype) == 0:
+            # add constant function
+            cluster_functions.append(
+                {
+                    "\\Phi_{0}": "1",
+                    "linear_function_index": linear_function_index,
+                }
+            )
+            linear_function_index += 1
+        if len(orbit_functions) != 0:
+            for i_func, func in enumerate(orbit_functions[0]):
+                cluster_functions.append(
+                    {
+                        f"\\Phi_{{{linear_function_index}}}": func.latex_formula(),
+                        "linear_function_index": linear_function_index,
+                    }
+                )
+                linear_function_index += 1
+        orbit_data["cluster_functions"] = cluster_functions
+        orbits_data.append(orbit_data)
+    return orbits_data
+
+
+def _make_occ_site_function_basis_data(
+    prim: casmconfig.Prim,
+    occ_site_function: dict,
+):
+    """Generate basis dict for an occupation site basis function
+
+    Parameters
+    ----------
+    prim: casmconfig.Prim
+        The Prim
+    occ_site_function: dict
+        Occupation site basis function values, must include:
+
+        - `"sublattice_index"`: int, index of the sublattice
+        - `"value"`: list[list[float]], list of the site basis function values,
+          as ``value[function_index][occupant_index]``.
+
+
+    Returns
+    -------
+    data: dict
+        A dict with the format:
+
+        .. code-block:: Python
+
+            # b: sublattice index,
+            # r: site basis function index
+            # occ1, occ2, etc.: Occupant DoF names, from prim.xtal_prim.occ_dof()[b]
+            {
+                "basis": {
+                    "\\phi_{b,f}": {
+                        "occ1": value1,
+                        "occ2": value2,
+                        ...
+                    },
+                    ...
+                },
+                "value": [
+                    [value1, value2, ...],
+                    ...
+                ]
+            }
+    """
+    b = occ_site_function["sublattice_index"]
+    phi = occ_site_function["value"]
+    occ_dof = prim.xtal_prim.occ_dof()[b]
+    if len(occ_dof) != phi.shape[0] or len(occ_dof) != phi.shape[1]:
+        raise Exception(
+            "Error in _make_occ_site_function_basis_data: "
+            "Inconsistent number of site basis functions or occupants. "
+            "Sublattice index: {b}; Phi shape = {phi.shape}; "
+        )
+    data = {
+        "basis": {},
+        "value": phi.tolist(),
+    }
+    for r in range(phi.shape[0]):
+        key = f"\\phi_{{{b},{r}}}"
+        d = {}
+        for c in range(phi.shape[1]):
+            d[occ_dof[c]] = phi[r][c]
+        data["basis"][key] = d
+    return data
+
+
+def _make_site_functions_data(
+    prim: casmconfig.Prim,
+    occ_site_functions: Optional[list[dict]],
+):
+    """Generate basis dict for site functions
+
+    Parameters
+    ----------
+    prim: casmconfig.Prim
+        The Prim
+    occ_site_functions: Optional[list[dict]]
+        List of occupation site basis functions. For each sublattice with discrete
+        site basis functions, must include:
+
+        - `"sublattice_index"`: int, index of the sublattice
+        - `"value"`: list[list[float]], list of the site basis function values,
+          as ``value[function_index][occupant_index]``.
+
+    Returns
+    -------
+    data: list[dict]
+        List of site functions data, with the format:
+
+        .. code-block:: Python
+
+            [
+                {
+                    "sublat": b,  # sublattice index
+                    "asym_unit": a,  # asymmetric unit index
+                    "occ": { # if discrete site basis functions are present
+                        "basis": {
+                            "\\phi_{b,f}": {
+                                "occ1": value1,
+                                "occ2": value2,
+                                ...
+                            },
+                            ...
+                        },
+                        "value": [
+                            [value1, value2, ...],
+                            ...
+                        ]
+                    }
+                },
+                ...
+            ]
+
+    """
+
+    sublat_to_asym_unit = {}
+    for a, sublat_indices in enumerate(xtal.asymmetric_unit_indices(prim.xtal_prim)):
+        for b in sublat_indices:
+            sublat_to_asym_unit[b] = a
+
+    site_functions_data = [
+        {"sublat": b, "asym_unit": a} for b, a in sublat_to_asym_unit.items()
+    ]
+
+    if occ_site_functions is not None:
+        for occ_site_function in occ_site_functions:
+            b = occ_site_function["sublattice_index"]
+            site_functions_data[b]["occ"] = _make_occ_site_function_basis_data(
+                prim=prim, occ_site_function=occ_site_function
+            )
+    return site_functions_data
 
 
 def assign_neighborhood_site_index(
@@ -1073,86 +1302,132 @@ class ClusterFunctionsBuilder:
 
         return (equivalent_orbit_basis_sets, equivalent_orbit_clusters)
 
-    def basis_dict(self) -> dict:
+    @staticmethod
+    def to_basis_dict(
+        prim: casmconfig.Prim,
+        clex_basis_specs: ClexBasisSpecs,
+        clusters: list[list[casmclust.Cluster]],
+        functions: list[list[list[PolynomialFunction]]],
+        occ_site_functions: Optional[list[dict]] = None,
+        coordinate_mode: str = "frac",
+    ) -> dict:
         R"""Generate the CASM basis.json data
+
+        Parameters
+        ----------
+        prim: libcasm.configuration.Prim
+            The Prim, with symmetry information.
+        clex_basis_specs: casm.bset.cluster_functions.ClexBasisSpecs
+            The specifications for the cluster expansion basis set.
+        clusters: list[list[libcasm.clusterography.Cluster]]
+            The clusters for which cluster functions have been constructed,
+            as obtained from ClusterFunctionsBuilder.
+        functions: list[list[list[PolynomialFunction]]]
+            Polynomial functions, where ``functions[i_orbit][i_equiv][i_func]``,
+            is the `i_func`-th function on the cluster given by
+            `clusters[i_orbit][i_equiv]`, as obtained from ClusterFunctionsBuilder.
+        occ_site_functions: Optional[list[dict]]
+            List of occupation site basis functions, as obtained from ClusterFunctionsBuilder.
+        coordinate_mode: str = "frac"
+            The coordinate mode used to represent cluster invariant group operations.
+            The default value is "frac". The other option is "cart".
 
         Returns
         -------
-        basis_dict: dict
+        data: dict
             A description of the generated cluster expansion basis set, as described
             `here <https://prisms-center.github.io/CASMcode_docs/formats/casm/clex/ClexBasis/>`_.
         """  # noqa
-        return {}  # TODO
 
-    def equivalents_info_dict(self) -> dict:
-        R"""Generate the CASM equivalents_info.json data
+        basis_data = {}
+        basis_data["bspecs"] = clex_basis_specs.to_dict()
+        basis_data["prim"] = prim.xtal_prim.to_dict()
 
-        Returns
-        -------
-        equivalents_info_dict: dict
-            The equivalents info provides the phenomenal cluster and local-cluster
-            orbits for all symmetrically equivalent local-cluster expansions, and the
-            indices of the factor group operations used to construct each equivalent
-            local cluster expansion from the prototype local-cluster expansion. When
-            there is an orientation to the local-cluster expansion this information
-            allows generating the proper diffusion events, etc. from the prototype.
-
-            A description of the generated cluster expansion basis set, as described
-            `here <TODO>`_.
-        """  # noqa
-
-        # Equivalents info, prototype
-        equivalents_info = {}
-
-        if self._phenomenal is None:
-            return equivalents_info
-        if len(self.orbit_matrix_rep_builders) == 0:
-            raise Exception(
-                "Error in ClusterFunctionsBuilder.equivalents_info_dict: No orbits"
-            )
-
-        # Write prim factor group info
-        equivalents_info[
-            "factor_group"
-        ] = config_io.symgroup_to_dict_with_group_classification(
-            self._prim, self._prim.factor_group
+        basis_data["orbits"] = _make_orbits_data(
+            prim=prim,
+            clex_basis_specs=clex_basis_specs,
+            clusters=clusters,
+            functions=functions,
+            coordinate_mode=coordinate_mode,
         )
 
-        # Write equivalents generating ops
-        # (actually prim factor group indices of those ops and the
-        #  translations can be figured out from the phenomenal cluster)
-        orbit_matrix_rep_builder = self.orbit_matrix_rep_builders[0]
-        equivalents_info[
-            "equivalent_generating_ops"
-        ] = orbit_matrix_rep_builder.phenomenal_generating_indices
+        basis_data["site_functions"] = _make_site_functions_data(
+            prim=prim,
+            occ_site_functions=occ_site_functions,
+        )
 
-        # Write prototype orbits info
+        return basis_data
+
+
+def equivalents_info_dict(self) -> dict:
+    R"""Generate the CASM equivalents_info.json data
+
+    Returns
+    -------
+    equivalents_info_dict: dict
+        The equivalents info provides the phenomenal cluster and local-cluster
+        orbits for all symmetrically equivalent local-cluster expansions, and the
+        indices of the factor group operations used to construct each equivalent
+        local cluster expansion from the prototype local-cluster expansion. When
+        there is an orientation to the local-cluster expansion this information
+        allows generating the proper diffusion events, etc. from the prototype.
+
+        A description of the generated cluster expansion basis set, as described
+        `here <TODO>`_.
+    """  # noqa
+
+    # Equivalents info, prototype
+    equivalents_info = {}
+
+    if self._phenomenal is None:
+        return equivalents_info
+    if len(self.orbit_matrix_rep_builders) == 0:
+        raise Exception(
+            "Error in ClusterFunctionsBuilder.equivalents_info_dict: No orbits"
+        )
+
+    # Write prim factor group info
+    equivalents_info[
+        "factor_group"
+    ] = config_io.symgroup_to_dict_with_group_classification(
+        self._prim, self._prim.factor_group
+    )
+
+    # Write equivalents generating ops
+    # (actually prim factor group indices of those ops and the
+    #  translations can be figured out from the phenomenal cluster)
+    orbit_matrix_rep_builder = self.orbit_matrix_rep_builders[0]
+    equivalents_info[
+        "equivalent_generating_ops"
+    ] = orbit_matrix_rep_builder.phenomenal_generating_indices
+
+    # Write prototype orbits info
+    tmp = {}
+    prototype_phenomenal = self._phenomenal
+    clusters = self.clusters
+    tmp["phenomenal"] = prototype_phenomenal.to_dict(xtal_prim=self._prim.xtal_prim)
+    tmp["prim"] = self._prim.to_dict()
+    tmp["orbits"] = orbits_to_dict(
+        orbits=clusters,
+        prim=self._prim,
+    )
+    equivalents_info["prototype"] = tmp
+
+    # Write equivalent orbits info
+    equivalents_info["equivalents"] = []
+    for i_clex, clusters in enumerate(self.equivalent_clusters):
         tmp = {}
-        prototype_phenomenal = self._phenomenal
-        clusters = self.clusters
-        tmp["phenomenal"] = prototype_phenomenal.to_dict(xtal_prim=self._prim.xtal_prim)
+        site_rep = orbit_matrix_rep_builder.phenomenal_generating_site_rep[i_clex]
+        equiv_phenomenal = site_rep * prototype_phenomenal
+        tmp["phenomenal"] = equiv_phenomenal.to_dict(xtal_prim=self._prim.xtal_prim)
         tmp["prim"] = self._prim.to_dict()
         tmp["orbits"] = orbits_to_dict(
             orbits=clusters,
             prim=self._prim,
         )
-        equivalents_info["prototype"] = tmp
+        equivalents_info["equivalents"].append(tmp)
 
-        # Write equivalent orbits info
-        equivalents_info["equivalents"] = []
-        for i_clex, clusters in enumerate(self.equivalent_clusters):
-            tmp = {}
-            site_rep = orbit_matrix_rep_builder.phenomenal_generating_site_rep[i_clex]
-            equiv_phenomenal = site_rep * prototype_phenomenal
-            tmp["phenomenal"] = equiv_phenomenal.to_dict(xtal_prim=self._prim.xtal_prim)
-            tmp["prim"] = self._prim.to_dict()
-            tmp["orbits"] = orbits_to_dict(
-                orbits=clusters,
-                prim=self._prim,
-            )
-            equivalents_info["equivalents"].append(tmp)
-
-        return equivalents_info
+    return equivalents_info
 
 
 def make_point_functions(

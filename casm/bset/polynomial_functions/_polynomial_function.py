@@ -942,14 +942,17 @@ class PolynomialFunction:
             tol=tol,
         )
 
-    def _latex_print(self, variables):
+    def latex_formula(
+        self,
+    ):
         """Latex printing for development
         It might be good to take variables as strings."""
-        limit = len(self.variables) ** 2
-        max_pow = 2
-
-        a, factored_data = factor_by_mode(self.coeff.data)
+        variables = self.variables
         exponents = self.monomial_exponents
+        a, factored_data = factor_by_mode(self.coeff.data)
+
+        limit = len(variables) ** 2
+        max_pow = 2
 
         # build terms
         latex_formula = ""
@@ -974,8 +977,12 @@ class PolynomialFunction:
             polynomial_tex = polynomial_tex.strip("* ")
             latex_formula += f"{coeff_tex} * [{polynomial_tex}] + "
 
-        latex_formula = latex_formula.strip("*+ ")
-        print(latex_formula)
+        return latex_formula.strip("*+ ")
+
+    def _latex_print(self):
+        """Latex printing for development
+        It might be good to take variables as strings."""
+        print(self.latex_formula())
 
 
 def monomial_inner_product(
