@@ -186,13 +186,15 @@ def _make_orbits_data(
             cluster_group = casmclust.make_local_cluster_group(
                 cluster=prototype,
                 phenomenal_group=cluster_specs.generating_group(),
-                integral_site_coordinate_symgroup_rep=prim.integral_site_coordinate_symgroup_rep,
+                integral_site_coordinate_symgroup_rep=generating_group_site_rep,
             )
 
         orbit_data = {
             "linear_orbit_index": i_orbit,
             "mult": len(orbit),
-            "prototype": orbit[0].to_dict(xtal_prim),
+            "prototype": orbit[0].to_dict(
+                xtal_prim=xtal_prim, phenomenal=cluster_specs.phenomenal()
+            ),
         }
         orbit_data["prototype"]["invariant_group"] = cluster_group.head_group_index
         orbit_data["prototype"]["invariant_group_descriptions"] = [
@@ -1302,32 +1304,17 @@ class ClusterFunctionsBuilder:
 
         return (equivalent_orbit_basis_sets, equivalent_orbit_clusters)
 
-    @staticmethod
-    def to_basis_dict(
-        prim: casmconfig.Prim,
+    def basis_dict(
+        self,
         clex_basis_specs: ClexBasisSpecs,
-        clusters: list[list[casmclust.Cluster]],
-        functions: list[list[list[PolynomialFunction]]],
-        occ_site_functions: Optional[list[dict]] = None,
         coordinate_mode: str = "frac",
     ) -> dict:
         R"""Generate the CASM basis.json data
 
         Parameters
         ----------
-        prim: libcasm.configuration.Prim
-            The Prim, with symmetry information.
         clex_basis_specs: casm.bset.cluster_functions.ClexBasisSpecs
             The specifications for the cluster expansion basis set.
-        clusters: list[list[libcasm.clusterography.Cluster]]
-            The clusters for which cluster functions have been constructed,
-            as obtained from ClusterFunctionsBuilder.
-        functions: list[list[list[PolynomialFunction]]]
-            Polynomial functions, where ``functions[i_orbit][i_equiv][i_func]``,
-            is the `i_func`-th function on the cluster given by
-            `clusters[i_orbit][i_equiv]`, as obtained from ClusterFunctionsBuilder.
-        occ_site_functions: Optional[list[dict]]
-            List of occupation site basis functions, as obtained from ClusterFunctionsBuilder.
         coordinate_mode: str = "frac"
             The coordinate mode used to represent cluster invariant group operations.
             The default value is "frac". The other option is "cart".
@@ -1338,13 +1325,17 @@ class ClusterFunctionsBuilder:
             A description of the generated cluster expansion basis set, as described
             `here <https://prisms-center.github.io/CASMcode_docs/formats/casm/clex/ClexBasis/>`_.
         """  # noqa
+        prim = self._prim
+        clusters = self.clusters
+        functions = self.functions
+        occ_site_functions = self.occ_site_functions
 
         basis_data = {}
         basis_data["bspecs"] = clex_basis_specs.to_dict()
         basis_data["prim"] = prim.xtal_prim.to_dict()
 
         basis_data["orbits"] = _make_orbits_data(
-            prim=prim,
+            prim=self._prim,
             clex_basis_specs=clex_basis_specs,
             clusters=clusters,
             functions=functions,
@@ -1358,76 +1349,75 @@ class ClusterFunctionsBuilder:
 
         return basis_data
 
+    def equivalents_info_dict(self) -> dict:
+        R"""Generate the CASM equivalents_info.json data
 
-def equivalents_info_dict(self) -> dict:
-    R"""Generate the CASM equivalents_info.json data
+        Returns
+        -------
+        equivalents_info_dict: dict
+            The equivalents info provides the phenomenal cluster and local-cluster
+            orbits for all symmetrically equivalent local-cluster expansions, and the
+            indices of the factor group operations used to construct each equivalent
+            local cluster expansion from the prototype local-cluster expansion. When
+            there is an orientation to the local-cluster expansion this information
+            allows generating the proper diffusion events, etc. from the prototype.
 
-    Returns
-    -------
-    equivalents_info_dict: dict
-        The equivalents info provides the phenomenal cluster and local-cluster
-        orbits for all symmetrically equivalent local-cluster expansions, and the
-        indices of the factor group operations used to construct each equivalent
-        local cluster expansion from the prototype local-cluster expansion. When
-        there is an orientation to the local-cluster expansion this information
-        allows generating the proper diffusion events, etc. from the prototype.
+            A description of the generated cluster expansion basis set, as described
+            `here <TODO>`_.
+        """  # noqa
 
-        A description of the generated cluster expansion basis set, as described
-        `here <TODO>`_.
-    """  # noqa
+        # Equivalents info, prototype
+        equivalents_info = {}
 
-    # Equivalents info, prototype
-    equivalents_info = {}
+        if self._phenomenal is None:
+            return equivalents_info
+        if len(self.orbit_matrix_rep_builders) == 0:
+            raise Exception(
+                "Error in ClusterFunctionsBuilder.equivalents_info_dict: No orbits"
+            )
 
-    if self._phenomenal is None:
-        return equivalents_info
-    if len(self.orbit_matrix_rep_builders) == 0:
-        raise Exception(
-            "Error in ClusterFunctionsBuilder.equivalents_info_dict: No orbits"
+        # Write prim factor group info
+        equivalents_info[
+            "factor_group"
+        ] = config_io.symgroup_to_dict_with_group_classification(
+            self._prim, self._prim.factor_group
         )
 
-    # Write prim factor group info
-    equivalents_info[
-        "factor_group"
-    ] = config_io.symgroup_to_dict_with_group_classification(
-        self._prim, self._prim.factor_group
-    )
+        # Write equivalents generating ops
+        # (actually prim factor group indices of those ops and the
+        #  translations can be figured out from the phenomenal cluster)
+        orbit_matrix_rep_builder = self.orbit_matrix_rep_builders[0]
+        equivalents_info[
+            "equivalent_generating_ops"
+        ] = orbit_matrix_rep_builder.phenomenal_generating_indices
 
-    # Write equivalents generating ops
-    # (actually prim factor group indices of those ops and the
-    #  translations can be figured out from the phenomenal cluster)
-    orbit_matrix_rep_builder = self.orbit_matrix_rep_builders[0]
-    equivalents_info[
-        "equivalent_generating_ops"
-    ] = orbit_matrix_rep_builder.phenomenal_generating_indices
-
-    # Write prototype orbits info
-    tmp = {}
-    prototype_phenomenal = self._phenomenal
-    clusters = self.clusters
-    tmp["phenomenal"] = prototype_phenomenal.to_dict(xtal_prim=self._prim.xtal_prim)
-    tmp["prim"] = self._prim.to_dict()
-    tmp["orbits"] = orbits_to_dict(
-        orbits=clusters,
-        prim=self._prim,
-    )
-    equivalents_info["prototype"] = tmp
-
-    # Write equivalent orbits info
-    equivalents_info["equivalents"] = []
-    for i_clex, clusters in enumerate(self.equivalent_clusters):
+        # Write prototype orbits info
         tmp = {}
-        site_rep = orbit_matrix_rep_builder.phenomenal_generating_site_rep[i_clex]
-        equiv_phenomenal = site_rep * prototype_phenomenal
-        tmp["phenomenal"] = equiv_phenomenal.to_dict(xtal_prim=self._prim.xtal_prim)
+        prototype_phenomenal = self._phenomenal
+        clusters = self.clusters
+        tmp["phenomenal"] = prototype_phenomenal.to_dict(xtal_prim=self._prim.xtal_prim)
         tmp["prim"] = self._prim.to_dict()
         tmp["orbits"] = orbits_to_dict(
             orbits=clusters,
             prim=self._prim,
         )
-        equivalents_info["equivalents"].append(tmp)
+        equivalents_info["prototype"] = tmp
 
-    return equivalents_info
+        # Write equivalent orbits info
+        equivalents_info["equivalents"] = []
+        for i_clex, clusters in enumerate(self.equivalent_clusters):
+            tmp = {}
+            site_rep = orbit_matrix_rep_builder.phenomenal_generating_site_rep[i_clex]
+            equiv_phenomenal = site_rep * prototype_phenomenal
+            tmp["phenomenal"] = equiv_phenomenal.to_dict(xtal_prim=self._prim.xtal_prim)
+            tmp["prim"] = self._prim.to_dict()
+            tmp["orbits"] = orbits_to_dict(
+                orbits=clusters,
+                prim=self._prim,
+            )
+            equivalents_info["equivalents"].append(tmp)
+
+        return equivalents_info
 
 
 def make_point_functions(
@@ -1517,5 +1507,82 @@ def make_point_functions(
                     equiv_functions_by_point.append(f)
             equiv_functions.append(equiv_functions_by_point)
         point_functions.append(equiv_functions)
+
+    return point_functions
+
+
+def make_local_point_functions(
+    prim_neighbor_list: PrimNeighborList,
+    orbit: list[casmclust.Cluster],
+    orbit_functions: list[list[PolynomialFunction]],
+):
+    """Construct local cluster point functions
+
+    This method uses the data generated by :class:`ClusterFunctionsBuilder` to
+    collect all the local cluster functions that involve each point. These functions
+    are used by Clexulator methods that can calculate point correlations and changes
+    in point correlations.
+
+    Parameters
+    ----------
+    prim_neighbor_list: libcasm.clexulator.PrimNeighborList
+        The :class:`PrimNeighborList` is used to uniquely index sites with local
+        variables included in the cluster functions, relative to a reference unit cell.
+
+    orbit: list[libcasm.clusterography.Cluster]
+        An orbit of clusters, where ``orbit[i_equiv]``, is the
+        `i_equiv`-th symmetrically equivalent cluster in the orbit.
+        The order of sites in the clusters may not be arbitrary, it must be
+        consistent with the `cluster_site_index` of the :class:`Variable` used
+        in the :class:`PolynomialFunction` returned in `orbit_functions`.
+
+        This should generally be one orbit as generated by
+        :class:`ClusterFunctionsBuilder`.
+
+    orbit_functions: list[list[casm.bset.polynomial_functions.PolynomialFunction]]
+        Polynomial functions, where ``functions[i_equiv][i_func]``,
+        is the `i_func`-th function on the cluster given by `orbit[i_equiv]`.
+
+        This should generally be the functions for one orbit as generated by
+        :class:`ClusterFunctionsBuilder`.
+
+    Returns
+    -------
+    point_functions: list[list[list[casm.bset.polynomial_functions.PolynomialFunction]]]
+        Polynomial functions, where ``point_functions[i_func][nlist_index]`` is
+        a list of PolynomialFunction that are symmetrically equivalent to the
+        `i_func`-th function on the clusters and involve the `nlist_index`-th site
+        in the neighbor list.
+
+    """
+    if len(orbit) != len(orbit_functions):
+        raise Exception(
+            "Error in make_local_point_functions: "
+            "orbit size does not match orbit_functions size"
+        )
+
+    if not len(orbit):
+        return [[[]]]
+
+    orbit_neighbor_indices = set()
+    for equiv in orbit:
+        for site in equiv:
+            nlist_index = prim_neighbor_list.neighbor_index(site)
+            orbit_neighbor_indices.add(nlist_index)
+
+    # orbit_point_functions: list[list[list[PolynomialFunction]]]
+    # orbit_point_functions[i_func][nlist_index][i_point_function]
+    prototype_basis_set = orbit_functions[0]
+    point_functions = []
+    for i_func in range(len(prototype_basis_set)):
+        point_functions.append([])
+        for nlist_index in range(max(orbit_neighbor_indices) + 1):
+            point_functions[i_func].append([])
+
+    for i_equiv, equiv_functions in enumerate(orbit_functions):
+        for site in orbit[i_equiv]:
+            nlist_index = prim_neighbor_list.neighbor_index(site)
+            for i_func, f in enumerate(equiv_functions):
+                point_functions[i_func][nlist_index].append(f)
 
     return point_functions

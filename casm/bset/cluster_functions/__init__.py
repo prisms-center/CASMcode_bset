@@ -6,6 +6,7 @@ from ._clex_basis_specs import (
 )
 from ._cluster_functions import (
     ClusterFunctionsBuilder,
+    make_local_point_functions,
     make_point_functions,
 )
 from ._discrete_functions import (

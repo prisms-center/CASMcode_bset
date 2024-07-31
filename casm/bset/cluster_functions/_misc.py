@@ -97,18 +97,16 @@ def make_equivalents_generators(
 
     Returns
     -------
-    (ops, indices, site_reps):
+    ops: list[libcasm.xtal.SymOp]
+        Symmetry operations that generate the equivalent local orbits in
+        the primitive unit cell.
 
-        ops: list[libcasm.xtal.SymOp]
-            Symmetry operations that generate the equivalent local orbits in
-            the primitive unit cell.
+    indices: list[int]
+        Indices of prim factor group operations corresponding to `ops`.
 
-        indices: list[int]
-            Indices of prim factor group operations corresponding to `ops`.
-
-        site_reps: list[libcasm.xtal.IntegralSiteCoordinateRep]
-            Symmetry group representation for transforming IntegralSiteCoordinate
-            and Cluster corresponding to `ops`.
+    site_reps: list[libcasm.xtal.IntegralSiteCoordinateRep]
+        Symmetry group representation for transforming IntegralSiteCoordinate
+        and Cluster corresponding to `ops`.
     """
 
     # collect needed sym groups
@@ -177,7 +175,6 @@ def make_equivalents_generators(
     #                                              ^ distinct bset on phenomenal
     #                             ^ bset on prototype
     #              ^ bset on other phenomenal
-    generating_ops = []
     generating_indices = []
     for i_factor_grp in i_factor_grp_equiv_on_phenomenal:
         i_cluster_grp = phenomenal_cluster_grp.head_group_index.index(i_factor_grp)
@@ -192,8 +189,12 @@ def make_equivalents_generators(
                 i_to_equiv, factor_grp.mult(i_to_prototype, i_factor_grp)
             )
 
-            generating_ops.append(generating_op)
             generating_indices.append(i_generating_op)
+    generating_indices.sort()
+
+    generating_ops = []
+    for i in generating_indices:
+        generating_ops.append(factor_grp.elements[i])
 
     generating_site_reps = casmclust.make_integral_site_coordinate_symgroup_rep(
         group_elements=generating_ops,

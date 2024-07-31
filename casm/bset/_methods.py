@@ -37,7 +37,7 @@ def make_clex_basis_specs(
     dofs: Optional[list[str]] = None,
     max_length: Optional[list[float]] = [],
     custom_generators: Optional[list[ClusterOrbitGenerator]] = [],
-    phenomenal: Optional[Cluster] = None,
+    phenomenal: Union[Cluster, OccEvent, None] = None,
     cutoff_radius: Optional[list[float]] = [],
     occ_site_basis_functions_specs: Union[str, list[dict], None] = None,
     global_max_poly_order: Optional[int] = None,
@@ -140,7 +140,7 @@ def make_clex_basis_specs(
             lattice=prim.xtal_prim.lattice(),
             occevent_symgroup_rep=symgroup_rep,
         )
-        phenomenal_cluster = phenomenal.cluster
+        phenomenal_cluster = phenomenal.cluster()
     else:
         raise ValueError(
             "Error in build_cluster_functions:"

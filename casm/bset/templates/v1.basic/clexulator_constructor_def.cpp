@@ -57,21 +57,24 @@
   m_orbit_func_table[{{ function_index }}] = &{{ clexulator_name }}::eval_orbit_bfunc_{{ function_index }}<double>;
   {% endfor %}
 {% endif %}
-{% if site_bfuncs|length > 0 %}
+{% if n_point_corr_sites > 0 %}
 
   // Site functions
   {%- raw %}
   // m_site_func_table[{{ neighbor_list_index }}][{{ function_index }}] =
   //     &{{ clexulator_name }}::eval_site_bfunc_{{ function_index }}_at_{{ neighbor_list_index }}<double>;
   {% endraw %}
+  for (int i=0; i<{{ n_point_corr_sites }}; i++) {
+    for (int j=0; j<{{ n_corr }}; j++) {
+      m_site_func_table[i][j] = &{{ clexulator_name }}::zero_func<double>;
+    }
+  }
   {% for f_by_function_index in site_bfuncs %}
     {% set function_index = f_by_function_index.linear_function_index %}
     {% for f_by_neighbor_index in f_by_function_index.at %}
       {% set neighbor_list_index = f_by_neighbor_index.neighbor_list_index %}
       {% if f_by_neighbor_index.cpp %}
   m_site_func_table[{{ neighbor_list_index }}][{{ function_index }}] = &{{ clexulator_name }}::eval_site_bfunc_{{ function_index }}_at_{{ neighbor_list_index }}<double>;
-      {% else %}
-  m_site_func_table[{{ neighbor_list_index }}][{{ function_index }}] = &{{ clexulator_name }}::zero_func<double>;
       {% endif %}
     {% endfor %}
   {% endfor %}
@@ -81,14 +84,17 @@
   // m_occ_delta_site_func_table[{{ neighbor_list_index }}][{{ function_index }}] =
   //     &{{ clexulator_name }}::eval_occ_delta_site_bfunc_{{ function_index }}_at_{{ neighbor_list_index }}<double>;
   {% endraw %}
+  for (int i=0; i<{{ n_point_corr_sites }}; i++) {
+    for (int j=0; j<{{ n_corr }}; j++) {
+      m_occ_delta_site_func_table[i][j] = &{{ clexulator_name }}::zero_func<double>;
+    }
+  }
   {% for f_by_function_index in site_bfuncs %}
     {% set function_index = f_by_function_index.linear_function_index %}
     {% for f_by_neighbor_index in f_by_function_index.at %}
       {% set neighbor_list_index = f_by_neighbor_index.neighbor_list_index %}
       {% if f_by_neighbor_index.occ_delta_cpp %}
   m_occ_delta_site_func_table[{{ neighbor_list_index }}][{{ function_index }}] = &{{ clexulator_name }}::eval_occ_delta_site_bfunc_{{ function_index }}_at_{{ neighbor_list_index }}<double>;
-      {% else %}
-  m_occ_delta_site_func_table[{{ neighbor_list_index }}][{{ function_index }}] = &{{ clexulator_name }}::zero_func<double>;
       {% endif %}
     {% endfor %}
   {% endfor %}
@@ -99,7 +105,7 @@
   m_weight_matrix.row(1) << {{ nlist_weight_matrix[1][0] }}, {{ nlist_weight_matrix[1][1] }}, {{ nlist_weight_matrix[1][2] }};
   m_weight_matrix.row(2) << {{ nlist_weight_matrix[2][0] }}, {{ nlist_weight_matrix[2][1] }}, {{ nlist_weight_matrix[2][2] }};
 
-  // Indices of sublattices included in functions
+  // Indices of sublattices included in the neighbor list
   m_sublat_indices = std::set<int>{ {% if nlist_sublattice_indices %}
     {%- for i in nlist_sublattice_indices -%} {{ i }},{% endfor %}{% endif %} };
 

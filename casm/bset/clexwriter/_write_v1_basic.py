@@ -5,6 +5,7 @@ import libcasm.clusterography as casmclust
 from casm.bset.clexwriter._cpp_str import (
     CppFormatProperties,
 )
+from casm.bset.cluster_functions import get_occ_site_functions
 from casm.bset.polynomial_functions import (
     PolynomialFunction,
 )
@@ -148,11 +149,29 @@ class WriterV1Basic:
         - `"sublattice_index"`: int, index of the sublattice
         - `"n_occupants"`: int, number of allowed occupants
         - `"value"`: list[list[float]], list of the site basis function values,
-          as ``value[function_index][occupant_index]``.
+          as ``value[function_index][occupant_index]``
+        - `"constant_function_index"`: int, index of the constant site basis function
           
         """
         for site_funcs in self.occ_site_functions:
             site_funcs["n_occupants"] = len(site_funcs["value"][0])
+
+            for i in range(len(site_funcs["value"])):
+                # note constant occupation functions
+                phi = get_occ_site_functions(
+                    occ_site_functions=occ_site_functions,
+                    sublattice_index=site_funcs["sublattice_index"],
+                    site_function_index=i,
+                )
+
+                if (phi == 1.0).all():
+                    site_funcs["constant_function_index"] = i
+
+            if "constant_function_index" not in site_funcs:
+                raise ValueError(
+                    f"Occupation site basis functions for sublattice "
+                    f"{site_funcs['sublattice_index']} must include a constant function."
+                )
 
         ## set linear_function_indices
         self.linear_function_indices = linear_function_indices
@@ -167,10 +186,6 @@ class WriterV1Basic:
         self.cpp_fmt = cpp_fmt
         """libcasm.bset.clexwriter.CppFormatProperties: C++ string formatting \
         properties."""
-
-        ## set nlist_size
-        self.nlist_size = prim_neighbor_list.n_neighborhood_sites()
-        """int: Number of neighborhood sites."""
 
         ## set n_corr
         self.n_corr = None
@@ -226,29 +241,49 @@ class WriterV1Basic:
         
         """
 
-        ## set n_point_corr_sites
-        self.n_point_corr_sites = None
-        """int: Number of sites where point correlations can be evaluated.
-        
-        For periodic cluster expansions, this is the number of sublattices included in
-        the `prim_neighbor_list`. For local cluster expansions, this is the number of
-        neighborhood sites.
-        """
+        ## set nlist_size
+        import libcasm.xtal as xtal
 
-        if is_periodic:
-            self.n_point_corr_sites = len(prim_neighbor_list.sublattice_indices())
-        else:
-            self.n_point_corr_sites = prim_neighbor_list.n_neighborhood_sites()
+        nlist_size = 0
+        for bijk in self.complete_neighborhood["sites"]:
+            site = xtal.IntegralSiteCoordinate.from_list(bijk)
+            nlist_size = max(nlist_size, prim_neighbor_list.neighbor_index(site) + 1)
+        self.nlist_size = nlist_size
+        """int: Maximum neighbor list index of sites involved in evaluating basis 
+        functions."""
 
         ## set orbit_bfuncs and orbit_bfuncs_variables_needed
         self.orbit_bfuncs = None
+        """list[dict]: Data for each orbit basis function (i.e. if periodic, the 
+        contribution to the global correlations from one unit cell for periodic; if
+        local, the sum of all symmetrically equivalent local cluster functions). 
+        
+        Includes:
+
+        - ``"linear_function_index"``: int, Linear function index
+        - ``"linear_orbit_index"``: int, Linear cluster orbit index
+        - ``"cpp"``: str, C++ expression for evaluating the global correlation
+          contribution
+        - ``"latex_prototype"``: str, Latex formula for the prototype
+        - ``latex_orbit"``: str, Latex formula for the orbit contribution
+        
+        """
 
         self.orbit_bfuncs_variables_needed = None
+        """dict[str,list[list[int]]]: The variables needed to evaluate the orbit basis 
+        functions. 
+        
+        The dictionary keys are DoF type key, and values are lists of
+        [`component_index`, `neighbor_list_index`, `sublattice_index`] for variables
+        of that type. The `neighbor_list_index` and `sublattice_index` for global
+        continuous DoF are None.
+        """
 
         self.orbit_bfuncs, self.orbit_bfuncs_variables_needed = make_orbit_bfuncs(
             prim_neighbor_list=self.prim_neighbor_list,
             clusters=clusters,
             functions=functions,
+            occ_site_functions=self.occ_site_functions,
             cpp_fmt=self.cpp_fmt,
             linear_function_indices=self.linear_function_indices,
         )
@@ -256,17 +291,73 @@ class WriterV1Basic:
         ## set site_bfuncs and site_bfuncs_variables_needed_at
 
         self.site_bfuncs = None
+        """list[dict]: List of dictionaries, one per cluster expansion basis function, 
+        with information needed for printing the Clexulator point correlation 
+        evaluation methods.
+        
+        The format is:
+
+        - "linear_function_index": int - The cluster expansion basis function index.
+        - "linear_orbit_index": int - The cluster orbit index
+        - "at": list[dict] - Data for functions at specific points
+
+          - "neighbor_list_index": int - Index into the neighbor list of the point
+          - "cpp": str - The C++ code to evaluate the point functions
+          - "occ_delta_cpp": str - The C++ code to evaluate the change in point
+            functions due to the change of occupation index on the site from
+            ``"occ_i"`` to ``"occ_f"``.
+          - "latex_prototype": str - The latex expression for the point functions,
+            including only functions from the prototype cluster
+          - "latex_orbit": str - The latex expression for the point functions,
+            including functions from the entire cluster orbit
+        
+        """
 
         self.site_bfuncs_variables_needed_at = None
+        """list[dict[str,list[list[int]]]]: For each point, the variables needed to 
+        evaluate the point functions. 
+        
+        The value of `site_bfuncs_variables_needed_at[neighbor_list_index]` is a 
+        dictionary, where the keys are DoF type key, and values are lists of
+        [`component_index`, `neighbor_list_index`, `sublattice_index`] for variables
+        of that type. The `neighbor_list_index` and `sublattice_index` for global
+        continuous DoF are None.
+        """
 
         self.site_bfuncs, self.site_bfuncs_variables_needed_at = make_site_bfuncs(
             is_periodic=is_periodic,
             prim_neighbor_list=self.prim_neighbor_list,
             clusters=clusters,
             functions=functions,
+            occ_site_functions=self.occ_site_functions,
             cpp_fmt=self.cpp_fmt,
             linear_function_indices=self.linear_function_indices,
         )
+
+        ## set n_point_corr_sites
+        n_point_corr_sites = 0
+        for x in self.site_bfuncs:
+            for y in x["at"]:
+                if y["n_point_functions"] > 0:
+                    n_point_corr_sites = max(
+                        n_point_corr_sites, y["neighbor_list_index"] + 1
+                    )
+        self.n_point_corr_sites = n_point_corr_sites
+        """int: Number of sites where point correlations can be evaluated.
+
+        This is the maximum neighbor list index for sites that have site functions.
+        For periodic cluster expansions, the maximum value this can take is the number 
+        of sublattices included in the `prim_neighbor_list`. For local cluster 
+        expansions, the maximum value this can take is the maximum neighbor list index
+        of the complete site neighborhood. It is possible that some of the sites do not 
+        actually have any site functions associated with them, in which case the point 
+        correlations all evaluate as zero.
+        """
+
+        # if is_periodic:
+        #     self.n_point_corr_sites = len(prim_neighbor_list.sublattice_indices())
+        # else:
+        #     self.n_point_corr_sites = prim_neighbor_list.n_neighborhood_sites()
 
         ## set continuous DoF and params (parameter pack implementation details)
 

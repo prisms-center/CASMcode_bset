@@ -56,7 +56,7 @@
   {% endraw %}
   BasisFuncPtr m_orbit_func_table[{{ n_corr }}];
 {% endif %}
-{% if site_bfuncs|length > 0 %}
+{% if n_point_corr_sites > 0 %}
 
   // array of pointers to member functions for calculating site functions
   {%- raw %}
@@ -81,7 +81,7 @@
     {% set n_occupants = site_funcs.n_occupants %}
     {% for func in site_funcs.value %}
       {% set site_function_index  = loop.index0 %}
-  double m_occ_func_{{ sublattice_index }}_{{ site_function_index }}[{{ n_occupants }}];
+  double m_occ_func_{{ sublattice_index }}_{{ site_function_index }}[{{ n_occupants }}];{% if site_funcs.constant_function_index == site_function_index %} // constant function{% endif +%}
     {% endfor %}
   {% endfor %}
 {% endif %}
@@ -206,6 +206,7 @@
     {% set n_occupants = site_funcs.n_occupants %}
     {% for func in site_funcs.value %}
       {% set site_function_index  = loop.index0 %}
+        {% if site_funcs.constant_function_index != site_function_index %}
   double const &eval_occ_func_{{ sublattice_index }}_{{ site_function_index }}(const int &nlist_ind) const {
     return m_occ_func_{{ sublattice_index }}_{{ site_function_index }}[_occ(nlist_ind)];
   }
@@ -214,6 +215,7 @@
     return m_params.read(m_occ_site_func_param_key, {{ site_function_index }}, nlist_ind);
   }
 
+        {% endif %}
     {% endfor %}
   {% endfor %}
 {% endif %}
