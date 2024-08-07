@@ -40,7 +40,7 @@ The occupation and magnetic spin DoF types require specific parameterization usi
 
     dof_spces = {
         "NCmagspin": {
-            "max_poly_order": "occupation"
+            "max_poly_order": 5
         }
     }
 
@@ -361,7 +361,7 @@ Magnetic spin site basis functions
 
     DoF specs as described in this section are planned but not yet implemented.
 
-For magnetic spin DoF ("flavor_magspin"), the `dof_specs` parameter is used to
+For magnetic spin DoF ("<flavor>magspin"), the `dof_specs` parameter is used to
 specify the maximum order of spherical harmonic site basis functions.
 
 CASM generates spherical harmonic site basis functions of magnetic spin
