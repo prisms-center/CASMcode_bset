@@ -1,4 +1,4 @@
-include casm/bset/templates/*.cpp
+recursive-include casm/bset/templates *.cpp
 graft doc
 prune doc/_build
 prune doc/reference/libcasm/_autosummary

@@ -170,7 +170,8 @@ class WriterV1Basic:
             if "constant_function_index" not in site_funcs:
                 raise ValueError(
                     f"Occupation site basis functions for sublattice "
-                    f"{site_funcs['sublattice_index']} must include a constant function."
+                    f"{site_funcs['sublattice_index']} must include "
+                    "a constant function."
                 )
 
         ## set linear_function_indices

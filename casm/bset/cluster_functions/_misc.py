@@ -177,14 +177,8 @@ def make_equivalents_generators(
     #              ^ bset on other phenomenal
     generating_indices = []
     for i_factor_grp in i_factor_grp_equiv_on_phenomenal:
-        i_cluster_grp = phenomenal_cluster_grp.head_group_index.index(i_factor_grp)
-        cluster_grp_op = phenomenal_cluster_grp.elements[i_cluster_grp]
-
         for i_equiv in range(len(equivalence_map)):
-            to_equiv_op = equivalence_map[i_equiv][0]
             i_to_equiv = equivalence_map_indices[i_equiv][0]
-
-            generating_op = to_equiv_op * to_prototype_op * cluster_grp_op
             i_generating_op = factor_grp.mult(
                 i_to_equiv, factor_grp.mult(i_to_prototype, i_factor_grp)
             )

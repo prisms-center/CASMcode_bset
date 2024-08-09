@@ -1,0 +1,58 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 12 * * 0'
+
+jobs:
+
+  build_sdist_and_wheel:
+    name: Build sdist and wheel
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up requirements and configuration variables
+        run: |
+          sudo apt-get update
+          sudo apt-get install build-essential cmake
+          pip install --upgrade pip wheel build
+
+      - name: make
+        shell: bash
+        run: |
+          python -m build
+
+      - name: upload sdist and wheel
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist
+
+      - name: Install
+        run: |
+          pip install .
+
+      - name: Install doc requirements
+        run: |
+          pip install -r doc_requirements.txt
+
+      - name: build docs
+        shell: bash
+        run: |
+          cd python/doc
+          sphinx-build -b html . _build/html
+
+      - name: upload docs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: libcasm-bset-docs
+          path: python/doc/_build/html

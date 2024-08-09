@@ -36,10 +36,6 @@ def test_clex_basis_specs_1():
 
     # Output dict
     data = clex_basis_specs.to_dict()
-    import libcasm.xtal as xtal
-
-    print(xtal.pretty_json(data))
-    assert False
 
     cspecs_data = data["cluster_specs"]
     assert isinstance(cspecs_data, dict)
