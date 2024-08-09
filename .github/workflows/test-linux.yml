@@ -21,8 +21,8 @@ jobs:
 
       - name: Set up requirements & configuration variables
         run: |
-          brew update
-          brew install cmake
+          sudo apt-get update
+          sudo apt-get install build-essential cmake
           pip install --upgrade pip wheel
           pip install -r test_requirements.txt
           echo "CASM_PREFIX=$(python -m libcasm.casmglobal --prefix)" >> "$GITHUB_ENV"
