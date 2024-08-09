@@ -65,7 +65,7 @@ class BasisFunctionSpecs:
         """
 
         self.dofs: Optional[list[str]] = dofs
-        """Optional[list[str]]: An array of string of dof type names that should be \ 
+        """Optional[list[str]]: An array of string of dof type names that should be
         used to construct basis functions. 
         
         The default value is all DoF types included in the prim.
@@ -79,7 +79,7 @@ class BasisFunctionSpecs:
         :py:data:`~casm.bset.BasisFunctionSpecs.orbit_branch_max_poly_order`
         is ``max(3, cluster_size)``.
         
-        See the \
+        See the
         :py:data:`~casm.bset.BasisFunctionSpecs.orbit_branch_max_poly_order`
         documentation for further details.
         """
@@ -110,7 +110,7 @@ class BasisFunctionSpecs:
         """
 
         self.param_pack_type: str = param_pack_type
-        """str: Controls the implementation used for evaluating the cluster expansion \
+        """str: Controls the implementation used for evaluating the cluster expansion
         basis functions. 
         
         Options are “default” or “diff”, which enables fadbad automatic differentiating.
