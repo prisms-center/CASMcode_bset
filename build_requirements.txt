@@ -1,8 +1,2 @@
 pip
 setuptools>=42
-jinja2
-libcasm-configuration>=2.0a4
-numpy
-opt-einsum
-scipy
-sparse

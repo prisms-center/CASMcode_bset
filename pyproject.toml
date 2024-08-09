@@ -27,6 +27,7 @@ dependencies = [
     "numpy",
     "opt-einsum",
     "scipy",
+    "sortedcontainers",
     "sparse"
 ]
 
