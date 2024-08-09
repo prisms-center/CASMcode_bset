@@ -1,4 +1,7 @@
 pip
 setuptools>=42
-libcasm-configuration>=2.0a2
+libcasm-configuration>=2.0a4
+numpy
+opt-einsum
+scipy
 sparse

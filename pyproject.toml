@@ -24,6 +24,7 @@ classifiers = [
 dependencies = [
     "libcasm-configuration>=2.0a4",
     "numpy",
+    "opt-einsum",
     "scipy",
     "sparse"
 ]
