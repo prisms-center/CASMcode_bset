@@ -37,7 +37,7 @@ jobs:
       - name: make test
         shell: bash
         run: |
-          python -m pytest -rsap python/tests
+          python -m pytest -rsap tests
 
       - name: Set up doc requirements
         run: |
