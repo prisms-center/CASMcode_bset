@@ -19,39 +19,25 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Set up requirements & configuration variables
+      - name: Install build requirements
         run: |
           sudo apt-get update
           sudo apt-get install build-essential cmake
-          pip install --upgrade pip wheel
-          pip install -r test_requirements.txt
-          echo "CASM_PREFIX=$(python -m libcasm.casmglobal --prefix)" >> "$GITHUB_ENV"
-          CASM_SOFLAGS="-shared -Wl,--no-as-needed"
-          echo "CASM_SOFLAGS=${CASM_SOFLAGS}" >> "$GITHUB_ENV"
+          pip install --upgrade -r build_requirements.txt
 
       - name: make
         shell: bash
         run: |
           pip install .
 
+      - name: Install test requirements & set configuration variables
+        run: |
+          pip install -r test_requirements.txt
+          echo "CASM_PREFIX=$(python -m libcasm.casmglobal --prefix)" >> "$GITHUB_ENV"
+          CASM_SOFLAGS="-shared -Wl,--no-as-needed"
+          echo "CASM_SOFLAGS=${CASM_SOFLAGS}" >> "$GITHUB_ENV"
+
       - name: make test
         shell: bash
         run: |
           python -m pytest -rsap tests
-
-      - name: Set up doc requirements
-        run: |
-          pip install -r doc_requirements.txt
-
-      - name: build docs
-        shell: bash
-        run: |
-          cd python/doc
-          sphinx-build -b html . _build/html
-
-      - name: upload docs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: libcasm-configuration-docs
-          path: python/doc/_build/html

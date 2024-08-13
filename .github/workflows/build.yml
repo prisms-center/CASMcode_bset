@@ -18,11 +18,11 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Set up requirements and configuration variables
+      - name: Install build requirements
         run: |
           sudo apt-get update
           sudo apt-get install build-essential cmake
-          pip install --upgrade pip wheel build
+          pip install --upgrade -r build_requirements.txt
 
       - name: make
         shell: bash

@@ -16,20 +16,23 @@ jobs:
         with:
           python-version: '3.11'
 
-      - name: Set up requirements & configuration variables
+      - name: Install build requirements
         run: |
           brew update
           brew install cmake
-          pip install --upgrade pip wheel
-          pip install -r test_requirements.txt
+          pip install --upgrade -r build_requirements.txt
 
       - name: make
         shell: bash
         run: |
           pip install .
 
+      - name: Install test requirements & set configuration variables
+        run: |
+          pip install -r test_requirements.txt
+          echo "CASM_PREFIX=$(python -m libcasm.casmglobal --prefix)" >> "$GITHUB_ENV"
+
       - name: make test
         shell: bash
         run: |
-          export CASM_PREFIX=$(python -m libcasm.casmglobal --prefix)
           python -m pytest -rsap tests
