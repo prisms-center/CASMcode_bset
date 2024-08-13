@@ -47,7 +47,7 @@ jobs:
       - name: build docs
         shell: bash
         run: |
-          cd python/doc
+          cd doc
           sphinx-build -b html . _build/html
 
       - name: upload docs
@@ -55,4 +55,4 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: libcasm-bset-docs
-          path: python/doc/_build/html
+          path: doc/_build/html
