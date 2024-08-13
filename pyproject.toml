@@ -23,7 +23,7 @@ classifiers = [
 ]
 dependencies = [
     "jinja2",
-    "libcasm-configuration>=2.0a4",
+    "libcasm-configuration>=2.0a5",
     "numpy",
     "opt-einsum",
     "scipy",
