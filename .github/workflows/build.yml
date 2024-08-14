@@ -43,16 +43,12 @@ jobs:
       - name: Install test requirements & set configuration variables
         run: |
           pip install -r test_requirements.txt
-          echo "CASM_PREFIX=$(python -m libcasm.casmglobal --prefix)" >> "$GITHUB_ENV"
-          CASM_CXXFLAGS="-O3 -Wall -fPIC --std=c++17 -D_GLIBCXX_USE_CXX11_ABI=0 "
-          echo "CASM_CXXFLAGS=${CASM_CXXFLAGS}" >> "$GITHUB_ENV"
-          CASM_SOFLAGS="-shared -Wl,--no-as-needed"
-          echo "CASM_SOFLAGS=${CASM_SOFLAGS}" >> "$GITHUB_ENV"
+          python -m casm.bset --autoconfigure --envfile "$GITHUB_ENV"
 
       - name: make test
         shell: bash
         run: |
-          python -m pytest -rsap tests
+          python -m pytest -rsap -x tests
 
       - name: Install doc requirements
         run: |

@@ -3,6 +3,8 @@
 import pathlib
 from typing import Optional, Union
 
+import numpy as np
+
 import casm.bset._helpers as _helpers
 import libcasm.configuration as casmconfig
 import libcasm.xtal as xtal
@@ -16,7 +18,10 @@ from casm.bset.cluster_functions import (
     ClusterFunctionsBuilder,
 )
 from libcasm.clexulator import (
+    Correlations,
     PrimNeighborList,
+    SuperNeighborList,
+    make_clexulator,
 )
 from libcasm.clusterography import (
     Cluster,
@@ -366,3 +371,297 @@ def write_clexulator(
     )
 
     return (writer.src_path, writer.local_src_path, prim_neighbor_list)
+
+
+class _TestSystem:
+    """Used by autoconfigure to test writing, compiling, and using a Clexulator"""
+
+    def __init__(
+        self,
+    ):
+        pass
+
+    def __enter__(
+        self,
+    ):
+        import tempfile
+
+        import libcasm.xtal.prims as xtal_prims
+
+        xtal_prim = xtal_prims.FCC(
+            r=0.5,
+            occ_dof=["A"],
+            global_dof=[xtal.DoFSetBasis("Hstrain")],
+        )
+        self.prim = casmconfig.Prim(xtal_prim)
+
+        clex_basis_specs = make_clex_basis_specs(
+            prim=self.prim,
+            max_length=[0.0],
+            global_max_poly_order=4,
+        )
+
+        self.tmp_bset_dir = tempfile.TemporaryDirectory()
+
+        self.src_path, self.local_src_path, self.prim_neighbor_list = write_clexulator(
+            prim=self.prim,
+            clex_basis_specs=clex_basis_specs,
+            bset_dir=self.tmp_bset_dir.name,
+            project_name="TestProject",
+            bset_name="default",
+            version="v1.basic",
+        )
+        return self
+
+    def try_vars(self, test_vars: dict, verbose: bool = True):
+        try:
+            from libcasm.casmglobal.__main__ import main as cgmain
+        except ImportError:
+            raise ImportError("libcasm is not installed")
+
+        import os
+
+        if "CASM_PREFIX" not in test_vars:
+            import io
+            from contextlib import redirect_stdout
+
+            f = io.StringIO()
+            with redirect_stdout(f):
+                cgmain(argv=["casmglobal", "--prefix"])
+            casm_prefix = f.getvalue().strip()
+            os.environ["CASM_PREFIX"] = casm_prefix
+
+        if verbose:
+            print("~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~")
+            print("Trying:")
+            if "CASM_PREFIX" not in test_vars:
+                print("export CASM_PREFIX=$(python -m libcasm.casmglobal --prefix)")
+            for k, v in test_vars.items():
+                if v is None:
+                    print(f"unset {k}")
+                else:
+                    print(f'export {k}="{v}"')
+            print()
+
+        # set environment variables; keys with value None are removed
+        for k, v in test_vars.items():
+            if v is None:
+                if k in os.environ:
+                    del os.environ[k]
+            else:
+                os.environ[k] = v
+
+        import io
+        from contextlib import redirect_stdout
+
+        if verbose:
+            print("Make clexulator...")
+        self.clexulator = make_clexulator(
+            source=str(self.src_path),
+            prim_neighbor_list=self.prim_neighbor_list,
+        )
+        if verbose:
+            print("Make clexulator: DONE")
+
+        if verbose:
+            print("Test clexulator...")
+        if self.clexulator.n_functions() != 22:
+            raise RuntimeError("n_functions() != 22")
+
+        self.supercell = casmconfig.Supercell(
+            prim=self.prim,
+            transformation_matrix_to_super=np.array(
+                [
+                    [-1, 1, 1],
+                    [1, -1, 1],
+                    [1, 1, -1],
+                ],
+                dtype="int",
+            ),
+        )
+        self.supercell_neighbor_list = SuperNeighborList(
+            self.supercell.transformation_matrix_to_super,
+            self.prim_neighbor_list,
+        )
+
+        self.config = casmconfig.Configuration(supercell=self.supercell)
+        self.config.set_global_dof_values(
+            key="Hstrain", dof_values=np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+        )
+
+        self.corr = Correlations(
+            supercell_neighbor_list=self.supercell_neighbor_list,
+            clexulator=self.clexulator,
+            config_dof_values=self.config.dof_values,
+        )
+
+        x = self.corr.per_unitcell(self.corr.per_supercell())
+
+        n_func = self.clexulator.n_functions()
+        if x.shape != (n_func,):
+            raise RuntimeError("correlations shape error")
+        if not np.allclose(x, [1.0] + [0.0] * (n_func - 1)):
+            raise RuntimeError("correlations value error")
+        if verbose:
+            print("Test clexulator: DONE")
+            print()
+
+    def reset(self):
+        import os
+
+        for x in os.listdir(self.tmp_bset_dir.name):
+            if x not in ["basis.json", "TestProject_Clexulator_default.cc"]:
+                os.remove(os.path.join(self.tmp_bset_dir.name, x))
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.tmp_bset_dir.cleanup()
+
+
+def autoconfigure(
+    apply_results: bool = True,
+    return_results: bool = False,
+    user_vars: list[dict] = [],
+    verbose: bool = False,
+):
+    R"""Automatically determine and set environment variables needed for compiling and
+    linking Clexulator
+
+    This method attempts to find the environment variables needed to compile and link a
+    Clexulator by testing some standard variables sets. The standard variable sets are:
+
+    .. code-block:: Python
+
+        [
+            dict(
+                CASM_CXXFLAGS=None,
+                CASM_SOFLAGS=None,
+            ),
+            dict(
+                CASM_CXXFLAGS="-O3 -Wall -fPIC --std=c++17 -D_GLIBCXX_USE_CXX11_ABI=0 ",
+                CASM_SOFLAGS="-shared -Wl,--no-as-needed",
+            ),
+            dict(
+                CASM_CXXFLAGS=None,
+                CASM_SOFLAGS="-shared -Wl,--no-as-needed",
+            ),
+        ]
+
+    The order in which the variable sets are tried may vary depending on the system.
+    When "CASM_PREFIX" is not included, then it is assumed to be configured with:
+
+    .. code-block:: bash
+
+        export CASM_PREFIX=$(python -m libcasm.casmglobal --prefix)
+
+
+    Parameters
+    ----------
+    apply_results: bool = True
+        If True and successful, apply the variables found to the current environment.
+        If True and not successful, raise an exception.
+
+    return_results: bool = False
+        If True, return configuration results dictionary.
+
+    user_vars: list[dict] = []
+        List of dictionaries containing sets of environment variables to test in
+        addition to the standard variable sets.
+
+    verbose: bool = True
+        If True, print progress statements.
+
+    Returns
+    -------
+    results: Optional[dict]
+        Results of the autoconfiguration tests. Will contains `vars`, a dictionary of
+        environment variables that were succesfully used to compile and
+        use a Clexulator. If no successful configuration was found, `vars` will be None.
+        Will also contain `failed`, a list of dictionaries containing `vars` (failed
+        test variables) and `what` (error message).
+
+        Format:
+
+        .. code-block:: Python
+
+            results = {
+                "vars": {  # successful variables, or None
+                    "CASM_CXXFLAGS": Optional[str],
+                    "CASM_SOFLAGS": Optional[str],
+                },
+                "failed": [  # failed variables
+                    {
+                        "vars": {  # failed test variables
+                            "CASM_CXXFLAGS": Optional[str],
+                            "CASM_SOFLAGS": Optional[str],
+                        },
+                        "what": str,  # description of what failed
+                    },
+                    ...
+                ],
+            }
+
+    """
+
+    all_vars = user_vars
+    import os
+    import subprocess
+
+    if not apply_results:
+        orig_environ = dict(os.environ)
+
+    # try to check for clang
+    using_clang = False
+    cxx = "g++"
+    if "CASM_CXX" in os.environ:
+        cxx = os.environ["CASM_CXX"]
+    elif "CXX" in os.environ:
+        cxx = os.environ["CXX"]
+    out = subprocess.run(
+        [cxx, "--version"], stdout=subprocess.PIPE, encoding="utf-8"
+    ).stdout
+    if "clang" in out:
+        using_clang = True
+
+    # known configuration sets
+    set1 = dict(
+        CASM_CXXFLAGS=None,
+        CASM_SOFLAGS=None,
+    )
+    set2 = dict(
+        CASM_CXXFLAGS="-O3 -Wall -fPIC --std=c++17 -D_GLIBCXX_USE_CXX11_ABI=0 ",
+        CASM_SOFLAGS="-shared -Wl,--no-as-needed",
+    )
+    set3 = dict(
+        CASM_CXXFLAGS=None,
+        CASM_SOFLAGS="-shared -Wl,--no-as-needed",
+    )
+
+    if using_clang:
+        all_vars += [set1, set2, set3]
+    else:
+        all_vars += [set2, set3, set1]
+
+    results = {"vars": None, "failed": []}
+
+    with _TestSystem() as test_system:
+        for test_vars in all_vars:
+            try:
+                test_system.try_vars(test_vars, verbose=verbose)
+                results["vars"] = test_vars
+                break
+            except Exception as e:
+                results["failed"].append({"vars": test_vars, "what": str(e)})
+                if verbose:
+                    print()
+            test_system.reset()
+
+    if apply_results is True:
+        if results["vars"] is None:
+            raise Exception("No successful configuration found")
+    else:
+        os.environ = orig_environ
+
+    if return_results:
+        return results
+    else:
+        return None
