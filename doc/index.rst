@@ -14,10 +14,10 @@ casm-bset
 The casm-bset package is the CASM cluster expansion basis set construction module. This includes:
 
 - Methods for generating coupled cluster expansion Hamiltonians of occupation, strain, displacement, and magnetic spin degrees of freedom (DoF) appropriate for the symmetry of any multi-component crystalline solid.
-- Methods for generating C++ code for a CASM cluster expansion calculator (Clexulator) which efficiently evaluates the cluster expansion basis function for configuration represented using the CASM `ConfigDoFValues` data structure
+- Methods for generating C++ code for a CASM cluster expansion calculator (clexulator) which efficiently evaluates the cluster expansion basis function for configuration represented using the CASM `ConfigDoFValues` data structure
 - Generalized methods for creating symmetry adapted basis functions of other variables
 
-This package is designed to work with the cluster expansion calculator (Clexulator) evaluation methods which are implemented in `libcasm-clexulator <https://github.com/prisms-center/CASMcode_clexulator>`_.
+This package is designed to work with the cluster expansion calculator (clexulator) evaluation methods which are implemented in `libcasm-clexulator <https://github.com/prisms-center/CASMcode_clexulator>`_.
 
 
 About CASM
