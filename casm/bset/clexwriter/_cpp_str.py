@@ -5,6 +5,7 @@ import numpy as np
 from casm.bset.misc import (
     almost_equal,
     factor_by_mode,
+    irrational_to_tex_string,
 )
 from casm.bset.polynomial_functions import (
     PolynomialFunction,
@@ -50,6 +51,7 @@ def occ_func_cpp_str(
     var: Variable,
     prim_neighbor_list: PrimNeighborList,
     occupant_index_argname: str,
+    mode: str = "cpp",
 ) -> str:
     """Return a C++ expression to evaluate an occupation site basis variable
 
@@ -62,6 +64,8 @@ def occ_func_cpp_str(
         The primitive neighbor list, used to find the sublattice index
     occupant_index_argname: str
         The occupant index argument name. Usually "occ_i" or "occ_f".
+    mode: str = "cpp"
+        The mode for the output. Options are "cpp" and "latex".
 
     Returns
     -------
@@ -82,12 +86,21 @@ def occ_func_cpp_str(
     i = var.neighborhood_site_index % len(nlist_sublat_indices)
     b = nlist_sublat_indices[i]
     m = var.site_basis_function_index
-    return f"m_occ_func_{b}_{m}[{occupant_index_argname}]"
+    n = var.neighborhood_site_index
+    if mode == "cpp":
+        return f"m_occ_func_{b}_{m}[{occupant_index_argname}]"
+    elif mode == "latex":
+        return f"{var.name}({occupant_index_argname}_{{{n}}})"
+        # return f"\\phi_{{{b},{m}}}({occupant_index_argname}_{{{n}}})"
+    else:
+        raise ValueError(f"Invalid mode: {mode}")
 
 
 def variable_cpp_str(
     var: Variable,
     prim_neighbor_list: PrimNeighborList,
+    mode: str = "cpp",
+    label_site_using: str = "neighborhood_site_index",
 ) -> str:
     """Return a C++ expression to access an evaluated variable
 
@@ -97,6 +110,11 @@ def variable_cpp_str(
         The variable to be accessed.
     prim_neighbor_list: PrimNeighborList
         The PrimNeighborList used when constructing the functions.
+    mode: str = "cpp"
+        The mode for the output. Options are "cpp" and "latex".
+    label_site_using = "neighborhood_site_index"
+        The label to use for the site index in the output. Options are
+        "neighborhood_site_index" and "cluster_site_index".
 
     Returns
     -------
@@ -112,16 +130,43 @@ def variable_cpp_str(
         b = nlist_sublat_indices[i]
         m = var.site_basis_function_index
         n = var.neighborhood_site_index
-        return f"occ_func_{b}_{m}({n})"
+        cl = var.cluster_site_index
+        if mode == "cpp":
+            return f"occ_func_{b}_{m}({n})"
+        elif mode == "latex":
+            if label_site_using == "neighborhood_site_index":
+                return f"{var.name}(\\vec{{r}}_{{{n}}})"
+            elif label_site_using == "cluster_site_index":
+                return f"{var.name}(\\vec{{r}}_{{{cl}}})"
+            else:
+                raise ValueError(f"Invalid label_site_using: {label_site_using}")
+        else:
+            raise ValueError(f"Invalid mode: {mode}")
     elif var.neighborhood_site_index is not None:
         # local continuous DoF
         c = var.component_index
         n = var.neighborhood_site_index
-        return f"{var.key}_var_{c}<Scalar>({n})"
+        cl = var.cluster_site_index
+        if mode == "cpp":
+            return f"{var.key}_var_{c}<Scalar>({n})"
+        elif mode == "latex":
+            if label_site_using == "neighborhood_site_index":
+                return f"{var.name}(\\vec{{r}}_{{{n}}})"
+            elif label_site_using == "cluster_site_index":
+                return f"{var.name}(\\vec{{r}}_{{{cl}}})"
+            else:
+                raise ValueError(f"Invalid label_site_using: {label_site_using}")
+        else:
+            raise ValueError(f"Invalid mode: {mode}")
     else:
         # global continuous DoF
         c = var.component_index
-        return f"{var.key}_var<Scalar>({c})"
+        if mode == "cpp":
+            return f"{var.key}_var<Scalar>({c})"
+        elif mode == "latex":
+            return f"{var.name}"
+        else:
+            raise ValueError(f"Invalid mode: {mode}")
 
 
 def monomial_cpp_str(
@@ -130,6 +175,8 @@ def monomial_cpp_str(
     monomial_exponents: np.ndarray,
     prim_neighbor_list: PrimNeighborList,
     cpp_fmt: CppFormatProperties,
+    mode: str = "cpp",
+    label_site_using: str = "neighborhood_site_index",
 ) -> str:
     """Return a C++ expression to evaluate a monomial
 
@@ -143,6 +190,11 @@ def monomial_cpp_str(
         The PrimNeighborList used when constructing the functions.
     cpp_fmt: CppFormatProperties
         C++ string formatting properties.
+    mode: str = "cpp"
+        The mode for the output. Options are "cpp" and "latex".
+    label_site_using = "neighborhood_site_index"
+        The label to use for the site index in the output. Options are
+        "neighborhood_site_index" and "cluster_site_index".
 
     Returns
     -------
@@ -161,16 +213,31 @@ def monomial_cpp_str(
     for i_var, x in enumerate(monomial_exponents):
         if x == 0:
             continue
-        v = variable_cpp_str(variables[i_var], prim_neighbor_list)
+        v = variable_cpp_str(
+            variables[i_var],
+            prim_neighbor_list,
+            mode=mode,
+            label_site_using=label_site_using,
+        )
         if use_mul:
-            op = "*"
+            if mode == "cpp":
+                op = "*"
+            elif mode == "latex":
+                op = " "
+            else:
+                raise ValueError(f"Invalid mode: {mode}")
         else:
             op = ""
             use_mul = True
         if x == 1:
             cpp_str += f"{op}{v}"
         else:
-            cpp_str += f"{op}pow({v},{x})"
+            if mode == "cpp":
+                cpp_str += f"{op}pow({v},{x})"
+            elif mode == "latex":
+                cpp_str += f"{op}{v}^{{{x}}}"
+            else:
+                raise ValueError(f"Invalid mode: {mode}")
     return cpp_str
 
 
@@ -179,6 +246,8 @@ def polynomial_sum_cpp_str(
     normalization: float,
     prim_neighbor_list: PrimNeighborList,
     cpp_fmt: CppFormatProperties,
+    mode: str = "cpp",
+    label_site_using: str = "neighborhood_site_index",
 ) -> str:
     """Return a C++ expression to evaluate a polynomial expression
 
@@ -194,6 +263,11 @@ def polynomial_sum_cpp_str(
         The PrimNeighborList used when constructing the functions.
     cpp_fmt: CppFormatProperties
         C++ string formatting properties.
+    mode: str = "cpp"
+        The mode for the output. Options are "cpp" and "latex".
+    label_site_using = "neighborhood_site_index"
+        The label to use for the site index in the output. Options are
+        "neighborhood_site_index" and "cluster_site_index".
 
     Returns
     -------
@@ -215,7 +289,15 @@ def polynomial_sum_cpp_str(
 
     cpp_str = ""
     if not is_one(common_prefix, atol=cpp_fmt.coeff_atol):
-        cpp_str += f"{common_prefix:{cpp_fmt.coeff_fmt_spec}} * "
+        if mode == "cpp":
+            cpp_str += f"{common_prefix:{cpp_fmt.coeff_fmt_spec}} * "
+        elif mode == "latex":
+            limit = len(functions[0].variables) ** 2
+            max_pow = 2
+            common_prefix_tex = irrational_to_tex_string(
+                common_prefix, limit=limit, max_pow=max_pow, abs_tol=1e-5
+            )
+            cpp_str += f"{common_prefix_tex} "
     if len(functions) > 1:
         cpp_str += "(\n"
 
@@ -230,7 +312,8 @@ def polynomial_sum_cpp_str(
             orbit_use_plus = True
         if not is_one(factored_prefixes[i_func], atol=cpp_fmt.coeff_atol):
             cpp_str += f"{factored_prefixes[i_func]:{cpp_fmt.coeff_fmt_spec}} * "
-        cpp_str += "("
+        if len(function.monomial_exponents) > 1:
+            cpp_str += "("
         cluster_use_plus = False
         for i_monomial, _monomial_exponents in enumerate(function.monomial_exponents):
             if cluster_use_plus:
@@ -244,8 +327,11 @@ def polynomial_sum_cpp_str(
                 monomial_exponents=_monomial_exponents,
                 prim_neighbor_list=prim_neighbor_list,
                 cpp_fmt=cpp_fmt,
+                mode=mode,
+                label_site_using=label_site_using,
             )
-        cpp_str += ")"
+        if len(function.monomial_exponents) > 1:
+            cpp_str += ")"
         if len(functions) > 1:
             cpp_str += "\n"
 
@@ -261,6 +347,8 @@ def orbit_bfunc_cpp_str(
     orbit_size: int,
     prim_neighbor_list: PrimNeighborList,
     cpp_fmt: CppFormatProperties,
+    mode: str = "cpp",
+    label_site_using: str = "neighborhood_site_index",
 ) -> str:
     """Return a C++ expression to evaluate a single orbit basis function
 
@@ -276,6 +364,11 @@ def orbit_bfunc_cpp_str(
         The PrimNeighborList used when constructing the functions.
     cpp_fmt: CppFormatProperties
         C++ string formatting properties.
+    mode: str = "cpp"
+        The mode for the output. Options are "cpp" and "latex".
+    label_site_using = "neighborhood_site_index"
+        The label to use for the site index in the output. Options are
+        "neighborhood_site_index" and "cluster_site_index".
 
     Returns
     -------
@@ -290,6 +383,8 @@ def orbit_bfunc_cpp_str(
         normalization=float(orbit_size),
         prim_neighbor_list=prim_neighbor_list,
         cpp_fmt=cpp_fmt,
+        mode=mode,
+        label_site_using=label_site_using,
     )
 
 
@@ -298,6 +393,8 @@ def site_bfunc_cpp_str(
     orbit_size: int,
     prim_neighbor_list: PrimNeighborList,
     cpp_fmt: CppFormatProperties,
+    mode: str = "cpp",
+    label_site_using: str = "neighborhood_site_index",
 ) -> Optional[str]:
     """Return a C++ expression to evaluate a single point correlation function
 
@@ -313,6 +410,8 @@ def site_bfunc_cpp_str(
         The PrimNeighborList used when constructing the functions.
     cpp_fmt: CppFormatProperties
         C++ string formatting properties.
+    mode: str = "cpp"
+        The mode for the output. Options are "cpp" and "latex".
 
     Returns
     -------
@@ -328,6 +427,8 @@ def site_bfunc_cpp_str(
         normalization=float(orbit_size),
         prim_neighbor_list=prim_neighbor_list,
         cpp_fmt=cpp_fmt,
+        mode=mode,
+        label_site_using=label_site_using,
     )
 
 
@@ -337,6 +438,8 @@ def occ_delta_site_bfunc_cpp_str(
     orbit_size: int,
     prim_neighbor_list: PrimNeighborList,
     cpp_fmt: CppFormatProperties,
+    mode: str = "cpp",
+    label_site_using: str = "neighborhood_site_index",
 ) -> Optional[str]:
     """Return a C++ expression to evaluate the change in a single point correlation \
     function due to a change in occupation
@@ -355,6 +458,8 @@ def occ_delta_site_bfunc_cpp_str(
         The PrimNeighborList used when constructing the functions.
     cpp_fmt: CppFormatProperties
         C++ string formatting properties.
+    mode: str = "cpp"
+        The mode for the output. Options are "cpp" and "latex".
 
     Returns
     -------
@@ -407,16 +512,27 @@ def occ_delta_site_bfunc_cpp_str(
     indent = "  "
     cpp_str = ""
     use_plus = False
+    if mode == "cpp":
+        occupant_index_argname_final = "occ_f"
+        occupant_index_argname_init = "occ_i"
+    elif mode == "latex":
+        occupant_index_argname_final = "\\vec{r}^{\\ f}"
+        occupant_index_argname_init = "\\vec{r}^{\\ i}"
+    else:
+        raise ValueError(f"Invalid mode: {mode}")
+
     for var, factored_point_functions in occ_delta_functions.items():
         site_var_final = occ_func_cpp_str(
             var=var,
             prim_neighbor_list=prim_neighbor_list,
-            occupant_index_argname="occ_f",
+            occupant_index_argname=occupant_index_argname_final,
+            mode=mode,
         )
         site_var_init = occ_func_cpp_str(
             var=var,
             prim_neighbor_list=prim_neighbor_list,
-            occupant_index_argname="occ_i",
+            occupant_index_argname=occupant_index_argname_init,
+            mode=mode,
         )
         if use_plus:
             cpp_str += "\n\n" + indent * 1 + " + "
@@ -428,5 +544,7 @@ def occ_delta_site_bfunc_cpp_str(
             normalization=float(orbit_size),
             prim_neighbor_list=prim_neighbor_list,
             cpp_fmt=cpp_fmt,
+            mode=mode,
+            label_site_using=label_site_using,
         )
     return cpp_str

@@ -90,7 +90,9 @@ def test_quick_start_write_and_evaluate():
     ## Write clexulator source code
 
     import tempfile
+
     import numpy as np
+
     import libcasm.clexulator as casmclex
     from casm.bset import write_clexulator
 
@@ -162,7 +164,7 @@ def test_quick_start_write_and_evaluate():
     # Evaluate the correlations
     # correlation_values: np.ndarray, the correlation values
     corr_per_supercell = corr.per_supercell()
-    corr_per_unitcell = corr.per_unitcell(corr_per_supercell)
+    corr_per_unitcell = corr.per_unitcell(corr_per_supercell)  # noqa F841
 
     ## Evaluating a cluster expansion
 
@@ -191,7 +193,7 @@ def test_quick_start_write_and_evaluate():
 
     # Evaluate the cluster expansion
     # for the configuration with its current occupation
-    clex_formation_energy_per_unitcell = clex.per_unitcell()
+    clex_formation_energy_per_unitcell = clex.per_unitcell()  # noqa F841
 
     ## Calculate the effect of changes in DoF values
 
@@ -200,7 +202,7 @@ def test_quick_start_write_and_evaluate():
     # leaving the occupation unchanged.
     assert config.occ(2) == 1  # B
 
-    delta_clex_formation_energy_per_supercell = clex.occ_delta_value(
+    delta_clex_formation_energy_per_supercell = clex.occ_delta_value(  # noqa F841
         linear_site_index=2,
         new_occ=0,  # A
     )

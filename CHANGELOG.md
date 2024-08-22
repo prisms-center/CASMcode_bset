@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 
+## Unreleased
+
+### Added
+
+- Added `ClexulatorWriter.generated_files` attribute, holding a list of the files generated when writing a Clexulator
+- Added generation of latex formulas during the Clexulator writing process
+- Added `casm.bset.cluster_functions.MakeVariableName` for variable naming
+
+### Changed
+
+- Updated `ClexulatorWriter.write` to write a "variables.json" file for each Clexulator (including local Clexulator) which contains the variables used by the jinja2 templates as well as information like basis function formulas generated during the write process
+- Changed the name used for occupation variables. The name "\\phi" is the base, but the number and meaning of the indices can vary depending on the site basis functions. An "occ_site_functions_info" dict in the "variables.json" file contains the string value used as a template ("occ_var_name") and a description of the variable including its indices, if any ("occ_var_desc").
+
+
 ## [2.0a1] - 2024-08-15
 
 This release creates the casm-bset CASM cluster expansion basis set construction module. This includes:

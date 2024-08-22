@@ -70,8 +70,6 @@ def test_composition_occ_fcc_1a(session_shared_datadir):
     functions, clusters = (builder.functions, builder.clusters)
 
     _occ_site_functions = builder.occ_site_functions.copy()
-    for x in _occ_site_functions:
-        x["value"] = x["value"].tolist()
     print(xtal.pretty_json(_occ_site_functions))
 
     for b in [0]:
@@ -167,8 +165,6 @@ def test_composition_occ_fcc_1b(session_shared_datadir):
     functions, clusters = (builder.functions, builder.clusters)
 
     _occ_site_functions = builder.occ_site_functions.copy()
-    for x in _occ_site_functions:
-        x["value"] = x["value"].tolist()
     print(xtal.pretty_json(_occ_site_functions))
 
     for b in [0, 2]:

@@ -228,6 +228,88 @@ def make_equivalence_map_site_rep(
     return equivalence_map_site_rep
 
 
+class MakeVariableName:
+    """A class to construct variable names for DoF
+
+    - For continuous DoF, use the :class:`DoFSetBasis` axis names
+    - For discrete DoF, use a template string. For example, the default is
+      ``"\\phi_{{{b},{m}}}"` where "{b}" is replaced by the sublattice index and
+      "{m}" is replaced by the site function index, a number in the range 0 to M-1,
+      where M is the number of occupants allowed on the site.
+
+    """
+
+    def __init__(
+        self,
+        occ_var_name: Optional[str] = None,
+        occ_var_desc: Optional[str] = None,
+    ):
+        """
+
+        .. rubric:: Constructor
+
+        Parameters
+        ----------
+        occ_var_name: Optional[str]=None
+            A template string for occupation variable names. The default is
+            "\\phi_{{{b},{m}}}", where b is the sublattice index and m is the site
+            function index.
+        occ_var_desc: Optional[str]=None
+            A description of the occupation variable, particularly for the meaning of
+            the indices. The default is for the default `occ_var_name`.
+        """
+        if occ_var_name is None:
+            occ_var_name = "\\phi_{{{b},{m}}}"
+        if occ_var_desc is None:
+            occ_var_desc = (
+                "\\phi_{{{b},{m}}}, where "
+                "$b$ is the sublattice index and "
+                "$m$ is the site function index"
+            )
+        self.occ_var_name = occ_var_name
+        self.occ_var_desc = occ_var_desc
+
+    def __call__(
+        self,
+        xtal_prim: xtal.Prim,
+        key: str,
+        sublattice_index: Optional[int] = None,
+        cluster_site_index: Optional[int] = None,
+        component_index: Optional[int] = None,
+        site_basis_function_index: Optional[int] = None,
+        local_discrete_dof: list[str] = [],
+    ) -> str:
+        def make_variable_symbol(xtal_prim, key, sublattice_index):
+            if sublattice_index is not None:
+                dof = xtal_prim.local_dof()[sublattice_index]
+            else:
+                dof = xtal_prim.global_dof()
+            axis_names = None
+            for dof_basis_set in dof:
+                if dof_basis_set.dofname() == key:
+                    axis_names = dof_basis_set.axis_names()
+                    break
+            if axis_names is None:
+                return "x"
+            else:
+                return axis_names[component_index]
+
+        symbol = make_variable_symbol(xtal_prim, key, sublattice_index)
+
+        if cluster_site_index is not None:
+            if key in local_discrete_dof:
+                # local discrete
+                b = sublattice_index
+                m = site_basis_function_index
+                return self.occ_var_name.format(b=b, m=m)
+            else:
+                # local continuous
+                return f"{symbol}"
+        else:
+            # global continuous
+            return f"{symbol}"
+
+
 def make_variable_name(
     xtal_prim: xtal.Prim,
     key: str,
@@ -237,33 +319,16 @@ def make_variable_name(
     site_basis_function_index: Optional[int] = None,
     local_discrete_dof: list[str] = [],
 ):
-    def make_variable_symbol(xtal_prim, key, sublattice_index):
-        if sublattice_index is not None:
-            dof = xtal_prim.local_dof()[sublattice_index]
-        else:
-            dof = xtal_prim.global_dof()
-        axis_names = None
-        for dof_basis_set in dof:
-            if dof_basis_set.dofname() == key:
-                axis_names = dof_basis_set.axis_names()
-                break
-        if axis_names is None:
-            return "x"
-        else:
-            return axis_names[component_index]
-
-    symbol = make_variable_symbol(xtal_prim, key, sublattice_index)
-
-    if cluster_site_index is not None:
-        if key in local_discrete_dof:
-            return (
-                f"\\phi_{{{sublattice_index},{site_basis_function_index}}}"
-                f"(s_{cluster_site_index})"
-            )
-        else:
-            return f"{symbol}(s_{cluster_site_index})"
-    else:
-        return f"{symbol}"
+    f = MakeVariableName()
+    return f(
+        xtal_prim=xtal_prim,
+        key=key,
+        sublattice_index=sublattice_index,
+        cluster_site_index=cluster_site_index,
+        component_index=component_index,
+        site_basis_function_index=site_basis_function_index,
+        local_discrete_dof=local_discrete_dof,
+    )
 
 
 def make_global_variables(
@@ -280,9 +345,11 @@ def make_global_variables(
     key: str
         The name of the global DoF type. Must exist in `prim`.
     make_variable_name_f: Optional[Callable] = None
-        Allows specifying a custom function to construct variable names. The default
-        function used is :func:`make_variable_name`. Custom functions should have the
-        same signature as :func:`make_variable_name`.
+        Allows specifying a custom class to construct variable names. The default
+        class used is :class:`~casm.bset.cluster_functions.MakeVariableName`.
+        Custom classes should have the same `__call__` signature as
+        :class:`~casm.bset.cluster_functions.MakeVariableName`, and have
+        `occ_var_name` and `occ_var_desc` attributes.
 
     Returns
     -------
@@ -345,9 +412,11 @@ def make_cluster_variables(
     cluster: Cluster
         The cluster of sites with DoF to be transformed by the matrix representations.
     make_variable_name_f: Optional[Callable] = None
-        Allows specifying a custom function to construct variable names. The default
-        function used is :func:`make_variable_name`. Custom functions should have the
-        same signature as :func:`make_variable_name`.
+        Allows specifying a custom class to construct variable names. The default
+        class used is :class:`~casm.bset.cluster_functions.MakeVariableName`.
+        Custom classes should have the same `__call__` signature as
+        :class:`~casm.bset.cluster_functions.MakeVariableName`, and have
+        `occ_var_name` and `occ_var_desc` attributes.
     local_discrete_dof: list[str]
         The types of local discrete degree of freedom (DoF).
 
@@ -977,9 +1046,11 @@ class ClusterMatrixRepBuilder:
             :func:`~libcasm.clusterography.make_periodic_orbit` using the prim factor
             group.
         make_variable_name_f: Optional[Callable] = None
-            Allows specifying a custom function to construct variable names. The default
-            function used is :func:`make_variable_name`. Custom functions should have
-            the same signature as :func:`make_variable_name`.
+            Allows specifying a custom class to construct variable names. The default
+            class used is :class:`~casm.bset.cluster_functions.MakeVariableName`.
+            Custom classes should have the same `__call__` signature as
+            :class:`~casm.bset.cluster_functions.MakeVariableName`, and have
+            `occ_var_name` and `occ_var_desc` attributes.
         local_discrete_dof: Optional[list[str]] = None
             The types of local discrete degree of freedom (DoF). If `key` is in
             `local_discrete_dof`, then :func:`make_occ_site_functions_matrix_rep` is
@@ -1258,9 +1329,11 @@ class OrbitMatrixRepBuilder:
             :func:`~libcasm.clusterography.make_periodic_orbit` using the prim factor
             group.
         make_variable_name_f: Optional[Callable] = None
-            Allows specifying a custom function to construct variable names. The default
-            function used is :func:`make_variable_name`. Custom functions should have
-            the same signature as :func:`make_variable_name`.
+            Allows specifying a custom class to construct variable names. The default
+            class used is :class:`~casm.bset.cluster_functions.MakeVariableName`.
+            Custom classes should have the same `__call__` signature as
+            :class:`~casm.bset.cluster_functions.MakeVariableName`, and have
+            `occ_var_name` and `occ_var_desc` attributes.
         occ_site_functions: Optional[list[dict]] = None
             List of occupation site basis functions. For each sublattice with discrete
             site basis functions, must include:

@@ -27,14 +27,14 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 0,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 0,
               "site_basis_function_index": 1
             }
@@ -66,14 +66,14 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             }
@@ -105,14 +105,14 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             }
@@ -145,28 +145,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 0,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 0,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             }
@@ -199,28 +199,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 6,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 6,
               "site_basis_function_index": 1
             }
@@ -253,28 +253,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 1
             }
@@ -307,28 +307,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             }
@@ -361,28 +361,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 1
             }
@@ -415,28 +415,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 1
             }
@@ -469,28 +469,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 17,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 17,
               "site_basis_function_index": 1
             }
@@ -523,28 +523,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 8,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 8,
               "site_basis_function_index": 1
             }
@@ -577,28 +577,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 99,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 99,
               "site_basis_function_index": 1
             }
@@ -631,28 +631,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 75,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 75,
               "site_basis_function_index": 1
             }
@@ -685,28 +685,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 1
             }
@@ -739,28 +739,28 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 1
             }
@@ -794,42 +794,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 1
             }
@@ -863,42 +863,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 99,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 99,
               "site_basis_function_index": 1
             }
@@ -932,42 +932,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 32,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 75,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 75,
               "site_basis_function_index": 1
             }
@@ -1001,42 +1001,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 30,
               "site_basis_function_index": 1
             }
@@ -1070,42 +1070,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 17,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 17,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 99,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 99,
               "site_basis_function_index": 1
             }
@@ -1139,42 +1139,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 8,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 8,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 75,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 75,
               "site_basis_function_index": 1
             }
@@ -1208,42 +1208,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 2,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 1
             }
@@ -1277,42 +1277,42 @@
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,0}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 0,
               "key": "occ",
-              "name": "\\phi_{1,1}(s_0)",
+              "name": "\\phi",
               "neighborhood_site_index": 1,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,0}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 1,
               "key": "occ",
-              "name": "\\phi_{0,1}(s_1)",
+              "name": "\\phi",
               "neighborhood_site_index": 15,
               "site_basis_function_index": 1
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{2,0}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 17,
               "site_basis_function_index": 0
             },
             {
               "cluster_site_index": 2,
               "key": "occ",
-              "name": "\\phi_{2,1}(s_2)",
+              "name": "\\phi",
               "neighborhood_site_index": 17,
               "site_basis_function_index": 1
             }

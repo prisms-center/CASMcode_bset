@@ -275,7 +275,7 @@ def make_chebychev_site_functions(
 
     occ_site_functions = []
     for key, value in phi.items():
-        occ_site_functions.append({"sublattice_index": key, "value": value})
+        occ_site_functions.append({"sublattice_index": key, "value": value.tolist()})
 
     return occ_site_functions
 
@@ -342,7 +342,7 @@ def make_occupation_site_functions(
 
     occ_site_functions = []
     for key, value in phi.items():
-        occ_site_functions.append({"sublattice_index": key, "value": value})
+        occ_site_functions.append({"sublattice_index": key, "value": value.tolist()})
 
     return occ_site_functions
 
@@ -471,7 +471,7 @@ def make_composition_site_functions(
 
     occ_site_functions = []
     for key, value in phi.items():
-        occ_site_functions.append({"sublattice_index": key, "value": value})
+        occ_site_functions.append({"sublattice_index": key, "value": value.tolist()})
 
     return occ_site_functions
 
@@ -593,7 +593,10 @@ def make_direct_site_functions(
 
     indices = list(found_sublat_indices)
     indices.sort()
-    return [{"sublattice_index": i, "value": _occ_site_functions[i]} for i in indices]
+    return [
+        {"sublattice_index": i, "value": _occ_site_functions[i].tolist()}
+        for i in indices
+    ]
 
 
 def make_occ_site_functions(
@@ -764,3 +767,89 @@ def get_occ_site_functions(
                     f"invalid site_function_index={site_function_index}"
                 )
     return np.zeros((0, 0))
+
+
+def make_occ_site_functions_info(
+    prim: casmconfig.Prim,
+    occ_site_functions: list[dict],
+    abs_tol: float = 1e-10,
+) -> dict:
+    """Get info used for naming the occupation variables in latex
+
+    Parameters
+    ----------
+    prim: libcasm.configation.Prim
+        The prim, with symmetry information.
+
+    occ_site_functions: list[dict]
+        List of occupation site basis functions. For each sublattice with discrete
+        site basis functions, must include:
+
+        - `"sublattice_index"`: int, index of the sublattice
+        - `"value"`: list[list[float]], list of the site basis function values, as
+          ``value = functions[function_index][occupant_index]``.
+
+    abs_tol: float = 1e-10
+        A absolute tolerance for comparing values.
+
+    Returns
+    -------
+    occ_site_functions_info: dict
+        Occupation site basis functions info, with format:
+
+        - `"max_function_index"`: int, The maximum site function index, across all
+          sublattices.
+        - `"all_sublattices_have_same_site_functions"`: bool, True if all _sublattices
+          have same site functions; False otherwise.
+        - `"occ_var_name"`: str, A variable name template for the site functions,
+          which may be formated using `b` for sublattice index and `m` for site function
+          index (i..e ``occ_var_name.format(b=0, m=1)``).
+        - `"occ_var_desc": occ_var_desc, A description of the occupation
+          variable, including a description of the subscript indices.
+    """
+    max_function_index = 0
+    all_sublattices_have_same_site_functions = True
+    phi_0 = None
+    occ_dof_0 = None
+    occ_dof = prim.xtal_prim.occ_dof()
+    for i, site_funcs in enumerate(occ_site_functions):
+        phi = np.array(site_funcs["value"])
+        b = site_funcs["sublattice_index"]
+        if phi.shape[0] - 1 > max_function_index:
+            max_function_index = phi.shape[0] - 1
+        if i == 0:
+            phi_0 = np.array(site_funcs["value"])
+            occ_dof_0 = occ_dof[b]
+        else:
+            if not phi.shape == phi_0.shape:
+                all_sublattices_have_same_site_functions = False
+            elif not np.allclose(phi, phi_0, atol=abs_tol):
+                all_sublattices_have_same_site_functions = False
+            elif occ_dof[b] != occ_dof_0:
+                all_sublattices_have_same_site_functions = False
+
+    if max_function_index < 2:
+        if all_sublattices_have_same_site_functions is True:
+            occ_var_name = "\\phi"
+            occ_var_desc = "Occupation site function"
+        else:
+            occ_var_name = "\\phi_{{{b}}}"
+            occ_var_desc = "$\\phi_{b}$, where $b$ is the sublattice index"
+    else:
+        if all_sublattices_have_same_site_functions is True:
+            occ_var_name = "\\phi_{{{m}}}"
+            occ_var_desc = "$\\phi_{m}$, where $m$ is the site function index"
+        else:
+            occ_var_name = "\\phi_{{{b},{m}}}"
+            occ_var_desc = (
+                "$\\phi_{{{b},{m}}}$, where "
+                "$b$ is the sublattice index and "
+                "$m$ is the site function index"
+            )
+
+    return {
+        "max_function_index": max_function_index,
+        "all_sublattices_have_same_site_functions": all_sublattices_have_same_site_functions,  # noqa: E501
+        "occ_var_name": occ_var_name,
+        "occ_var_desc": occ_var_desc,
+    }

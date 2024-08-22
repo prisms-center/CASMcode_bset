@@ -21,6 +21,7 @@ from ._discrete_functions import (
 )
 from ._matrix_rep import (
     ClusterMatrixRepBuilder,
+    MakeVariableName,
     OrbitMatrixRepBuilder,
     make_cluster_dof_info,
     make_cluster_matrix_rep,

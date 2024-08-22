@@ -10,8 +10,10 @@ import libcasm.xtal as xtal
 from casm.bset.cluster_functions._discrete_functions import (
     get_occ_site_functions,
     make_occ_site_functions,
+    make_occ_site_functions_info,
 )
 from casm.bset.cluster_functions._matrix_rep import (
+    MakeVariableName,
     OrbitMatrixRepBuilder,
 )
 from casm.bset.cluster_functions._misc import (
@@ -269,7 +271,7 @@ def _make_occ_site_function_basis_data(
             }
     """
     b = occ_site_function["sublattice_index"]
-    phi = occ_site_function["value"]
+    phi = np.array(occ_site_function["value"])
     occ_dof = prim.xtal_prim.occ_dof()[b]
     if len(occ_dof) != phi.shape[0] or len(occ_dof) != phi.shape[1]:
         raise Exception(
@@ -650,9 +652,11 @@ class ClusterFunctionsBuilder:
             clusters in the primitive cell equivalent by prim factor group symmetry.
             Requires that `make_equivalents` is True.
         make_variable_name_f: Optional[Callable] = None
-            Allows specifying a custom function to construct variable names. The default
-            function used is :func:`make_variable_name`. Custom functions should have
-            the same signature as :func:`make_variable_name`.
+            Allows specifying a custom class to construct variable names. The default
+            class used is :class:`~casm.bset.cluster_functions.MakeVariableName`.
+            Custom classes should have the same `__call__` signature as
+            :class:`~casm.bset.cluster_functions.MakeVariableName`, and have
+            `occ_var_name` and `occ_var_desc` attributes.
         verbose: bool = False
             Print progress statements
 
@@ -764,6 +768,28 @@ class ClusterFunctionsBuilder:
        
         """
 
+        occ_site_functions_info = make_occ_site_functions_info(
+            prim=prim,
+            occ_site_functions=occ_site_functions,
+        )
+        # note: this generates default occ_var_name and occ_var_desc, which may be
+        # overridden by a custom make_variable_name_f
+        self.occ_site_functions_info = occ_site_functions_info
+        """dict: Information about occupation site basis functions.
+        
+        Occupation site basis functions info, with format:
+
+        - `"max_function_index"`: int, The maximum site function index, across all
+          sublattices.
+        - `"all_sublattices_have_same_site_functions"`: bool, True if all _sublattices
+          have same site functions; False otherwise.
+        - `"occ_var_name"`: str, A variable name template for the site functions,
+          which may be formated using `b` for sublattice index and `m` for site function
+          index (i..e ``occ_var_name.format(b=0, m=1)``).
+        - `"occ_var_desc": str, A description of the occupation
+          variable, including a description of the subscript indices.
+        """
+
         self.prim_neighbor_list = prim_neighbor_list
         """libcasm.clexulator.PrimNeighborList: The PrimNeighborList, expanded as \
         necessary
@@ -788,12 +814,25 @@ class ClusterFunctionsBuilder:
         `make_equivalents` is True.
         """
 
+        if make_variable_name_f is None:
+            make_variable_name_f = MakeVariableName(
+                occ_var_name=self.occ_site_functions_info.get("occ_var_name"),
+                occ_var_desc=self.occ_site_functions_info.get("occ_var_desc"),
+            )
+        else:
+            self.occ_site_functions_info[
+                "occ_var_name"
+            ] = make_variable_name_f.occ_var_name
+            self.occ_site_functions_info[
+                "occ_var_desc"
+            ] = make_variable_name_f.occ_var_desc
         self._make_variable_name_f = make_variable_name_f
         """Callable: Function used to construct variable names.
         
-        The default function used is
-        :func:`~casm.bset.cluster_functions.make_variable_name`. Custom functions 
-        have the same signature as :func:`make_variable_name`.
+        Allows specifying a custom class to construct variable names. The default
+        class used is :class:`MakeVariableName`. Custom classes should have
+        the same `__call__` signature as :class:`MakeVariableName`, and have
+        `occ_var_name` and `occ_var_desc` attributes.
         """
 
         self._verbose = verbose

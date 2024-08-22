@@ -71,6 +71,52 @@ class SetupLocalCorr:
         )
 
 
+def test_v1_basic_occ_lowsym_1(session_shared_datadir, tmp_path):
+    xtal_prim = xtal.Prim(
+        lattice=xtal.Lattice(
+            np.array(
+                [
+                    [1.0, 0.3, 0.4],  # a
+                    [0.0, 1.2, 0.5],  # b
+                    [0.0, 0.0, 1.4],  # c
+                ]
+            ).transpose()
+        ),
+        coordinate_frac=np.array(
+            [
+                [0.0, 0.0, 0.0],
+                [0.4, 0.5, 0.6],
+                [0.24, 0.25, 0.23],
+            ]
+        ).transpose(),
+        occ_dof=[["A", "B"], ["A", "B"], ["B", "A"]],
+    )
+    prim = casmconfig.Prim(xtal_prim)
+
+    clex_basis_specs = make_clex_basis_specs(
+        prim=prim,
+        max_length=[0.0, 0.0, 2.01, 2.01],
+        global_max_poly_order=4,
+        occ_site_basis_functions_specs="occupation",
+    )
+
+    src_path, local_src_path, prim_neighbor_list = write_clexulator(
+        prim=prim,
+        clex_basis_specs=clex_basis_specs,
+        bset_dir=tmp_path,
+        project_name="TestProject",
+        bset_name="default",
+        version="v1.basic",
+    )
+
+    print("tmp_path:", tmp_path)
+    for x in os.listdir(tmp_path):
+        print(x)
+
+    assert src_path == tmp_path / "TestProject_Clexulator_default.cc"
+    assert local_src_path is None
+
+
 def test_v1_basic_occ_fcc_1(session_shared_datadir, tmp_path):
     xtal_prim = xtal_prims.FCC(
         r=0.5,

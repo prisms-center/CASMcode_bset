@@ -265,7 +265,7 @@ class WriterV1Basic:
         - ``"linear_orbit_index"``: int, Linear cluster orbit index
         - ``"cpp"``: str, C++ expression for evaluating the global correlation
           contribution
-        - ``"latex_prototype"``: str, Latex formula for the prototype
+        - ``"latex_prototype"``: str, Latex formula for the prototype cluster
         - ``latex_orbit"``: str, Latex formula for the orbit contribution
         
         """

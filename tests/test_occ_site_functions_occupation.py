@@ -62,8 +62,6 @@ def test_occ_fcc_1a(session_shared_datadir):
     functions, clusters = (builder.functions, builder.clusters)
 
     _occ_site_functions = builder.occ_site_functions.copy()
-    for x in _occ_site_functions:
-        x["value"] = x["value"].tolist()
     print(xtal.pretty_json(_occ_site_functions))
 
     for b in [0, 1, 2, 3]:
@@ -135,8 +133,6 @@ def test_occ_fcc_1b(session_shared_datadir):
     functions, clusters = (builder.functions, builder.clusters)
 
     _occ_site_functions = builder.occ_site_functions.copy()
-    for x in _occ_site_functions:
-        x["value"] = x["value"].tolist()
     print(xtal.pretty_json(_occ_site_functions))
 
     for b in [0, 1, 3]:
@@ -215,8 +211,6 @@ def test_occ_fcc_2a(session_shared_datadir):
     functions, clusters = (builder.functions, builder.clusters)
 
     _occ_site_functions = builder.occ_site_functions.copy()
-    for x in _occ_site_functions:
-        x["value"] = x["value"].tolist()
     print(xtal.pretty_json(_occ_site_functions))
 
     for b in [0]:
@@ -316,8 +310,6 @@ def test_occ_fcc_2b(session_shared_datadir):
     functions, clusters = (builder.functions, builder.clusters)
 
     _occ_site_functions = builder.occ_site_functions.copy()
-    for x in _occ_site_functions:
-        x["value"] = x["value"].tolist()
     print(xtal.pretty_json(_occ_site_functions))
 
     for b in [0]:
@@ -455,8 +447,6 @@ def test_occ_fcc_3a(session_shared_datadir):
     functions, clusters = (builder.functions, builder.clusters)
 
     _occ_site_functions = builder.occ_site_functions.copy()
-    for x in _occ_site_functions:
-        x["value"] = x["value"].tolist()
     print(xtal.pretty_json(_occ_site_functions))
 
     for b in [0]:
@@ -604,8 +594,6 @@ def test_occ_fcc_3b(session_shared_datadir):
     functions, clusters = (builder.functions, builder.clusters)
 
     _occ_site_functions = builder.occ_site_functions.copy()
-    for x in _occ_site_functions:
-        x["value"] = x["value"].tolist()
     print(xtal.pretty_json(_occ_site_functions))
 
     for b in [0]:
@@ -762,8 +750,6 @@ def test_occ_fcc_4a(session_shared_datadir):
     functions, clusters = (builder.functions, builder.clusters)
 
     _occ_site_functions = builder.occ_site_functions.copy()
-    for x in _occ_site_functions:
-        x["value"] = x["value"].tolist()
     print(xtal.pretty_json(_occ_site_functions))
 
     for b in [0]:
@@ -937,8 +923,6 @@ def test_occ_fcc_4b(session_shared_datadir):
     functions, clusters = (builder.functions, builder.clusters)
 
     _occ_site_functions = builder.occ_site_functions.copy()
-    for x in _occ_site_functions:
-        x["value"] = x["value"].tolist()
     print(xtal.pretty_json(_occ_site_functions))
 
     for b in [0]:

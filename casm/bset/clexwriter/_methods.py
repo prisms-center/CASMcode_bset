@@ -363,11 +363,15 @@ def make_orbit_bfuncs(
                 linear_function_indices is None
                 or linear_function_index in linear_function_indices
             ):
+                # prototype_functions: i_func-th function on prototype cluster only
                 # orbit_functions: i_func-th function on each cluster in orbit
-                orbit_functions = [
-                    functions_by_cluster[i_func]
-                    for functions_by_cluster in functions[i_orbit]
-                ]
+                prototype_functions = []
+                orbit_functions = []
+                for i_equiv, functions_by_cluster in enumerate(functions[i_orbit]):
+                    if i_equiv == 0:
+                        prototype_functions.append(functions_by_cluster[i_func])
+                    orbit_functions.append(functions_by_cluster[i_func])
+
                 _add_variables_needed(
                     data=variables_needed,
                     functions=orbit_functions,
@@ -386,13 +390,56 @@ def make_orbit_bfuncs(
                             prim_neighbor_list=prim_neighbor_list,
                             cpp_fmt=cpp_fmt,
                         ),
-                        "latex_prototype": "<todo>",
-                        "latex_orbit": "<todo>",
+                        "latex_prototype": orbit_bfunc_cpp_str(
+                            # only functions from prototype cluster
+                            orbit_functions=prototype_functions,
+                            # orbit_size=len(orbit_functions) -> same normalization
+                            orbit_size=len(orbit_functions),
+                            prim_neighbor_list=prim_neighbor_list,
+                            cpp_fmt=cpp_fmt,
+                            mode="latex",
+                            label_site_using="cluster_site_index",
+                        ),
+                        "latex_orbit": orbit_bfunc_cpp_str(
+                            orbit_functions=orbit_functions,
+                            orbit_size=len(orbit_functions),
+                            prim_neighbor_list=prim_neighbor_list,
+                            cpp_fmt=cpp_fmt,
+                            mode="latex",
+                            label_site_using="neighborhood_site_index",
+                        ),
                     }
                 )
             linear_function_index += 1
         linear_orbit_index += 1
     return (orbit_bfuncs, variables_needed)
+
+
+def _print_latex_orbit_bfuncs(builder):
+    """For debugging purposes, print the orbit basis functions in LaTeX format."""
+    orbit_bfuncs, variables_needed = make_orbit_bfuncs(
+        prim_neighbor_list=builder.prim_neighbor_list,
+        clusters=builder.clusters,
+        functions=builder.functions,
+        occ_site_functions=builder.occ_site_functions,
+        cpp_fmt=CppFormatProperties(),
+        linear_function_indices=None,
+    )
+
+    print(
+        "occ_var_name:",
+        builder.occ_site_functions_info.get("occ_var_name").format(b="b", m="m"),
+    )
+    print("occ_var_desc:", builder.occ_site_functions_info.get("occ_var_desc"))
+
+    for orbit_bfunc in orbit_bfuncs:
+        linear_function_index = orbit_bfunc.get("linear_function_index")
+        orbit_latex_formula = orbit_bfunc.get("latex_orbit")
+        prototype_latex_formula = orbit_bfunc.get("latex_prototype")
+        print("Linear function index: ", linear_function_index)
+        print("prototype_formula: ", prototype_latex_formula)
+        print("formula: ", orbit_latex_formula)
+        print()
 
 
 def _make_site_bfuncs_data(
@@ -419,14 +466,27 @@ def _make_site_bfuncs_data(
                     prim_neighbor_list=prim_neighbor_list,
                     cpp_fmt=cpp_fmt,
                 ),
-                "latex_prototype": "<todo>",
-                "latex_orbit": "<todo>",
+                "latex": site_bfunc_cpp_str(
+                    point_functions=equiv_functions_by_point,
+                    orbit_size=orbit_size,
+                    prim_neighbor_list=prim_neighbor_list,
+                    cpp_fmt=cpp_fmt,
+                    mode="latex",
+                ),
                 "occ_delta_cpp": occ_delta_site_bfunc_cpp_str(
                     neighbor_list_index=neighbor_list_index,
                     point_functions=equiv_functions_by_point,
                     orbit_size=orbit_size,
                     prim_neighbor_list=prim_neighbor_list,
                     cpp_fmt=cpp_fmt,
+                ),
+                "occ_delta_latex": occ_delta_site_bfunc_cpp_str(
+                    neighbor_list_index=neighbor_list_index,
+                    point_functions=equiv_functions_by_point,
+                    orbit_size=orbit_size,
+                    prim_neighbor_list=prim_neighbor_list,
+                    cpp_fmt=cpp_fmt,
+                    mode="latex",
                 ),
             }
         )
@@ -595,6 +655,47 @@ def make_site_bfuncs(
     return (site_bfuncs, variables_needed_at)
 
 
+def _print_latex_site_bfuncs(builder):
+    """For debugging purposes, print the site basis functions in LaTeX format."""
+
+    is_periodic = builder._phenomenal is not None
+    site_bfuncs, site_bfuncs_variables_needed_at = make_site_bfuncs(
+        is_periodic=is_periodic,
+        prim_neighbor_list=builder.prim_neighbor_list,
+        clusters=builder.clusters,
+        functions=builder.functions,
+        occ_site_functions=builder.occ_site_functions,
+        cpp_fmt=CppFormatProperties(),
+        linear_function_indices=None,
+    )
+
+    print(
+        "occ_var_name:",
+        builder.occ_site_functions_info.get("occ_var_name").format(b="b", m="m"),
+    )
+    print("occ_var_desc:", builder.occ_site_functions_info.get("occ_var_desc"))
+
+    for site_bfunc_all in site_bfuncs:
+        linear_function_index = site_bfunc_all.get("linear_function_index")
+        print("### Linear function index: ", linear_function_index, "###")
+        print()
+
+        for site_bfunc_at in site_bfunc_all.get("at"):
+            neighbor_list_index = site_bfunc_at.get("neighbor_list_index")
+            latex_formula = site_bfunc_at.get("latex")
+
+            print(
+                "Linear function index: ",
+                linear_function_index,
+                "at: ",
+                neighbor_list_index,
+            )
+            print("formula: ", latex_formula)
+            occ_delta_latex_formula = site_bfunc_at.get("occ_delta_latex")
+            print("occ_delta_formula: ", occ_delta_latex_formula)
+            print()
+
+
 class ClexulatorWriter:
     """Write Clexulator source files and related files"""
 
@@ -686,6 +787,10 @@ class ClexulatorWriter:
         self.local_src_path = None
         """Optional[list[pathlib.Path]]: The paths to the local Clexulator source \
         files, once written."""
+
+        self.generated_files = None
+        """Optional[list[pathlib.Path]]: The paths to the generated files, once \
+        written."""
 
         if not re.match(
             R"^[a-zA-Z_]+\w*",
@@ -784,6 +889,9 @@ class ClexulatorWriter:
             cpp_fmt=self.cpp_fmt,
         )
 
+        # store a list of generated files
+        generated_files = []
+
         ## write periodic clexulator / prototype local clexulator
         writer = self.writer_type(
             i_clex=None,
@@ -791,24 +899,36 @@ class ClexulatorWriter:
             functions=builder.functions,
             **writer_params,
         )
-        self.src_path = self.bset_dir / f"{writer.clexulator_name}.cc"
-        with open(self.src_path, "w") as f:
+
+        # Clexulator source file
+        path = self.bset_dir / f"{writer.clexulator_name}.cc"
+        self.src_path = path
+        generated_files.append(path)
+        with open(path, "w") as f:
             f.write(template.render(writer.variables()))
 
-        basis_path = self.bset_dir / "basis.json"
-
-        with open(basis_path, "w") as f:
+        # basis.json file
+        path = self.bset_dir / "basis.json"
+        generated_files.append(path)
+        with open(path, "w") as f:
             data = builder.basis_dict(
                 clex_basis_specs=clex_basis_specs,
                 coordinate_mode="frac",
             )
             f.write(xtal.pretty_json(data))
 
+        # write all template variables
+        path = self.bset_dir / "variables.json"
+        generated_files.append(path)
+        with open(path, "w") as f:
+            f.write(xtal.pretty_json(writer.variables()))
+
         ## if local clexulators
         if phenomenal is not None:
             # write equivalents_info.json
-            equivalents_info_path = self.bset_dir / "equivalents_info.json"
-            with open(equivalents_info_path, "w") as f:
+            path = self.bset_dir / "equivalents_info.json"
+            generated_files.append(path)
+            with open(path, "w") as f:
                 f.write(xtal.pretty_json(builder.equivalents_info_dict()))
 
             # write each local clexulator
@@ -820,11 +940,35 @@ class ClexulatorWriter:
                     functions=builder.equivalent_functions[i_clex],
                     **writer_params,
                 )
-                self.local_src_path.append(
-                    self.bset_dir / f"{i_clex}" / f"{writer.clexulator_name}.cc"
-                )
-                self.local_src_path[-1].parent.mkdir(parents=True, exist_ok=True)
+
+                local_dir = self.bset_dir / f"{i_clex}"
+                local_dir.mkdir(parents=True, exist_ok=True)
+
+                # write local Clexulator
+                path = local_dir / f"{writer.clexulator_name}.cc"
+                self.local_src_path.append(path)
+                generated_files.append(path)
                 with open(self.local_src_path[-1], "w") as f:
                     f.write(template.render(writer.variables()))
 
+                # write all template variables
+                path = local_dir / "variables.json"
+                generated_files.append(path)
+                with open(path, "w") as f:
+                    f.write(xtal.pretty_json(writer.variables()))
+
+        # write generated_files.json (includes itself)
+        path = self.bset_dir / "generated_files.json"
+        generated_files.append(path)
+        self.generated_files = generated_files
+        data = {
+            "src_path": str(self.src_path.relative_to(self.bset_dir)),
+            "all": [str(p.relative_to(self.bset_dir)) for p in self.generated_files],
+        }
+        if self.local_src_path is not None:
+            data["local_src_path"] = [
+                str(p.relative_to(self.bset_dir)) for p in self.local_src_path
+            ]
+        with open(path, "w") as f:
+            f.write(xtal.pretty_json(data))
         return None

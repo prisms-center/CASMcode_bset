@@ -57,6 +57,10 @@ def test_disp_fcc_1(session_shared_datadir):
     assert len(functions[3]) == 8
     assert len(functions[3][0]) == 37
 
+    # from utils.helpers import print_expected_cluster_functions_detailed
+    # import os
+    # import pathlib
+    #
     # print_expected_cluster_functions_detailed(
     #     functions,
     #     file=pathlib.Path(os.path.realpath(__file__)).parent
