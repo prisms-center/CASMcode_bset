@@ -697,7 +697,21 @@ def _print_latex_site_bfuncs(builder):
 
 
 class ClexulatorWriter:
-    """Write Clexulator source files and related files"""
+    """Write Clexulator source files and related files
+
+    The design is:
+
+    - :func:`~casm.bset.write_clexulator` is the intended user interface for
+      writing Clexulator source files
+    - :class:`~casm.bset.clexwriter.ClexulatorWriter` implements the things that
+      all Clexulator writer versions need to do (write the C++ source files,
+      basis.json, equivalents_info.json, etc.)
+    - :class:`~casm.bset.clexwriter._methods.WriterV1Basic` or other classes
+      (WriterV1Diff, etc.) implements the specifics for a particular Clexulator
+      `version`, by specifying the template files and generating the variables used
+      by the templates.
+
+    """
 
     def __init__(
         self,

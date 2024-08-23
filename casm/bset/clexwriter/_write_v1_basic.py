@@ -21,7 +21,8 @@ from ._methods import (
 
 
 class WriterV1Basic:
-    """Writes standard CASM v1 compatible Clexulator (no automatic differentiation)"""
+    """Generates the variables needed for the `v1.basic` Clexulator, the
+    standard CASM v1 compatible Clexulator (no automatic differentiation)"""
 
     @staticmethod
     def template_name():
