@@ -907,7 +907,7 @@ class ClexulatorWriter:
 
         path = self.bset_dir / "cluster_functions.json.gz"
         generated_files.append(path)
-        dump(builder.to_dict(), path, force=True, gz=True)
+        dump(builder.to_dict(), path, quiet=True, force=True, gz=True)
 
         if verbose:
             print("Building cluster functions DONE")
@@ -971,19 +971,19 @@ class ClexulatorWriter:
         data = builder.basis_dict(
             clex_basis_specs=clex_basis_specs, coordinate_mode="frac"
         )
-        dump(data, path, force=True)
+        dump(data, path, quiet=True, force=True)
 
         # write all template variables
         path = self.bset_dir / "variables.json.gz"
         generated_files.append(path)
-        dump(writer.variables(), path, force=True, gz=True)
+        dump(writer.variables(), path, quiet=True, force=True, gz=True)
 
         ## if local clexulators
         if phenomenal is not None:
             # write equivalents_info.json
             path = self.bset_dir / "equivalents_info.json"
             generated_files.append(path)
-            dump(builder.equivalents_info_dict(), path, force=True)
+            dump(builder.equivalents_info_dict(), path, quiet=True, force=True)
 
             # write each local clexulator
             self.local_src_path = []
@@ -1020,7 +1020,7 @@ class ClexulatorWriter:
                 # write all template variables
                 path = local_dir / "variables.json"
                 generated_files.append(path)
-                dump(writer.variables(), path, force=True)
+                dump(writer.variables(), path, quiet=True, force=True)
 
         # write generated_files.json (includes itself)
         path = self.bset_dir / "generated_files.json"
@@ -1034,5 +1034,5 @@ class ClexulatorWriter:
             data["local_src_path"] = [
                 str(p.relative_to(self.bset_dir)) for p in self.local_src_path
             ]
-        dump(data, path, force=True)
+        dump(data, path, quiet=True, force=True)
         return None

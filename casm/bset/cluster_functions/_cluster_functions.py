@@ -676,6 +676,32 @@ class ClusterFunctionsBuilder:
 
         only_discrete = len(global_dof) + len(local_continuous_dof) == 0
 
+        # Validation
+        if len(local_discrete_dof) == 0:
+            if occ_site_basis_functions_specs is not None:
+                print(
+                    "\n"
+                    "****************************************************************\n"
+                    "** Warning in ClusterFunctionsBuilder:                        **\n"
+                    "** No local discrete DoF, but:                                **\n"
+                    "** - occ_site_basis_functions_specs is not None               **\n"
+                    "** Will use occ_site_basis_functions_specs=None               **\n"
+                    "****************************************************************\n"
+                )
+                occ_site_basis_functions_specs = None
+        if len(global_dof + local_continuous_dof) > 0:
+            if global_max_poly_order is None and len(orbit_branch_max_poly_order) == 0:
+                print(
+                    "\n"
+                    "****************************************************************\n"
+                    "** Warning in ClusterFunctionsBuilder:                        **\n"
+                    "** Continuous DoF included, but:                              **\n"
+                    "** - global_max_poly_order is None, and                       **\n"
+                    "** - len(orbit_branch_max_poly_order) == 0                    **\n"
+                    "** Did you forget to set global_max_poly_order??              **\n"
+                    "****************************************************************\n"
+                )
+
         # Data
         self._prim = prim
         """libcasm.configuration.Prim: The Prim, with symmetry information"""
@@ -931,12 +957,12 @@ class ClusterFunctionsBuilder:
         `i_func`-th function on the cluster given by `clusters[i_orbit][i_equiv]`.
         """
 
-        n_functions = 0
+        n_functions = 1
         for orbit_basis_set in orbit_basis_sets:
             n_functions += len(orbit_basis_set[0])
         self.n_functions = n_functions
         """int: The total number of symmetrically distinct cluster functions generated
-        for all clusters in all orbits."""
+        for all clusters in all orbits plus one (for the constant term)."""
 
         self.clusters = orbit_clusters
         """list[list[libcasm.clusterography.Cluster]]: The clusters for which 
