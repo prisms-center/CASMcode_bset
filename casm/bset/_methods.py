@@ -280,6 +280,8 @@ def write_clexulator(
     version: str = "v1.basic",
     linear_function_indices: Optional[set[int]] = None,
     cpp_fmt: Optional[CppFormatProperties] = None,
+    verbose: bool = True,
+    very_verbose: bool = False,
 ) -> tuple[pathlib.Path, Optional[list[pathlib.Path]], PrimNeighborList]:
     """Write a CASM Clexulator
 
@@ -339,6 +341,12 @@ def write_clexulator(
     cpp_fmt: Optional[CppFormatProperties] = None
         C++ string formatting properties. If None, default constructor values are used.
 
+    verbose: bool = True
+        Print progress statements
+
+    very_verbose: bool = False
+        Print detailed progress statements from the cluster functions builder.
+
     Returns
     -------
     src_path: pathlib.Path
@@ -368,6 +376,8 @@ def write_clexulator(
         prim=prim,
         clex_basis_specs=clex_basis_specs,
         prim_neighbor_list=prim_neighbor_list,
+        verbose=verbose,
+        very_verbose=very_verbose,
     )
 
     return (writer.src_path, writer.local_src_path, prim_neighbor_list)

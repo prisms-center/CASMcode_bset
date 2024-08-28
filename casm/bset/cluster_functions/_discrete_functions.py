@@ -806,6 +806,8 @@ def make_occ_site_functions_info(
           index (i..e ``occ_var_name.format(b=0, m=1)``).
         - `"occ_var_desc": occ_var_desc, A description of the occupation
           variable, including a description of the subscript indices.
+        - `"occ_var_indices"`: list[list[str, str]], A list of lists, where each sublist
+          contains the variable name and description for each subscript index.
     """
     max_function_index = 0
     all_sublattices_have_same_site_functions = True
@@ -832,13 +834,20 @@ def make_occ_site_functions_info(
         if all_sublattices_have_same_site_functions is True:
             occ_var_name = "\\phi"
             occ_var_desc = "Occupation site function"
+            occ_var_indices = []
         else:
             occ_var_name = "\\phi_{{{b}}}"
             occ_var_desc = "$\\phi_{b}$, where $b$ is the sublattice index"
+            occ_var_indices = [
+                ["b", "sublattice index"],
+            ]
     else:
         if all_sublattices_have_same_site_functions is True:
             occ_var_name = "\\phi_{{{m}}}"
             occ_var_desc = "$\\phi_{m}$, where $m$ is the site function index"
+            occ_var_indices = [
+                ["m", "site function index"],
+            ]
         else:
             occ_var_name = "\\phi_{{{b},{m}}}"
             occ_var_desc = (
@@ -846,10 +855,15 @@ def make_occ_site_functions_info(
                 "$b$ is the sublattice index and "
                 "$m$ is the site function index"
             )
+            occ_var_indices = [
+                ["b", "sublattice index"],
+                ["m", "site function index"],
+            ]
 
     return {
         "max_function_index": max_function_index,
         "all_sublattices_have_same_site_functions": all_sublattices_have_same_site_functions,  # noqa: E501
         "occ_var_name": occ_var_name,
         "occ_var_desc": occ_var_desc,
+        "occ_var_indices": occ_var_indices,
     }

@@ -149,6 +149,8 @@ def test_v1_basic_occ_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    assert (tmp_path / "variables.json.gz").exists()
+    assert (tmp_path / "cluster_functions.json.gz").exists()
     with open(tmp_path / "basis.json", "r") as f:
         basis_data = json.load(f)
     assert "prim" in basis_data
@@ -429,6 +431,8 @@ def test_v1_basic_Hstrain_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    assert (tmp_path / "variables.json.gz").exists()
+    assert (tmp_path / "cluster_functions.json.gz").exists()
     with open(tmp_path / "basis.json", "r") as f:
         basis_data = json.load(f)
     assert "prim" in basis_data
@@ -532,6 +536,8 @@ def test_v1_basic_Hstrain_fcc_2(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    assert (tmp_path / "variables.json.gz").exists()
+    assert (tmp_path / "cluster_functions.json.gz").exists()
     with open(tmp_path / "basis.json", "r") as f:
         basis_data = json.load(f)
     assert "prim" in basis_data
@@ -634,6 +640,8 @@ def test_v1_basic_Hstrain_occ_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    assert (tmp_path / "variables.json.gz").exists()
+    assert (tmp_path / "cluster_functions.json.gz").exists()
     with open(tmp_path / "basis.json", "r") as f:
         basis_data = json.load(f)
     assert "prim" in basis_data
@@ -725,6 +733,8 @@ def test_v1_basic_disp_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    assert (tmp_path / "variables.json.gz").exists()
+    assert (tmp_path / "cluster_functions.json.gz").exists()
     with open(tmp_path / "basis.json", "r") as f:
         basis_data = json.load(f)
     assert "prim" in basis_data
@@ -824,6 +834,8 @@ def test_v1_basic_occ_disp_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    assert (tmp_path / "variables.json.gz").exists()
+    assert (tmp_path / "cluster_functions.json.gz").exists()
     with open(tmp_path / "basis.json", "r") as f:
         basis_data = json.load(f)
     assert "prim" in basis_data
@@ -924,6 +936,8 @@ def test_v1_basic_Hstrain_disp_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    assert (tmp_path / "variables.json.gz").exists()
+    assert (tmp_path / "cluster_functions.json.gz").exists()
     with open(tmp_path / "basis.json", "r") as f:
         basis_data = json.load(f)
     assert "prim" in basis_data
@@ -1027,6 +1041,8 @@ def test_v1_basic_Hstrain_occ_disp_fcc_1(session_shared_datadir, tmp_path):
 
     assert src_path.exists()
     assert (tmp_path / "basis.json").exists()
+    assert (tmp_path / "variables.json.gz").exists()
+    assert (tmp_path / "cluster_functions.json.gz").exists()
     with open(tmp_path / "basis.json", "r") as f:
         basis_data = json.load(f)
     assert "prim" in basis_data
@@ -1155,6 +1171,8 @@ def test_v1_basic_occ_fcc_local_1(session_shared_datadir, tmp_path):
 
     ### Check basis.json ###
     assert (tmp_path / "basis.json").exists()
+    assert (tmp_path / "variables.json.gz").exists()
+    assert (tmp_path / "cluster_functions.json.gz").exists()
     with open(tmp_path / "basis.json", "r") as f:
         basis_data = json.load(f)
     assert "prim" in basis_data

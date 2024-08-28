@@ -1,4 +1,6 @@
 import copy
+import sys
+import time
 from typing import Optional
 
 import libcasm.clusterography as casmclust
@@ -47,8 +49,10 @@ class WriterV1Basic:
         clusters: list[list[casmclust.Cluster]],
         functions: list[list[list[PolynomialFunction]]],
         occ_site_functions: list[dict],
+        occ_site_functions_info: dict,
         linear_function_indices: Optional[set[int]] = None,
         cpp_fmt: Optional[CppFormatProperties] = None,
+        verbose: bool = False,
     ):
         """
 
@@ -95,6 +99,24 @@ class WriterV1Basic:
             - `"value"`: list[list[float]], list of the site basis function values,
               as ``value[function_index][occupant_index]``.
 
+        occ_site_functions_info: dict
+            Information about occupation site basis functions.
+
+            Occupation site basis functions info, with format:
+
+            - `"max_function_index"`: int, The maximum site function index, across all
+              sublattices.
+            - `"all_sublattices_have_same_site_functions"`: bool, True if all
+              sublattices have same site functions; False otherwise.
+            - `"occ_var_name"`: str, A variable name template for the site functions,
+              which may be formated using `b` for sublattice index and `m` for site
+              function index (i..e ``occ_var_name.format(b=0, m=1)``).
+            - `"occ_var_desc": str, A description of the occupation
+              variable, including a description of the subscript indices.
+            - `"occ_var_indices"`: list[list[str, str]], A list of lists, where each
+              sublist contains the variable name and description for each subscript
+              index.
+
         linear_function_indices : Optional[set[int]]
             The linear indices of the functions that will be included. If None,
             all functions will be included in the Clexulator. Otherwise,
@@ -110,6 +132,9 @@ class WriterV1Basic:
                     coeff_fmt_spec=".10f",
                     coeff_atol=1e-10,
                 )
+
+        verbose: bool = False
+            Print progress statements
 
         """
 
@@ -175,6 +200,23 @@ class WriterV1Basic:
                     "a constant function."
                 )
 
+        self.occ_site_functions_info = occ_site_functions_info
+        """dict: Information about occupation site basis functions.
+        
+        Occupation site basis functions info, with format:
+        
+        - `"max_function_index"`: int, The maximum site function index, across all
+            sublattices.
+        - `"all_sublattices_have_same_site_functions"`: bool, True if all _sublattices
+            have same site functions; False otherwise.
+        - `"occ_var_name"`: str, A variable name template for the site functions,
+            which may be formated using `b` for sublattice index and `m` for site 
+            function index (i..e ``occ_var_name.format(b=0, m=1)``).
+        - `"occ_var_desc": str, A description of the occupation
+            variable, including a description of the subscript indices.
+            
+        """
+
         ## set linear_function_indices
         self.linear_function_indices = linear_function_indices
         """Optional[set[int]]: The linear indices of the functions that will be 
@@ -204,6 +246,11 @@ class WriterV1Basic:
             self.n_corr += len(prototype_functions)
 
         ## set neighborhood info
+        if verbose:
+            start = time.time()
+            print("Generating neighborhoods...")
+            sys.stdout.flush()
+
         _complete_neighborhood, _function_neighborhoods = make_neighborhoods(
             is_periodic=is_periodic,
             prim_neighbor_list=prim_neighbor_list,
@@ -211,6 +258,13 @@ class WriterV1Basic:
             functions=functions,
             linear_function_indices=linear_function_indices,
         )
+
+        if verbose:
+            print("Generating neighborhoods DONE")
+            elapsed_time = time.time() - start
+            print(f"time: {elapsed_time:0.4f} (s)")
+            print()
+            sys.stdout.flush()
 
         self.complete_neighborhood = _complete_neighborhood
         """dict: The neighborhood needed to evaluate basis functions 
@@ -281,6 +335,11 @@ class WriterV1Basic:
         continuous DoF are None.
         """
 
+        if verbose:
+            start = time.time()
+            print("Generating orbit function formulas...")
+            sys.stdout.flush()
+
         self.orbit_bfuncs, self.orbit_bfuncs_variables_needed = make_orbit_bfuncs(
             prim_neighbor_list=self.prim_neighbor_list,
             clusters=clusters,
@@ -289,6 +348,13 @@ class WriterV1Basic:
             cpp_fmt=self.cpp_fmt,
             linear_function_indices=self.linear_function_indices,
         )
+
+        if verbose:
+            print("Generating orbit function formulas DONE")
+            elapsed_time = time.time() - start
+            print(f"time: {elapsed_time:0.4f} (s)")
+            print()
+            sys.stdout.flush()
 
         ## set site_bfuncs and site_bfuncs_variables_needed_at
 
@@ -326,6 +392,11 @@ class WriterV1Basic:
         continuous DoF are None.
         """
 
+        if verbose:
+            start = time.time()
+            print("Generating site function formulas...")
+            sys.stdout.flush()
+
         self.site_bfuncs, self.site_bfuncs_variables_needed_at = make_site_bfuncs(
             is_periodic=is_periodic,
             prim_neighbor_list=self.prim_neighbor_list,
@@ -335,6 +406,13 @@ class WriterV1Basic:
             cpp_fmt=self.cpp_fmt,
             linear_function_indices=self.linear_function_indices,
         )
+
+        if verbose:
+            print("Generating site function formulas DONE")
+            elapsed_time = time.time() - start
+            print(f"time: {elapsed_time:0.4f} (s)")
+            print()
+            sys.stdout.flush()
 
         ## set n_point_corr_sites
         n_point_corr_sites = 0
@@ -500,6 +578,7 @@ class WriterV1Basic:
             "site_bfuncs": self.site_bfuncs,
             "site_bfuncs_variables_needed_at": self.site_bfuncs_variables_needed_at,
             "occ_site_functions": self.occ_site_functions,
+            "occ_site_functions_info": self.occ_site_functions_info,
             "continuous_dof": self.continuous_dof,
             "params": self.params,
             "nlist_weight_matrix": self.prim_neighbor_list.weight_matrix().tolist(),

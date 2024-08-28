@@ -13,11 +13,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added `ClexulatorWriter.generated_files` attribute, holding a list of the files generated when writing a Clexulator
 - Added generation of latex formulas during the Clexulator writing process
 - Added `casm.bset.cluster_functions.MakeVariableName` for variable naming
+- Added `verbose` and `very_verbose` options to `casm.bset.write_clexulator`
+- Added `to_dict` methods to `ClusterFunctionsBuilder`, `OrbitMatrixRepBuilder` and `ClusterMatrixRepBuilder`
+- Added `to_dict` and `from_dict` methods to `ExponentSumConstraint`
+- Added `casm.bset.json_io` module
 
 ### Changed
 
-- Updated `ClexulatorWriter.write` to write a "variables.json" file for each Clexulator (including local Clexulator) which contains the variables used by the jinja2 templates as well as information like basis function formulas generated during the write process
-- Changed the name used for occupation variables. The name "\\phi" is the base, but the number and meaning of the indices can vary depending on the site basis functions. An "occ_site_functions_info" dict in the "variables.json" file contains the string value used as a template ("occ_var_name") and a description of the variable including its indices, if any ("occ_var_desc").
+- Updated `ClexulatorWriter.write` to write a "variables.json.gz" file for each Clexulator (including local Clexulator) which contains the variables used by the jinja2 templates as well as information like basis function formulas generated during the write process
+- Updated `ClexulatorWriter.write` to write a "cluster_functions.json.gz" file with the generated clusters, matrix reps, and functions.
+- Changed the name used for occupation variables. The name "\\phi" is the base, but the number and meaning of the indices can vary depending on the site basis functions. An "occ_site_functions_info" dict in the "variables.json" file contains the string value used as a template ("occ_var_name") and a description of the variable including its indices, if any ("occ_var_desc" and "occ_var_indices").
 
 
 ## [2.0a1] - 2024-08-15

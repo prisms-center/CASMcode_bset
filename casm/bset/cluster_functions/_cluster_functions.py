@@ -693,6 +693,12 @@ class ClusterFunctionsBuilder:
         self.local_discrete_dof = local_discrete_dof
         """list[str]: List of local discrete DoF included in functions."""
 
+        local_dof = local_continuous_dof + local_discrete_dof
+        self.local_dof = local_dof
+        """list[str]: The types of local continuous and discrete degrees of freedom \
+        (DoF) included in the matrix representation.
+        """
+
         self.only_discrete = only_discrete
         """bool: True if only discrete DoF are included in functions."""
 
@@ -831,8 +837,9 @@ class ClusterFunctionsBuilder:
         
         Allows specifying a custom class to construct variable names. The default
         class used is :class:`MakeVariableName`. Custom classes should have
-        the same `__call__` signature as :class:`MakeVariableName`, and have
-        `occ_var_name` and `occ_var_desc` attributes.
+        the same `__call__` signature as :class:`MakeVariableName`, have
+        `occ_var_name`, `occ_var_desc`, `occ_var_indices` attributes, and a `to_dict`
+        method.
         """
 
         self._verbose = verbose
@@ -924,6 +931,13 @@ class ClusterFunctionsBuilder:
         `i_func`-th function on the cluster given by `clusters[i_orbit][i_equiv]`.
         """
 
+        n_functions = 0
+        for orbit_basis_set in orbit_basis_sets:
+            n_functions += len(orbit_basis_set[0])
+        self.n_functions = n_functions
+        """int: The total number of symmetrically distinct cluster functions generated
+        for all clusters in all orbits."""
+
         self.clusters = orbit_clusters
         """list[list[libcasm.clusterography.Cluster]]: The clusters for which 
         cluster functions have been constructed
@@ -964,6 +978,117 @@ class ClusterFunctionsBuilder:
         used in the :class:`~casm.bset.polynomial_functions.PolynomialFunction` stored 
         in :py:data:`~ClusterFunctionsBuilder.equivalent_functions`.
         """
+
+    def to_dict(self):
+        data = {}
+
+        def _clusters_data(clusters):
+            clusters_data = []
+            for orbit_clusters in clusters:
+                orbit_clusters_data = []
+                for cluster in orbit_clusters:
+                    orbit_clusters_data.append({"sites": cluster.to_list()})
+                clusters_data.append(orbit_clusters_data)
+            return clusters_data
+
+        def _functions_data(functions):
+            functions_data = []
+            for orbit_functions in functions:
+                orbit_functions_data = []
+                for equiv_functions in orbit_functions:
+                    equiv_functions_data = []
+                    for function in equiv_functions:
+                        equiv_functions_data.append(function.to_dict())
+                    orbit_functions_data.append(equiv_functions_data)
+                functions_data.append(orbit_functions_data)
+            return functions_data
+
+        # Add prim
+        data["prim"] = self._prim.to_dict()
+
+        # Add phenomenal
+        data["phenomenal"] = (
+            {"sites": self._phenomenal.to_list()}
+            if self._phenomenal is not None
+            else None
+        )
+
+        # Add generating_group (as indices)
+        data["generating_group"] = self._generating_group.head_group_index
+
+        # Add misc parameters...
+        data.update(
+            {
+                "global_max_poly_order": self._global_max_poly_order,
+                "orbit_branch_max_poly_order": self._orbit_branch_max_poly_order,
+                "occ_site_basis_functions_specs": self._occ_site_basis_functions_specs,
+                "make_equivalents": self._make_equivalents,
+                "make_all_local_basis_sets": self._make_all_local_basis_sets,
+                "make_variable_name_f": self._make_variable_name_f.to_dict(),
+            }
+        )
+
+        # Add dof info...
+        data.update(
+            {
+                "global_dof": self.global_dof,
+                "local_continuous_dof": self.local_continuous_dof,
+                "local_discrete_dof": self.local_discrete_dof,
+                "local_dof": self.local_dof,
+                "only_discrete": self.only_discrete,
+            }
+        )
+
+        # Add site functions
+        data.update(
+            {
+                "occ_site_functions": self.occ_site_functions,
+                "occ_site_functions_info": self.occ_site_functions_info,
+            }
+        )
+
+        # Add orbit_matrix_rep_builders
+        data["orbit_matrix_rep_builders"] = [
+            orbit_matrix_rep_builder.to_dict()
+            for orbit_matrix_rep_builder in self.orbit_matrix_rep_builders
+        ]
+
+        # Add self.clusters
+        data["clusters"] = _clusters_data(self.clusters)
+
+        # Add constraints
+        data["constraints"] = [
+            [constraint.to_dict() for constraint in orbit_constraints]
+            for orbit_constraints in self.constraints
+        ]
+
+        # Add self.functions
+        data["functions"] = _functions_data(self.functions)
+
+        # Add self.n_functions
+        data["n_functions"] = self.n_functions
+
+        # Add self.equivalent_clusters
+        data["equivalent_clusters"] = (
+            [
+                _clusters_data(equiv_clusters)
+                for equiv_clusters in self.equivalent_clusters
+            ]
+            if self.equivalent_clusters is not None
+            else None
+        )
+
+        # Add self.equivalent_functions
+        data["equivalent_functions"] = (
+            [
+                _functions_data(equiv_functions)
+                for equiv_functions in self.equivalent_functions
+            ]
+            if self.equivalent_functions is not None
+            else None
+        )
+
+        return data
 
     def _min_poly_order(self, orbit_prototype):
         if self.only_discrete:

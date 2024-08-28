@@ -1095,7 +1095,11 @@ def gram_schmidt(
 class ExponentSumConstraint:
     """Data structure that specifies an exponent sum for filtering monomials"""
 
-    def __init__(self, variables, sum):
+    def __init__(
+        self,
+        variables: list[int],
+        sum: list[int],
+    ):
         """
 
         .. rubric:: Constructor
@@ -1123,6 +1127,18 @@ class ExponentSumConstraint:
         for i_var in self.variables:
             curr_sum += monomial_exponents[i_var]
         return curr_sum in self.sum
+
+    def to_dict(self):
+        """Represent as a Python dict"""
+        return {"variables": self.variables, "sum": self.sum}
+
+    @staticmethod
+    def from_dict(data):
+        """Construct from a Python dict"""
+        return ExponentSumConstraint(
+            variables=data["variables"],
+            sum=data["sum"],
+        )
 
 
 def all_constraints_satisfied(constraints, monomial_exponents):

@@ -309,6 +309,21 @@ class MakeVariableName:
             # global continuous
             return f"{symbol}"
 
+    def to_dict(self):
+        """Represent the MakeVariableName object as a Python dict"""
+        return {
+            "occ_var_name": self.occ_var_name,
+            "occ_var_desc": self.occ_var_desc,
+        }
+
+    @staticmethod
+    def from_dict(data: dict):
+        """Construct a MakeVariableName object from a Python dict"""
+        return MakeVariableName(
+            occ_var_name=data.get("occ_var_name"),
+            occ_var_desc=data.get("occ_var_desc"),
+        )
+
 
 def make_variable_name(
     xtal_prim: xtal.Prim,
@@ -1161,7 +1176,7 @@ class ClusterMatrixRepBuilder:
 
         ## Generated data ##
         self.dof_matrix_rep = local_dof_matrix_rep
-        """list[np.ndarray]: The matrix representations for transforming site \
+        """list[list[np.ndarray]]: The matrix representations for transforming site \
         variables by prim factor group operations.
         
         The array ``M = dof_matrix_rep[i_factor_group][i_sublat_init]`` specifies that 
@@ -1224,6 +1239,26 @@ class ClusterMatrixRepBuilder:
         self.total_dim = total_dim
         """int: The total dimension of the resulting cluster DoF vector and cluster \
         matrix reps."""
+
+    def to_dict(self):
+        """Represent the ClusterMatrixRepBuilder as a Python dict"""
+
+        # This is primarily intended for use by
+        # OrbitMatrixRepBuilder.to_dict(), so some duplicate information is
+        # not included.
+        return {
+            "key": self.key,
+            "dof_matrix_rep": [
+                [m.tolist() for m in rep] for rep in self.dof_matrix_rep
+            ],
+            "cluster_group": self.cluster_group.head_group_index,
+            "cluster_perm_rep": self.cluster_perm_rep,
+            "cluster_matrix_rep": [m.tolist() for m in self.cluster_matrix_rep],
+            "variables": [v.to_dict() for v in self.variables],
+            "variable_subsets": self.variable_subsets,
+            "site_index_to_basis_index": self.site_index_to_basis_index,
+            "total_dim": self.total_dim,
+        }
 
 
 class OrbitMatrixRepBuilder:
@@ -1706,6 +1741,104 @@ class OrbitMatrixRepBuilder:
         index into `orbit` of the initial cluster."""
 
         self._make_phenomenal_generating_matrix_rep()
+
+    def to_dict(self):
+        """Store the OrbitMatrixRepBuilder in a dictionary."""
+
+        # This is primarily intended for use by ClusterFunctionsBuilder.to_dict(),
+        # so we won't include every attribute in the dictionary to avoid duplicates,
+        # but we will include some duplicate information for clarity or convenience.
+        data = {}
+
+        data["cluster"] = {"sites": self.cluster.to_list()}
+        data["phenomenal"] = (
+            {"sites": self.phenomenal.to_list()}
+            if self.phenomenal is not None
+            else None
+        )
+        data["cluster_group"] = self.cluster_group.head_group_index
+
+        # Add DoF info...
+        data.update(
+            {
+                "global_dof": self.global_dof,
+                "local_continuous_dof": self.local_continuous_dof,
+                "local_discrete_dof": self.local_discrete_dof,
+                "local_dof": self.local_dof,
+                "n_global_variables": self.n_global_variables,
+                "n_local_variables": self.n_local_variables,
+            }
+        )
+
+        # Global variables and matrix reps
+        data["global_variables"] = [
+            [v.to_dict() for v in dof_vars] for dof_vars in self.global_variables
+        ]
+        data["global_variable_subsets"] = self.global_variable_subsets
+        data["global_matrix_rep"] = [
+            [m.tolist() for m in dof_rep] for dof_rep in self.global_matrix_rep
+        ]
+        data["global_inv_matrix_rep"] = [
+            [m.tolist() for m in dof_rep] for dof_rep in self.global_inv_matrix_rep
+        ]
+
+        # Local variables and matrix reps
+        data["local_prototype"] = [
+            cluster_matrix_rep_builder.to_dict()
+            for cluster_matrix_rep_builder in self.local_prototype
+        ]
+
+        # Matrix reps for local DoFs on clusters
+        data["local_equivalence_map_matrix_rep"] = [
+            [[m.tolist() for m in rep] for rep in dof_rep]
+            for dof_rep in self.local_equivalence_map_matrix_rep
+        ]
+        data["local_equivalence_map_inv_matrix_rep"] = [
+            [[m.tolist() for m in rep] for rep in dof_rep]
+            for dof_rep in self.local_equivalence_map_inv_matrix_rep
+        ]
+        data["local_phenomenal_generating_matrix_rep"] = [
+            [[m.tolist() for m in rep] for rep in dof_rep]
+            for dof_rep in self.local_phenomenal_generating_matrix_rep
+        ]
+        data["local_phenomenal_generating_inv_matrix_rep"] = [
+            [[m.tolist() for m in rep] for rep in dof_rep]
+            for dof_rep in self.local_phenomenal_generating_inv_matrix_rep
+        ]
+
+        # Coupled matrix reps
+
+        # Generate functions on the prototype cluster
+        data["prototype_variables"] = [v.to_dict() for v in self.prototype_variables]
+        data["prototype_variable_subsets"] = self.prototype_variable_subsets
+        data["prototype_matrix_rep"] = [m.tolist() for m in self.prototype_matrix_rep]
+
+        # Generate functions on equivalent clusters
+        data["equivalence_map_indices"] = self.equivalence_map_indices
+        data["equivalence_map_matrix_rep"] = [
+            [m.tolist() for m in rep] for rep in self.equivalence_map_matrix_rep
+        ]
+        data["equivalence_map_inv_matrix_rep"] = [
+            [m.tolist() for m in rep] for rep in self.equivalence_map_inv_matrix_rep
+        ]
+
+        # Generate functions for equivalent phenomenal clusters
+        data["phenomenal_generating_indices"] = self.phenomenal_generating_indices
+        data["phenomenal_generating_matrix_rep"] = (
+            [[m.tolist() for m in rep] for rep in self.phenomenal_generating_matrix_rep]
+            if self.phenomenal_generating_matrix_rep is not None
+            else None
+        )
+        data["phenomenal_generating_inv_matrix_rep"] = (
+            [
+                [m.tolist() for m in rep]
+                for rep in self.phenomenal_generating_inv_matrix_rep
+            ]
+            if self.phenomenal_generating_inv_matrix_rep is not None
+            else None
+        )
+
+        return data
 
     def _make_orbit_and_equivalence_map(self):
         # Data used

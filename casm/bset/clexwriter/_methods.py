@@ -1,5 +1,7 @@
 import pathlib
 import re
+import sys
+import time
 from typing import Optional
 
 import jinja2
@@ -21,6 +23,7 @@ from casm.bset.cluster_functions import (
     make_local_point_functions,
     make_point_functions,
 )
+from casm.bset.json_io import dump
 from casm.bset.polynomial_functions import (
     PolynomialFunction,
 )
@@ -836,6 +839,8 @@ class ClexulatorWriter:
         prim: casmconfig.Prim,
         clex_basis_specs: ClexBasisSpecs,
         prim_neighbor_list: PrimNeighborList,
+        verbose: bool = True,
+        very_verbose: bool = False,
     ):
         """Write Clexulator source files and related files
 
@@ -851,6 +856,12 @@ class ClexulatorWriter:
             The :class:`PrimNeighborList` is used to uniquely index sites with local
             variables included in the cluster functions, relative to a reference unit
             cell. If None, a default neighbor list is constructed.
+
+        verbose: bool = True
+            Print progress statements
+
+        very_verbose: bool = False
+            Print detailed progress statements from the cluster functions builder.
 
         """
         cluster_specs = clex_basis_specs.cluster_specs
@@ -873,6 +884,14 @@ class ClexulatorWriter:
                     "site_basis_functions"
                 ]
 
+        # store a list of generated files
+        generated_files = []
+
+        if verbose:
+            start = time.time()
+            print("Building cluster functions...")
+            sys.stdout.flush()
+
         builder = ClusterFunctionsBuilder(
             prim=prim,
             generating_group=cluster_specs.generating_group(),
@@ -883,7 +902,21 @@ class ClexulatorWriter:
             orbit_branch_max_poly_order=orbit_branch_max_poly_order,
             occ_site_basis_functions_specs=occ_site_basis_functions_specs,
             prim_neighbor_list=prim_neighbor_list,
+            verbose=very_verbose,
         )
+
+        path = self.bset_dir / "cluster_functions.json.gz"
+        generated_files.append(path)
+        dump(builder.to_dict(), path, force=True, gz=True)
+
+        if verbose:
+            print("Building cluster functions DONE")
+            print(f"- n_orbits: {len(builder.clusters)}")
+            print(f"- n_functions: {builder.n_functions}")
+            elapsed_time = time.time() - start
+            print(f"build time: {elapsed_time:0.4f} (s)")
+            print()
+            sys.stdout.flush()
 
         env = jinja2.Environment(
             trim_blocks=True,
@@ -899,20 +932,31 @@ class ClexulatorWriter:
             is_periodic=is_periodic,
             prim_neighbor_list=builder.prim_neighbor_list,
             occ_site_functions=builder.occ_site_functions,
+            occ_site_functions_info=builder.occ_site_functions_info,
             linear_function_indices=self.linear_function_indices,
             cpp_fmt=self.cpp_fmt,
+            verbose=verbose,
         )
 
-        # store a list of generated files
-        generated_files = []
-
         ## write periodic clexulator / prototype local clexulator
+        if verbose:
+            start = time.time()
+            print("Generating variables...")
+            sys.stdout.flush()
+
         writer = self.writer_type(
             i_clex=None,
             clusters=builder.clusters,
             functions=builder.functions,
             **writer_params,
         )
+
+        if verbose:
+            print("Generating variables DONE")
+            elapsed_time = time.time() - start
+            print(f"generation time: {elapsed_time:0.4f} (s)")
+            print()
+            sys.stdout.flush()
 
         # Clexulator source file
         path = self.bset_dir / f"{writer.clexulator_name}.cc"
@@ -924,36 +968,44 @@ class ClexulatorWriter:
         # basis.json file
         path = self.bset_dir / "basis.json"
         generated_files.append(path)
-        with open(path, "w") as f:
-            data = builder.basis_dict(
-                clex_basis_specs=clex_basis_specs,
-                coordinate_mode="frac",
-            )
-            f.write(xtal.pretty_json(data))
+        data = builder.basis_dict(
+            clex_basis_specs=clex_basis_specs, coordinate_mode="frac"
+        )
+        dump(data, path, force=True)
 
         # write all template variables
-        path = self.bset_dir / "variables.json"
+        path = self.bset_dir / "variables.json.gz"
         generated_files.append(path)
-        with open(path, "w") as f:
-            f.write(xtal.pretty_json(writer.variables()))
+        dump(writer.variables(), path, force=True, gz=True)
 
         ## if local clexulators
         if phenomenal is not None:
             # write equivalents_info.json
             path = self.bset_dir / "equivalents_info.json"
             generated_files.append(path)
-            with open(path, "w") as f:
-                f.write(xtal.pretty_json(builder.equivalents_info_dict()))
+            dump(builder.equivalents_info_dict(), path, force=True)
 
             # write each local clexulator
             self.local_src_path = []
             for i_clex in range(len(builder.equivalent_clusters)):
+                if verbose:
+                    start = time.time()
+                    print(f"Generating variables for local clexulator {i_clex}...")
+                    sys.stdout.flush()
+
                 writer = self.writer_type(
                     i_clex=i_clex,
                     clusters=builder.equivalent_clusters[i_clex],
                     functions=builder.equivalent_functions[i_clex],
                     **writer_params,
                 )
+
+                if verbose:
+                    print("Generating variables DONE")
+                    elapsed_time = time.time() - start
+                    print(f"generation time: {elapsed_time:0.4f} (s)")
+                    print()
+                    sys.stdout.flush()
 
                 local_dir = self.bset_dir / f"{i_clex}"
                 local_dir.mkdir(parents=True, exist_ok=True)
@@ -968,8 +1020,7 @@ class ClexulatorWriter:
                 # write all template variables
                 path = local_dir / "variables.json"
                 generated_files.append(path)
-                with open(path, "w") as f:
-                    f.write(xtal.pretty_json(writer.variables()))
+                dump(writer.variables(), path, force=True)
 
         # write generated_files.json (includes itself)
         path = self.bset_dir / "generated_files.json"
@@ -983,6 +1034,5 @@ class ClexulatorWriter:
             data["local_src_path"] = [
                 str(p.relative_to(self.bset_dir)) for p in self.local_src_path
             ]
-        with open(path, "w") as f:
-            f.write(xtal.pretty_json(data))
+        dump(data, path, force=True)
         return None
