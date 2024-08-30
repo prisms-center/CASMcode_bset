@@ -1,4 +1,4 @@
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 import numpy as np
 
@@ -281,6 +281,11 @@ def make_chebychev_site_functions(
 
 
 def _is_occupation_site_functions(site_basis_functions_specs: Any):
+    if isinstance(site_basis_functions_specs, dict):
+        if "type" in site_basis_functions_specs:
+            return site_basis_functions_specs["type"].lower() == "occupation"
+        else:
+            return False
     if not isinstance(site_basis_functions_specs, str):
         return False
     return site_basis_functions_specs.lower() == "occupation"
@@ -289,6 +294,7 @@ def _is_occupation_site_functions(site_basis_functions_specs: Any):
 def make_occupation_site_functions(
     prim: casmconfig.Prim,
     abs_tol: float = 1e-10,
+    reference_occ: list[int] = None,
 ):
     """Make discrete occupation site functions using the "occupation" basis, which \
     expands about the default configuration with each sublattice occupied by the first \
@@ -301,6 +307,11 @@ def make_occupation_site_functions(
 
     abs_tol: float = 1e-10
         A absolute tolerance for comparing values.
+
+    reference_occ: list[str] = None
+        For each sublattice, the names of the occupant that should only give a non-zero
+        value for the constant site function. If not provided, the first occupant
+        listed in the prim is used.
 
     Returns
     -------
@@ -318,6 +329,22 @@ def make_occupation_site_functions(
     site_rep = prim.integral_site_coordinate_symgroup_rep
     indicator_matrix_rep = prim.local_dof_matrix_rep("occ")
 
+    if reference_occ is None:
+        reference_occ = [site_occ_dofs[0] for site_occ_dofs in occ_dofs]
+
+    if len(reference_occ) != len(occ_dofs):
+        raise Exception(
+            "Error in make_occupation_site_functions: "
+            "reference_occ must have the same length as the number of sublattices."
+        )
+    for b in range(len(occ_dofs)):
+        if reference_occ[b] not in occ_dofs[b]:
+            raise Exception(
+                "Error in make_occupation_site_functions: "
+                f"for sublattice {b}, reference_occ[{b}]={reference_occ[b]} "
+                "is not an allowed occupant."
+            )
+
     phi = {}
     for unit_indices in all_indices:
         b_init = unit_indices[0]
@@ -327,7 +354,8 @@ def make_occupation_site_functions(
             continue
 
         occ_probs = np.zeros((n_allowed_occs,))
-        occ_probs[0] = 1.0
+        reference_index = occ_dofs[b_init].index(reference_occ[b_init])
+        occ_probs[reference_index] = 1.0
         phi[b_init] = make_orthonormal_discrete_functions(occ_probs, abs_tol)
 
         site_init = xtal.IntegralSiteCoordinate(sublattice=b_init, unitcell=[0, 0, 0])
@@ -601,7 +629,7 @@ def make_direct_site_functions(
 
 def make_occ_site_functions(
     prim: casmconfig.Prim,
-    occ_site_basis_functions_specs: Union[str, list[dict]],
+    occ_site_basis_functions_specs: Any,
     abs_tol: float = 1e-10,
 ) -> list[dict]:
     """Make discrete occupation site functions from `dof_specs` input
@@ -611,7 +639,7 @@ def make_occ_site_functions(
     prim: libcasm.configation.Prim
         The prim, with symmetry information.
 
-    occ_site_basis_functions_specs: Union[str, list[dict]]
+    occ_site_basis_functions_specs: Any
         Provides instructions for constructing occupation site basis functions. As
         described in detail in the section
         :ref:`DoF Specifications <sec-dof-specifications>`, the options are:
@@ -624,6 +652,30 @@ def make_occ_site_functions(
           correlation values all equal to `0`) about the default configuration where
           each site is occupied by the first allowed occupant in the prim
           :func:`~libcasm.xtal.Prim.occ_dof` list.
+        - `{"type": "occupation", ...}`: An alternative way to specify "occupation"
+          site basis functions that allows specifying a "reference_occ" list of occupant
+          names to use as the reference occupant for each sublattice. If
+          "reference_occ" is not provided, the first occupant listed in the prim is
+          used. The reference occupant must the same on all symmetrically equivalent
+          sites. For example, an FCC A-B-C binary could use any of the following:
+
+          .. code-block:: Python
+
+              A_ref_specs = {
+                  "type": "occupation",
+                  "reference_occ": ["A"],
+              }
+
+              B_ref_specs = {
+                  "type": "occupation",
+                  "reference_occ": ["B"],
+              }
+
+              C_ref_specs = {
+                  "type": "occupation",
+                  "reference_occ": ["C"],
+              }
+
         - `list[dict]`: A list of dictionaries in one of the following formats:
 
           - Composition-centered basis functions, which give an expansion (with
@@ -700,7 +752,14 @@ def make_occ_site_functions(
     if _is_chebychev_site_functions(x):
         return make_chebychev_site_functions(prim=prim, abs_tol=abs_tol)
     elif _is_occupation_site_functions(x):
-        return make_occupation_site_functions(prim=prim, abs_tol=abs_tol)
+        reference_occ = None
+        if isinstance(x, dict):
+            reference_occ = x.get("reference_occ", None)
+        return make_occupation_site_functions(
+            prim=prim,
+            abs_tol=abs_tol,
+            reference_occ=reference_occ,
+        )
     elif _is_composition_site_functions(x):
         return make_composition_site_functions(
             site_basis_functions_specs=x, prim=prim, abs_tol=abs_tol

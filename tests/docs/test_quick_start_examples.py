@@ -16,7 +16,7 @@ def test_quick_start_ex1():
     #     (i.e. null, point, pair, triplet clusters).
     #     For a periodic cluster expansion, the null and point
     #     distances are arbitrary and can be set to 0.0.
-    # occ_site_basis_functions_specs: str | list[dict] | None
+    # occ_site_basis_functions_specs: Any
     #     Function type for occupation DoFs
     clex_basis_specs = make_clex_basis_specs(
         prim=prim,

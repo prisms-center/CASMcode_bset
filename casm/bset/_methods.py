@@ -1,7 +1,7 @@
 """Simple top-level casm.bset methods for the most common use cases"""
 
 import pathlib
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 import numpy as np
 
@@ -44,7 +44,7 @@ def make_clex_basis_specs(
     custom_generators: Optional[list[ClusterOrbitGenerator]] = [],
     phenomenal: Union[Cluster, OccEvent, None] = None,
     cutoff_radius: Optional[list[float]] = [],
-    occ_site_basis_functions_specs: Union[str, list[dict], None] = None,
+    occ_site_basis_functions_specs: Any = None,
     global_max_poly_order: Optional[int] = None,
     orbit_branch_max_poly_order: Optional[dict] = None,
 ) -> ClexBasisSpecs:
@@ -81,10 +81,9 @@ def make_clex_basis_specs(
         site to include in the local environment, by number of sites in the cluster.
         The null cluster value (element 0) is arbitrary.
 
-    occ_site_basis_functions_specs: Union[str, list[dict], None] = None
+    occ_site_basis_functions_specs: Any = None
         Provides instructions for constructing occupation site basis functions.
-        The accepted options are "chebychev", "occupation", or a `list[dict]`
-        a specifying sublattice-specific choice of site basis functions. This
+        The most common options are "chebychev" or "occupation". This
         parameter corresponds to the value of
 
         .. code-block:: Python

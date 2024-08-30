@@ -233,7 +233,7 @@ class MakeVariableName:
 
     - For continuous DoF, use the :class:`DoFSetBasis` axis names
     - For discrete DoF, use a template string. For example, the default is
-      ``"\\phi_{{{b},{m}}}"` where "{b}" is replaced by the sublattice index and
+      ``"\\phi_{{{b},{m}}}"`` where "{b}" is replaced by the sublattice index and
       "{m}" is replaced by the site function index, a number in the range 0 to M-1,
       where M is the number of occupants allowed on the site.
 
@@ -963,17 +963,42 @@ def make_occ_site_functions_matrix_rep(
     """
     site_rep = integral_site_coordinate_symgroup_rep
 
+    # P = B * Phi, P: indicator functions (as rows), Phi: site functions (as rows)
+
+    # Get Phi and Phi^-1 for each sublattice
     phi = []
     phi_inv = []
+    constant_function_index = []
     for sublattice_index, indicator_rep in enumerate(indicator_matrix_rep[0]):
         site_functions = get_occ_site_functions(
             occ_site_functions=occ_site_functions,
             sublattice_index=sublattice_index,
         )
+
+        # Check for constant site function
+        if site_functions.shape == (0, 0):
+            constant_function_index.append(None)
+        else:
+            found_constant_function_index = False
+            for function_index, site_function in enumerate(site_functions):
+                if (site_function == 1.0).all():
+                    found_constant_function_index = True
+                    constant_function_index.append(function_index)
+            if found_constant_function_index is False:
+                raise ValueError(
+                    "Error in make_occ_site_functions_matrix_rep: "
+                    "No constant function found for the occupation site basis "
+                    f"functions on sublattice {sublattice_index}."
+                )
+
         phi.append(site_functions)
         phi_inv.append(np.linalg.inv(site_functions))
 
+    # Generate the matrix rep for transforming phi, M_phi,
+    # from the matrix rep for transforming indicator functions, M_indicator:
+    #     M_phi[b_init] = phi[b_final] * M_indicator[b_init] * phi_inv[b_init]
     occ_site_functions_matrix_rep = []
+    mixing = False
     for prim_factor_group_index, indicator_op_rep in enumerate(indicator_matrix_rep):
         site_functions_op_rep = []
         for sublattice_index, indicator_rep in enumerate(indicator_op_rep):
@@ -990,8 +1015,55 @@ def make_occ_site_functions_matrix_rep(
                 site_functions_op_rep.append(np.zeros((0, 0)))
                 continue
             site_function_rep = phi[b_final] @ indicator_rep @ phi_inv[b]
+
+            x = site_function_rep[:, constant_function_index[b]]
+            if np.isclose(x, 0.0).sum() != len(x) - 1:
+                mixing = True
+
             site_functions_op_rep.append(site_function_rep)
         occ_site_functions_matrix_rep.append(site_functions_op_rep)
+
+    if mixing:
+        print()
+        print(
+            "\n"
+            "**** Error in make_occ_site_functions_matrix_rep: **********************\n"
+            "* Invalid choice of occupation DoF site basis functions.               *\n"
+            "* The constant function is mixing with non-constant functions.         *\n"
+            "* Try using chebychev site basis functions or an isotropic default     *\n"
+            "* occupant.                                                            *\n"
+            "************************************************************************\n"
+            "\n"
+        )
+
+        print("Occupation site basis functions:")
+        for sublattice_index, indicator_rep in enumerate(indicator_matrix_rep[0]):
+            print(f"~ sublattice_index: {sublattice_index} ~")
+            site_functions = get_occ_site_functions(
+                occ_site_functions=occ_site_functions,
+                sublattice_index=sublattice_index,
+            )
+            print(site_functions)
+            print()
+        print()
+
+        print("Site function matrix reps:")
+        for i_fg, site_functions_op_rep in enumerate(occ_site_functions_matrix_rep):
+            print(f"~~~ prim_factor_group_index: {i_fg} ~~~")
+            for b, site_function_rep in enumerate(site_functions_op_rep):
+                print(f"~ sublattice_index: {b} ~")
+                x = site_function_rep[:, constant_function_index[b]]
+                if np.isclose(x, 0.0).sum() != len(x) - 1:
+                    print("********** Mixing **********")
+                print("M:\n", site_function_rep)
+                print()
+
+        raise ValueError(
+            "Error in make_occ_site_functions_matrix_rep: "
+            "Invalid choice of occupation DoF site basis functions. "
+            "The constant function is mixing with non-constant functions. "
+            "Try using chebychev site basis functions."
+        )
 
     return occ_site_functions_matrix_rep
 
@@ -1125,6 +1197,15 @@ class ClusterMatrixRepBuilder:
                     "occ_site_functions is None for discrete DoF."
                 )
 
+            # # DEBUG:
+            # indicator_matrix_rep = prim.local_dof_matrix_rep(key)
+            # for i_fg, sublat_rep in enumerate(indicator_matrix_rep):
+            #     print(f"~~~ fg: {i_fg} ~~~")
+            #     for i_sublat, M in enumerate(sublat_rep):
+            #         print(f"~ b: {i_sublat} ~")
+            #         print(M)
+            #         print()
+
             # For discrete DoF, we need to construct the matrix rep for the
             # site basis functions actually being used from the matrix rep
             # for the indicator variables
@@ -1184,7 +1265,11 @@ class ClusterMatrixRepBuilder:
         ``x_final = M @ x_init``, where `x_init` are the site variables on an initial 
         site on the `i_sublat_init`-th sublattice and `x_final` are the site variables
         on the final site under the application of the `i_factor_group`-th prim factor
-        group operation."""
+        group operation.
+        
+        For example, for occupation DoF, these are the matrix representations 
+        that transform the site basis functions, not the indicator functions.
+        """
 
         self.cluster_group = cluster_group
         """libcasm.sym_info.SymGroup: The subgroup of the generating group that leaves \

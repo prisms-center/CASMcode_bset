@@ -111,7 +111,7 @@ class WriterV1Basic:
             - `"occ_var_name"`: str, A variable name template for the site functions,
               which may be formated using `b` for sublattice index and `m` for site
               function index (i..e ``occ_var_name.format(b=0, m=1)``).
-            - `"occ_var_desc": str, A description of the occupation
+            - `"occ_var_desc"`: str, A description of the occupation
               variable, including a description of the subscript indices.
             - `"occ_var_indices"`: list[list[str, str]], A list of lists, where each
               sublist contains the variable name and description for each subscript
@@ -212,7 +212,7 @@ class WriterV1Basic:
         - `"occ_var_name"`: str, A variable name template for the site functions,
             which may be formated using `b` for sublattice index and `m` for site 
             function index (i..e ``occ_var_name.format(b=0, m=1)``).
-        - `"occ_var_desc": str, A description of the occupation
+        - `"occ_var_desc"`: str, A description of the occupation
             variable, including a description of the subscript indices.
             
         """

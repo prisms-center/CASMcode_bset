@@ -630,7 +630,7 @@ def test_chebychev_occ_fcc_3b(session_shared_datadir):
         assert np.allclose(builder.occ_site_functions[b]["value"], expected)
 
     for b in [2]:
-        # "A.up", "A.down", "B.up", "B.down"
+        # "B.up", "B.down", "A.up", "A.down"
         expected = np.array(
             [
                 [1.0, 1.0, 1.0, 1.0],

@@ -1,4 +1,4 @@
-from typing import Callable, Iterable, Optional, Union
+from typing import Any, Callable, Iterable, Optional
 
 import numpy as np
 
@@ -574,7 +574,7 @@ class ClusterFunctionsBuilder:
         dofs: Optional[Iterable[str]] = None,
         global_max_poly_order: Optional[int] = None,
         orbit_branch_max_poly_order: Optional[dict[int, int]] = None,
-        occ_site_basis_functions_specs: Union[str, list[dict], None] = None,
+        occ_site_basis_functions_specs: Any = None,
         prim_neighbor_list: Optional[PrimNeighborList] = None,
         make_equivalents: bool = True,
         make_all_local_basis_sets: bool = True,
@@ -620,10 +620,9 @@ class ClusterFunctionsBuilder:
             created. Higher order polynomials are requested either according to cluster
             size using `orbit_branch_max_poly_order` or globally using
             `global_max_poly_order`. The most specific level specified is used.
-        occ_site_basis_functions_specs: Union[str, list[dict], None] = None
+        occ_site_basis_functions_specs: Any = None
             Provides instructions for constructing occupation site basis functions.
-            The accepted options are "chebychev", "occupation", or a `list[dict]`
-            a specifying sublattice-specific choice of site basis functions. This
+            The most common options are "chebychev" or "occupation". This
             parameter corresponds to the value of
 
             .. code-block:: Python
@@ -818,7 +817,7 @@ class ClusterFunctionsBuilder:
         - `"occ_var_name"`: str, A variable name template for the site functions,
           which may be formated using `b` for sublattice index and `m` for site function
           index (i..e ``occ_var_name.format(b=0, m=1)``).
-        - `"occ_var_desc": str, A description of the occupation
+        - `"occ_var_desc"`: str, A description of the occupation
           variable, including a description of the subscript indices.
         """
 

@@ -188,7 +188,7 @@
   Scalar zero_func(int, int) const {
     return Scalar(0.0);
   }
-{% if occ_site_functions|length > 0 %}
+{% if occ_site_functions|length > 0 and "occ" in orbit_bfuncs_variables_needed %}
 
   // --- Occupation function evaluators and accessors: --- //
   {% raw %}
@@ -221,7 +221,11 @@
 {% endif %}
 {% if continuous_dof|length > 0 %}
   {% for dof in continuous_dof %}
-    {% if dof.is_global %}
+    {% if dof.key not in orbit_bfuncs_variables_needed %}
+
+  // --- {{ dof.key }} DoF evaluators and accessors not required --- //
+
+    {% elif dof.is_global %}
 
   // --- {{ dof.key }} Global DoF evaluators and accessors: --- //
 
