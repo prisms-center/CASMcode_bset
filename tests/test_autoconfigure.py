@@ -25,7 +25,7 @@ def test_autoconfigure_apply_results_sets_env_vars():
     ]
 
     # Remove the keys so we can verify they get set
-    for key in ("CASM_CXXFLAGS", "CASM_SOFLAGS"):
+    for key in ("CASM_CXXFLAGS", "CASM_SOFLAGS", "CASM_PREFIX"):
         os.environ.pop(key, None)
 
     with patch("subprocess.run", _make_mock_run(returncode=0)):
@@ -36,10 +36,37 @@ def test_autoconfigure_apply_results_sets_env_vars():
 
     assert os.environ.get("CASM_CXXFLAGS") == "-O3 -Wall -fPIC --std=c++17"
     assert os.environ.get("CASM_SOFLAGS") == "-shared"
+    # CASM_PREFIX not in test_vars — must be set to the default prefix
+    assert "CASM_PREFIX" in os.environ
+    assert len(os.environ["CASM_PREFIX"]) > 0
 
     # Cleanup
-    for key in ("CASM_CXXFLAGS", "CASM_SOFLAGS"):
+    for key in ("CASM_CXXFLAGS", "CASM_SOFLAGS", "CASM_PREFIX"):
         os.environ.pop(key, None)
+
+
+def test_autoconfigure_apply_results_sets_prefix_when_not_in_vars():
+    """apply_results=True must set CASM_PREFIX to the default when not in test_vars."""
+    user_vars = [
+        dict(
+            CASM_CXXFLAGS=None,
+            CASM_SOFLAGS=None,
+        )
+    ]
+
+    os.environ.pop("CASM_PREFIX", None)
+
+    with patch("subprocess.run", _make_mock_run(returncode=0)):
+        casm.bset.autoconfigure(
+            apply_results=True,
+            user_vars=user_vars,
+        )
+
+    assert "CASM_PREFIX" in os.environ
+    assert len(os.environ["CASM_PREFIX"]) > 0
+
+    # Cleanup
+    os.environ.pop("CASM_PREFIX", None)
 
 
 def test_autoconfigure_apply_results_removes_none_vars():

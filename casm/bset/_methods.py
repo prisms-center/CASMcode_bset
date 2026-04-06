@@ -675,6 +675,16 @@ def autoconfigure(
     if apply_results is True:
         if results["vars"] is None:
             raise Exception("No successful configuration found")
+        if "CASM_PREFIX" not in results["vars"]:
+            import io
+            from contextlib import redirect_stdout
+
+            from libcasm.casmglobal.__main__ import main as cgmain
+
+            f = io.StringIO()
+            with redirect_stdout(f):
+                cgmain(argv=["casmglobal", "--prefix"])
+            os.environ["CASM_PREFIX"] = f.getvalue().strip()
         for key, value in results["vars"].items():
             if value is None:
                 os.environ.pop(key, None)
