@@ -675,6 +675,11 @@ def autoconfigure(
     if apply_results is True:
         if results["vars"] is None:
             raise Exception("No successful configuration found")
+        for key, value in results["vars"].items():
+            if value is None:
+                os.environ.pop(key, None)
+            else:
+                os.environ[key] = value
     else:
         os.environ = orig_environ
 
