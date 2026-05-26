@@ -74,100 +74,109 @@ def _autoconfigure(envfile: str = None, shfile: str = None):
             print(f"wrote: {shfile}")
 
 
-parser = argparse.ArgumentParser()
-parser.add_argument(
-    "--autoconfigure",
-    action="store_true",
-    help="Run autoconfigure to find environment variables for compiling Clexulator.",
-)
-parser.add_argument(
-    "--test",
-    action="store_true",
-    help="Test configuration of environment variables for compiling Clexulator.",
-)
-parser.add_argument(
-    "--envfile",
-    type=str,
-    help="If provided, successful variables are appended to the given file.",
-)
-parser.add_argument(
-    "--shfile",
-    type=str,
-    help="If provided, a shell script with given name is written that can be used to "
-    "set the successful variables.",
-)
-parser.add_argument(
-    "--cxxflags",
-    type=str,
-    help=(
-        "If using --test, specifies the C++ compiler flags that are tested "
-        '(default="-O3 -Wall -fPIC -std=c++17 ").'
-    ),
-    default="-O3 -Wall -fPIC -std=c++17 ",
-)
-parser.add_argument(
-    "--soflags",
-    type=str,
-    help=(
-        "If using --test, specifies the shared object compilation flags that are "
-        'tested (default="-shared ").'
-    ),
-    default="-shared ",
-)
-parser.add_argument(
-    "--prefix",
-    type=str,
-    help=(
-        "If using --test, specifies the CASM prefix that is tested "
-        "(default=$(python -m libcasm.casmglobal --prefix))."
-    ),
-)
-
-args = parser.parse_args(args=sys.argv[1:])
-
-if not sys.argv[1:]:
-    parser.print_help()
-    exit()
-
-if args.autoconfigure:
-    _autoconfigure(envfile=args.envfile, shfile=args.shfile)
-elif args.test:
-    if args.prefix:
-        print("prefix:", args.prefix)
-    else:
-        try:
-            from libcasm.casmglobal.__main__ import main as cgmain
-        except ImportError:
-            raise ImportError("libcasm is not installed")
-
-        import io
-        from contextlib import redirect_stdout
-
-        f = io.StringIO()
-        with redirect_stdout(f):
-            cgmain(argv=["casmglobal", "--prefix"])
-        casm_prefix = f.getvalue().strip()
-        print("prefix:", casm_prefix)
-    print("cxxflags:", args.cxxflags)
-    print("soflags:", args.soflags)
-    print()
-
-    verbose = True
-    test_vars = dict(
-        CASM_CXXFLAGS=args.cxxflags,
-        CASM_SOFLAGS=args.soflags,
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--autoconfigure",
+        action="store_true",
+        help=(
+            "Run autoconfigure to find environment variables for compiling Clexulator."
+        ),
+    )
+    parser.add_argument(
+        "--test",
+        action="store_true",
+        help="Test configuration of environment variables for compiling Clexulator.",
+    )
+    parser.add_argument(
+        "--envfile",
+        type=str,
+        help="If provided, successful variables are appended to the given file.",
+    )
+    parser.add_argument(
+        "--shfile",
+        type=str,
+        help=(
+            "If provided, a shell script with given name is written that can be used "
+            "to set the successful variables."
+        ),
+    )
+    parser.add_argument(
+        "--cxxflags",
+        type=str,
+        help=(
+            "If using --test, specifies the C++ compiler flags that are tested "
+            '(default="-O3 -Wall -fPIC -std=c++17 ").'
+        ),
+        default="-O3 -Wall -fPIC -std=c++17 ",
+    )
+    parser.add_argument(
+        "--soflags",
+        type=str,
+        help=(
+            "If using --test, specifies the shared object compilation flags that are "
+            'tested (default="-shared ").'
+        ),
+        default="-shared ",
+    )
+    parser.add_argument(
+        "--prefix",
+        type=str,
+        help=(
+            "If using --test, specifies the CASM prefix that is tested "
+            "(default=$(python -m libcasm.casmglobal --prefix))."
+        ),
     )
 
-    with _TestSystem() as test_system:
+    if not sys.argv[1:]:
+        parser.print_help()
+        exit()
 
-        try:
-            test_system.try_vars(test_vars, verbose=verbose)
-            print("SUCCESS")
-            sys.exit(0)
-        except Exception:
-            print("FAILED")
-            sys.exit(1)
-        test_system.reset()
-else:
-    parser.print_help()
-    exit()
+    args = parser.parse_args(args=sys.argv[1:])
+
+    if args.autoconfigure:
+        _autoconfigure(envfile=args.envfile, shfile=args.shfile)
+    elif args.test:
+        if args.prefix:
+            print("prefix:", args.prefix)
+        else:
+            try:
+                from libcasm.casmglobal.__main__ import main as cgmain
+            except ImportError:
+                raise ImportError("libcasm is not installed")
+
+            import io
+            from contextlib import redirect_stdout
+
+            f = io.StringIO()
+            with redirect_stdout(f):
+                cgmain(argv=["casmglobal", "--prefix"])
+            casm_prefix = f.getvalue().strip()
+            print("prefix:", casm_prefix)
+        print("cxxflags:", args.cxxflags)
+        print("soflags:", args.soflags)
+        print()
+
+        verbose = True
+        test_vars = dict(
+            CASM_CXXFLAGS=args.cxxflags,
+            CASM_SOFLAGS=args.soflags,
+        )
+
+        with _TestSystem() as test_system:
+
+            try:
+                test_system.try_vars(test_vars, verbose=verbose)
+                print("SUCCESS")
+                sys.exit(0)
+            except Exception:
+                print("FAILED")
+                sys.exit(1)
+            test_system.reset()
+    else:
+        parser.print_help()
+        exit()
+
+
+if __name__ == "__main__":
+    main()
